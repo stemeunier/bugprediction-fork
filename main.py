@@ -45,8 +45,13 @@ if __name__ == '__main__':
         session,
         project.project_id)
 
+    # TODO : wrap the calls below in a method as we must follow the order
+    git.create_commits_from_github()
     git.create_issues_from_github()
+    git.create_versions_from_github()
 
+    # TODO Iteration Example to be deleted
     issues = session.query(Issue).all()
     for row in issues:
         print(f"Issue: {row.title}")
+    # DELETE ME
