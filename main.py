@@ -42,7 +42,49 @@ if __name__ == '__main__':
         os.environ["OTTM_SOURCE_REPO"],
         session,
         project.project_id)
-    git.populate_db()
+    # git.populate_db()
 
+    # Checkout, execute the tool and inject CSV result into the database
+    #with tempfile.TemporaryDirectory() as tmp_dir:
+    tmp_dir = tempfile.mkdtemp()
+    logging.info('created temporary directory: ' + tmp_dir)
+    
+    # Clone the repository
+    process = subprocess.run(["git", "clone", os.environ["OTTM_SOURCE_REPO_URL"]], 
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        universal_newlines=True,
+                        cwd=tmp_dir)
+    logging.info('Executed command line: ' + ' '.join(process.args))
+    repo_dir = os.path.join(tmp_dir, os.environ["OTTM_SOURCE_PROJECT"])
 
+    # List the versions and checkout each one of them
+    versions = session.query(Version).all()
+    for version in versions:
+        process = subprocess.run(["git", "checkout", version.tag], 
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        universal_newlines=True,
+                        cwd=repo_dir)
+        logging.info('Executed command line: ' + ' '.join(process.args))
+        
+        # Generate the git log for the version
+        print(version.start_date.isoformat())
+        print(version.end_date.isoformat())
+        fd, git_log_file = tempfile.mkstemp(suffix=".log")
+        fh = os.fdopen(fd, "w")
+        logging.info('Generate GIT log file: ' + git_log_file)
+        # git log --all --numstat --date=short --pretty=format:'--%h--%ad--%aN' --no-renames --since '2014-04-09T21:16:07' --until '2014-05-22T17:52:09'  > gitlogfile.log
+        process = subprocess.run(["git", "--no-pager", "log", "--all", "--numstat", "--date=short", '--pretty=format:"--%h--%ad--%aN"', "--no-renames",
+                        "--since='" + version.start_date.isoformat() + "'",
+                        "--until='" + version.start_date.isoformat() + "'"],
+                        stdout=fh,
+                        stderr=subprocess.STDOUT,
+                        universal_newlines=True,
+                        cwd=repo_dir)
+        logging.info('Executed command line: ' + ' '.join(process.args))
+
+        # Get statistics with lizard
+        lizard = LizardConnector(directory=repo_dir, session=session, version_id=version.version_id)
+        lizard.analyze_source_code()
 
