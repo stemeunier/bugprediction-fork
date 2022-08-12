@@ -5,21 +5,16 @@ from sqlalchemy.ext.declarative import declarative_base
 import logging
 import platform
 import subprocess
+import tempfile
 from models.project import Project
-from models.issue import Issue
+from models.version import Version
 from models.database import setup_database
 from dotenv import load_dotenv
 from githubconnector import GitHubConnector
+from lizardconnector import LizardConnector
 
 def check_output(command):
     return subprocess.check_output(command, shell = True).decode("utf-8")
-
-def get_issues_from_github():
-    token = os.environ["OTTM_GITHUB_TOKEN"]
-    g = Github(token)
-    repo = g.get_repo("microsoft/vscode")
-    issues = repo.get_issues()  # Filter by labels=['bug']
-    return issues
 
 if __name__ == '__main__':
     load_dotenv()
@@ -35,23 +30,19 @@ if __name__ == '__main__':
     session = Session()
     setup_database(engine)
     
-    project = Project(name="Project", repo="any", language="Java")
+    project = Project(name=os.environ["OTTM_SOURCE_PROJECT"],
+                     repo=os.environ["OTTM_SOURCE_REPO"],
+                     language=os.environ["OTTM_LANGUAGE"])
     session.add(project)
     session.commit()
     
+    # Populate the database
     git = GitHubConnector(
         os.environ["OTTM_GITHUB_TOKEN"],
-        "bbalet/jorani",
+        os.environ["OTTM_SOURCE_REPO"],
         session,
         project.project_id)
+    git.populate_db()
 
-    # TODO : wrap the calls below in a method as we must follow the order
-    git.create_commits_from_github()
-    git.create_issues_from_github()
-    git.create_versions_from_github()
 
-    # TODO Iteration Example to be deleted
-    issues = session.query(Issue).all()
-    for row in issues:
-        print(f"Issue: {row.title}")
-    # DELETE ME
+

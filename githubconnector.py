@@ -1,11 +1,9 @@
 import logging
-from this import d
 from models.issue import Issue
-from models.project import Project
 from models.version import Version
 from models.commit import Commit
 from github import Github
-from datetime import datetime, date
+from datetime import datetime
 from sqlalchemy.sql import func
 
 class GitHubConnector:
@@ -14,6 +12,13 @@ class GitHubConnector:
         self.repo = repo
         self.session = session
         self.project_id = project_id
+
+    def populate_db(self):
+        """Populate the database from the GitHub API"""
+        # Preserve the sequence below
+        self.create_commits_from_github()
+        self.create_issues_from_github()
+        self.create_versions_from_github()
 
     def create_issues_from_github(self):
         """
@@ -76,6 +81,7 @@ class GitHubConnector:
         for release in releases:
             # Count the number of issues that occured between the start and end dates
             bugs_count = self.session.query(Issue).filter(Issue.created_at.between(release.published_at,last_day)).count()
+            
             # Compute the bug velocity of the release
             delta = last_day - release.published_at
             days = delta.days
@@ -83,19 +89,36 @@ class GitHubConnector:
                 bug_velo_release = bugs_count / days
             else:
                 bug_velo_release = bugs_count
+            
             # Compute a rough estimate of the total changes
             rough_changes = self.session.query(
                     func.sum(Commit.total).label("total_changes")
-                ).filter(Commit.date.between(release.published_at,last_day)).scalar()
+                ).filter(Commit.date.between(release.published_at, last_day)).scalar()
+
+            # Compute the average seniorship of the team
+            team_members = self.session.query(Commit.committer).filter(
+                    Commit.date.between(release.published_at, last_day)
+                ).group_by(Commit.committer).all()
+            seniority_total = 0
+            for member in team_members:
+                first_commit = self.session.query(
+                    func.min(Commit.date).label("date")
+                    ).filter(Commit.committer == member[0]).scalar()
+                delta = last_day - first_commit
+                seniority = delta.days
+                seniority_total += seniority
+            seniority_avg = seniority_total / len(team_members)
             
             versions.append(
                 Version(
                     project_id = self.project_id,
                     name = release.title,
+                    tag = release.tag_name,
                     start_date = release.published_at,
                     end_date = last_day,
                     bugs = bugs_count,
                     changes = rough_changes,
+                    avg_team_xp = seniority_avg,
                     bug_velocity = bug_velo_release
                 )
             )
