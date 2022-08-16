@@ -1,17 +1,54 @@
 import logging
+from unicodedata import name
 from models.issue import Issue
 from models.version import Version
 from models.commit import Commit
+from models.author import Author
+from models.alias import Alias
 from github import Github
 from datetime import datetime
 from sqlalchemy.sql import func
+import json
 
 class GitHubConnector:
+    """Connector to Github
+    
+    Attributes:
+    -----------
+     - token        Token for the GitHub API
+     - repo         GitHub repository
+     - session      Database connection managed by sqlachemy
+     - project_id   Identifier of the project
+    """
     def __init__(self, token, repo, session, project_id):
         self.token = token
         self.repo = repo
         self.session = session
         self.project_id = project_id
+
+    def setup_aliases(self, aliases):
+        """Populate the table of aliases if any alias if defined"""
+        logging.info('setup_aliases')
+        if aliases:
+            aliases = y = json.loads(aliases)
+            for alias, alternatives in aliases.items():
+                author = self.session.query(Author).filter(Author.name == alias).first()
+                if not author:
+                    author = Author(name=alias)
+                    self.session.add(author)
+                    self.session.commit()
+                for alternative in alternatives:
+                    syno = self.session.query(Author).filter(Author.name == alternative).first()
+                    if not syno:
+                        syno = Author(name=alternative)
+                        self.session.add(syno)
+                        self.session.commit()
+                    author_alias = self.session.query(Alias).filter(Alias.name == alternative).first()
+                    if not author_alias:
+                        author_alias = Alias(author_id=author.author_id, name=alternative)
+                        self.session.add(author_alias)
+                        self.session.commit()
+
 
     def populate_db(self):
         """Populate the database from the GitHub API"""

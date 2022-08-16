@@ -5,6 +5,6 @@ from models.database import Base
 class File(Base):
     """File in the repository"""
     __tablename__ = "file"
-    file_id = Column(String, primary_key=True)
+    file_id = Column(Integer, primary_key=True)
     path = Column(String)
     language = Column(String)
