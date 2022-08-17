@@ -5,12 +5,14 @@ from models.commit import Commit
 from models.file import File
 from models.author import Author
 from models.ownership import Ownership
+from utils.proglang import guess_programing_language
 from datetime import datetime
 from sqlalchemy.sql import func
 import subprocess
 import os
 import tempfile
 import pandas as pd
+from pygments.lexers import guess_lexer
 
 class CodeMaatConnector:
     """
@@ -164,10 +166,13 @@ class CodeMaatConnector:
                 self.session.add(author)
                 self.session.commit()
 
-            # Create the file if it doesn't exist => Maybe not the best place here, should be done by lizard
+            # Create the file if it doesn't exist => Maybe not the best place here
+            # should be done by lizard or nloc. Anyway, should be wrapped in a util func
             file = self.session.query(File).filter(File.path == row['entity']).first()
             if not file:
-                file = File(path=row['entity'])
+                # Guess the programming language
+                lang = guess_programing_language(row['entity'])
+                file = File(path=row['entity'], language=lang)
                 self.session.add(file)
                 self.session.commit()
 
