@@ -44,7 +44,8 @@ if __name__ == '__main__':
         session,
         project.project_id)
     # TODO: uncomment as it is working fine
-    # git.populate_db()
+
+    git.populate_db()
     git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
 
     # Checkout, execute the tool and inject CSV result into the database
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     logging.info('created temporary directory: ' + tmp_dir)
     
     # Clone the repository
-    process = subprocess.run(["git", "clone", os.environ["OTTM_SOURCE_REPO_URL"]], 
+    process = subprocess.run(["git", "clone", os.environ["OTTM_SOURCE_REPO_URL"]],
                         stdout=subprocess.PIPE,
                         cwd=tmp_dir)
     logging.info('Executed command line: ' + ' '.join(process.args))
@@ -62,11 +63,11 @@ if __name__ == '__main__':
     # List the versions and checkout each one of them
     versions = session.query(Version).all()
     for version in versions:
-        process = subprocess.run(["git", "checkout", version.tag], 
+        process = subprocess.run(["git", "checkout", version.tag],
                         stdout=subprocess.PIPE,
                         cwd=repo_dir)
         logging.info('Executed command line: ' + ' '.join(process.args))
-        
+
         # Get statistics from git log with codemaat
         codemaat = CodeMaatConnector(repo_dir, session, version)
         codemaat.populate_db()
