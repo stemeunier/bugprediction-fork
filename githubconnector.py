@@ -5,6 +5,7 @@ from sqlalchemy import desc
 from unicodedata import name
 
 import models
+from configuration import Configuration
 from models.issue import Issue
 from models.version import Version
 from models.commit import Commit
@@ -33,6 +34,7 @@ class GitHubConnector:
         self.repo = repo
         self.session = session
         self.project_id = project_id
+        self.configuration = Configuration()
 
     def setup_aliases(self, aliases):
         """Populate the table of aliases if any alias if defined"""
@@ -73,11 +75,12 @@ class GitHubConnector:
         g = Github(self.token)
         repo = g.get_repo(self.repo)
 
-        if self.session.query(Issue).all():
-            last_issue = self.session.query(Issue).order_by(desc(models.issue.Issue.created_at)).get(1)
-            git_issues = repo.get_issues(since=last_issue.created_at + datetime.timedelta(seconds=1), labels=['bug'])
+        last_issue = self.session.query(Issue).order_by(desc(models.issue.Issue.created_at)).get(1)
+        if last_issue is not None:
+            git_issues = repo.get_issues(since=last_issue.created_at + datetime.timedelta(seconds=1),
+                                         labels=[self.configuration.issue_tag])
         else:
-            git_issues = repo.get_issues(labels=['bug'])  # Filter by labels=['bug']
+            git_issues = repo.get_issues(labels=[self.configuration.issue_tag])  # Filter by labels=['bug']
 
         bugs = []
         for issue in git_issues:
@@ -100,12 +103,10 @@ class GitHubConnector:
         g = Github(self.token)
         repo = g.get_repo(self.repo)
 
-        if self.session.query(Commit).all():
-            print("full")
-            last_commit = self.session.query(Commit).order_by(desc(models.commit.Commit.date)).get(1)
+        last_commit = self.session.query(Commit).order_by(desc(models.commit.Commit.date)).get(1)
+        if last_commit is not None:
             git_commits = repo.get_commits(since=last_commit.date + datetime.timedelta(seconds=1))
         else:
-            print("empty")
             git_commits = repo.get_commits()
 
         commits = []
@@ -136,10 +137,11 @@ class GitHubConnector:
         last_version = self.session.query(Version).order_by(desc(models.version.Version.start_date)).get(1)
         if last_version:
             releases = [release for release in releases
-                        if release.published_at > last_version.start_date or release.tag_name in os.environ["OTTM_INCLUDE_VERSIONS"]
-                        and release.tag_name not in os.environ["OTTM_EXCLUDE_VERSIONS"]]
+                        if release.published_at > last_version.start_date
+                        or release.tag_name in self.configuration.include_versions
+                        and release.tag_name not in self.configuration.exclude_versions]
         else:
-            releases = [release for release in releases if release.tag_name not in os.environ["OTTM_EXCLUDE_VERSIONS"]]
+            releases = [release for release in releases if release.tag_name not in self.configuration.exclude_versions]
 
         versions = []
         # GitHub API sorts the version from the latest to the oldest
