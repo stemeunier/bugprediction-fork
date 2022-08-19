@@ -12,7 +12,7 @@ from models.database import setup_database
 from dotenv import load_dotenv
 from githubconnector import GitHubConnector
 from codemaatconnector import CodeMaatConnector
-# from lizardconnector import LizardConnector
+from fileanalyzer import FileAnalyzer
 
 def check_output(command):
     return subprocess.check_output(command, shell = True).decode("utf-8")
@@ -69,9 +69,9 @@ if __name__ == '__main__':
         
         # Get statistics from git log with codemaat
         codemaat = CodeMaatConnector(repo_dir, session, version)
-        codemaat.populate_db()
+        #codemaat.populate_db()
 
         # Get statistics with lizard
-        # lizard = LizardConnector(directory=repo_dir, session=session, version_id=version.version_id)
-        # lizard.analyze_source_code()
+        lizard = FileAnalyzer(directory=repo_dir, session=session, version_id=version.version_id)
+        lizard.analyze_source_code()
 
