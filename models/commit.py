@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Table, DateTime, Flo
 from sqlalchemy.orm import relationship, backref
 from models.database import Base
 
+
 class Commit(Base):
     __tablename__ = "commit"
     commit_id = Column(Integer, primary_key=True)

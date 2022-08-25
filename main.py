@@ -69,8 +69,8 @@ if __name__ == '__main__':
         logging.info('Executed command line: ' + ' '.join(process.args))
 
         # Get statistics from git log with codemaat
-        codemaat = CodeMaatConnector(repo_dir, session, version)
-        codemaat.populate_db()
+        # codemaat = CodeMaatConnector(repo_dir, session, version)
+        # codemaat.populate_db()
 
         # Get statistics with lizard
         # lizard = LizardConnector(directory=repo_dir, session=session, version_id=version.version_id)

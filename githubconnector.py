@@ -62,9 +62,9 @@ class GitHubConnector:
     def populate_db(self):
         """Populate the database from the GitHub API"""
         # Preserve the sequence below
+        self.create_versions_from_github()
         self.create_commits_from_github()
         self.create_issues_from_github()
-        self.create_versions_from_github()
 
     def create_issues_from_github(self):
         """
@@ -75,23 +75,35 @@ class GitHubConnector:
         g = Github(self.token)
         repo = g.get_repo(self.repo)
 
-        last_issue = self.session.query(Issue).order_by(desc(models.issue.Issue.created_at)).get(1)
+        # Check if a database already exist
+        last_issue = self.session.query(Issue).order_by(desc(models.issue.Issue.updated_at)).get(1)
         if last_issue is not None:
-            git_issues = repo.get_issues(since=last_issue.created_at + datetime.timedelta(seconds=1),
-                                         labels=[self.configuration.issue_tag])
+            # Update existing database by fetching new issues
+            git_issues = repo.get_issues(since=last_issue.updated_at + datetime.timedelta(seconds=1),
+                                         labels=[self.configuration.issue_tag])  # Filter by labels=['bug']
         else:
+            # Create a database with all commits
             git_issues = repo.get_issues(labels=[self.configuration.issue_tag])  # Filter by labels=['bug']
 
+        versions = self.session.query(Version).all()
+
         bugs = []
-        for issue in git_issues:
-            bugs.append(
-                Issue(
-                    project_id=self.project_id,
-                    title=issue.title,
-                    number=issue.number,
-                    created_at=issue.created_at
-                )
-            )
+        for version in versions:
+            for issue in git_issues:
+                # Check if the commit is linked to an interesting version
+                if version.end_date > issue.created_at > version.start_date:
+                    bugs.append(
+                        Issue(
+                            project_id=self.project_id,
+                            title=issue.title,
+                            number=issue.number,
+                            created_at=issue.created_at,
+                            updated_at=issue.updated_at
+                        )
+                    )
+
+        # Remove potential duplicated values
+        list(dict.fromkeys(bugs))
         self.session.add_all(bugs)
         self.session.commit()
 
@@ -103,25 +115,33 @@ class GitHubConnector:
         g = Github(self.token)
         repo = g.get_repo(self.repo)
 
+        # Check if a database already exist
         last_commit = self.session.query(Commit).order_by(desc(models.commit.Commit.date)).get(1)
         if last_commit is not None:
+            # Update existing database by fetching new commits
             git_commits = repo.get_commits(since=last_commit.date + datetime.timedelta(seconds=1))
         else:
+            # Create a database with all commits
             git_commits = repo.get_commits()
 
+        versions = self.session.query(Version).all()
+
         commits = []
-        for git_commit in git_commits:
-            commits.append(
-                Commit(
-                    project_id=self.project_id,
-                    sha=git_commit.sha,
-                    committer=git_commit.commit.committer.name,
-                    date=git_commit.commit.committer.date,
-                    additions=git_commit.stats.additions,
-                    deletions=git_commit.stats.deletions,
-                    total=git_commit.stats.total
-                )
-            )
+        for version in versions:
+            for git_commit in git_commits:
+                # Check if the commit is linked to an interesting version
+                if version.end_date > git_commit.commit.committer.date > version.start_date:
+                    commits.append(
+                        Commit(
+                            project_id=self.project_id,
+                            sha=git_commit.sha,
+                            committer=git_commit.commit.committer.name,
+                            date=git_commit.commit.committer.date,
+                            additions=git_commit.stats.additions,
+                            deletions=git_commit.stats.deletions,
+                            total=git_commit.stats.total
+                        )
+                    )
         self.session.add_all(commits)
         self.session.commit()
 
@@ -134,14 +154,38 @@ class GitHubConnector:
         g = Github(self.token)
         repo = g.get_repo(self.repo)
         releases = repo.get_releases()
-        last_version = self.session.query(Version).order_by(desc(models.version.Version.start_date)).get(1)
+
+        # Check if a database already exist
+        last_version = self.session.query(Version).order_by(desc(Version.start_date)).get(1)
         if last_version:
+            # Update existing database by fetching new versions and versions on "include" list but not in "exclude" one
             releases = [release for release in releases
-                        if release.published_at > last_version.start_date
-                        or release.tag_name in self.configuration.include_versions
+                        if (release.published_at > last_version.start_date + datetime.timedelta(seconds=1)
+                            or release.tag_name in self.configuration.include_versions)
                         and release.tag_name not in self.configuration.exclude_versions]
+
         else:
+            # Create a database with all versions
             releases = [release for release in releases if release.tag_name not in self.configuration.exclude_versions]
+
+        # Remove potential duplicated values
+        list(dict.fromkeys(releases))
+
+
+        # Removing excluded versions from database
+
+
+        ## versions_to_delete = self.session.query(Version).filter(str(Version.tag) in self.configuration.exclude_versions)
+        # for v in versions_to_delete:
+        #     print(v.tag, " ", self.configuration.exclude_versions)
+        #     print(v.tag in self.configuration.exclude_versions)
+        ##     self.session.delete(v)
+
+        versions = self.session.query(Version).all()
+
+        for version in versions:
+            if version.tag in self.configuration.exclude_versions:
+                self.session.delete(version)
 
         versions = []
         # GitHub API sorts the version from the latest to the oldest
@@ -192,5 +236,6 @@ class GitHubConnector:
                 )
             )
             last_day = release.published_at
+
         self.session.add_all(versions)
         self.session.commit()
