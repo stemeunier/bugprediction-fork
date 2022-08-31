@@ -11,3 +11,4 @@ class Issue(Base):
     number = Column(String)
     title = Column(String)
     created_at = Column(DateTime)
+    updated_at = Column(DateTime)
