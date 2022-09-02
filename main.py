@@ -6,6 +6,8 @@ import logging
 import platform
 import subprocess
 import tempfile
+
+from ckconnector import CkConnector
 from models.project import Project
 from models.version import Version
 from models.database import setup_database
@@ -45,7 +47,7 @@ if __name__ == '__main__':
         project.project_id)
     # TODO: uncomment as it is working fine
 
-    git.populate_db()
+    # git.populate_db()
     git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
 
     # Checkout, execute the tool and inject CSV result into the database
@@ -75,4 +77,8 @@ if __name__ == '__main__':
         # Get statistics with lizard
         # lizard = LizardConnector(directory=repo_dir, session=session, version_id=version.version_id)
         # lizard.analyze_source_code()
+
+        # Get statistics with lizard
+        ck = CkConnector(directory=repo_dir, session=session)
+        ck.generate_ck_files()
 

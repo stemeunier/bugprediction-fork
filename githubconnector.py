@@ -171,21 +171,27 @@ class GitHubConnector:
         # Remove potential duplicated values
         list(dict.fromkeys(releases))
 
-
         # Removing excluded versions from database
 
-
-        ## versions_to_delete = self.session.query(Version).filter(str(Version.tag) in self.configuration.exclude_versions)
+        # versions_to_delete = self.session.query(Version).filter(str(Version.tag) in self.configuration.exclude_versions)
+        #
         # for v in versions_to_delete:
-        #     print(v.tag, " ", self.configuration.exclude_versions)
-        #     print(v.tag in self.configuration.exclude_versions)
-        ##     self.session.delete(v)
+        #     self.session.delete(v)
 
+        commits = self.session.query(Commit).all()
+        issues = self.session.query(Issue).all()
         versions = self.session.query(Version).all()
 
         for version in versions:
+            for commit in commits:
+                if version.end_date > commit.date > version.start_date:
+                    self.session.delete(commit)
+            for issue in issues:
+                if version.end_date > issue.created_at > version.start_date:
+                    self.session.delete(issue)
             if version.tag in self.configuration.exclude_versions:
                 self.session.delete(version)
+
 
         versions = []
         # GitHub API sorts the version from the latest to the oldest
