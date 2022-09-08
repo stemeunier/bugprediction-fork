@@ -78,7 +78,7 @@ if __name__ == '__main__':
         # lizard = LizardConnector(directory=repo_dir, session=session, version_id=version.version_id)
         # lizard.analyze_source_code()
 
-        # Get statistics with lizard
+        # Get metrics with CK
         ck = CkConnector(directory=repo_dir, session=session)
-        ck.generate_ck_files()
+        ck.compute_metrics(version.tag)
 
