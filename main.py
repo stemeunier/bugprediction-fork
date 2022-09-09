@@ -80,5 +80,5 @@ if __name__ == '__main__':
 
         # Get metrics with CK
         ck = CkConnector(directory=repo_dir, session=session)
-        ck.compute_metrics(version.tag)
+        ck.compute_metrics(version)
 

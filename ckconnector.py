@@ -8,6 +8,7 @@ import pandas as pd
 from github import Github
 
 from configuration import Configuration
+from models.metric import Metric
 
 
 class CkConnector:
@@ -31,7 +32,7 @@ class CkConnector:
 
         process = subprocess.run(["java", "-jar",
                                   self.configuration.code_ck_path,
-                                  "C:\\Users\\g.dubrasquet-duval\\OTTM\\connectors\\ottm-connector-jira",
+                                  self.directory,
                                   "false", "0", "false", "./", exclude_dir])
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Command return code ' + str(process.returncode))
@@ -40,7 +41,7 @@ class CkConnector:
         tmp = csv_file[metric].tolist()
         return round(sum(tmp) / len(tmp), 2)
 
-    def compute_metrics(self, version_name):
+    def compute_metrics(self, version):
         csv_class = pd.read_csv("class.csv")
 
         wmc = self.compute_mean('wmc', csv_class)
@@ -54,12 +55,28 @@ class CkConnector:
         nopm = self.compute_mean('publicMethodsQty', csv_class)
         noprm = self.compute_mean('privateMethodsQty', csv_class)
 
-        metrics = ['wmc', 'dit', 'noc', 'cbo', 'lcom', 'fanin', 'fanout', 'nom', 'nopm', 'noprm']
-        data = [wmc, dit, noc, cbo, lcom, fanin, fanout, nom, nopm, noprm]
-        with open('metrics/metrics_' + version_name + '.csv', 'w') as f:
-            writer = csv.writer(f)
+        # metrics = ['wmc', 'dit', 'noc', 'cbo', 'lcom', 'fanin', 'fanout', 'nom', 'nopm', 'noprm']
+        # data = [wmc, dit, noc, cbo, lcom, fanin, fanout, nom, nopm, noprm]
+        # with open('metrics/metrics_' + version.tag + '.csv', 'w') as f:
+        #     writer = csv.writer(f)
+        #
+        #     writer.writerow(metrics)
+        #     writer.writerow(data)
 
-            writer.writerow(metrics)
-            writer.writerow(data)
+        metric = Metric(
+            version_id=version.version_id,
+            ck_wmc=wmc,
+            ck_dit=dit,
+            ck_noc=noc,
+            ck_cbo=cbo,
+            ck_lcom=lcom,
+            ck_fan_in=fanin,
+            ck_fan_out=fanout,
+            ck_nom=nom,
+            ck_nopm=nopm,
+            ck_noprm=noprm,
+        )
 
-        logging.info("CK metrics generated in metrics " + version_name + ".csv")
+        self.session.add(metric)
+
+        logging.info("CK metrics added to database fo version " + version.tag)
