@@ -21,19 +21,23 @@ class CkConnector:
         """
         Analyze git log through code churn axis
         """
-        # java -jar ck-0.7.1.jar .  .
-        # process = subprocess.run(["java", "-jar", self.configuration.code_ck_path,
-        # "C:\\Users\\g.dubrasquet-duval\\OTTM\\connectors\\ottm-connector-jira", "."])
         exclude_folders = json.loads(self.configuration.exclude_folders)
         exclude_dir = ""
 
         for folder in exclude_folders:
             exclude_dir += r"C:\Users\g.dubrasquet-duval\OTTM\connectors\ottm-connector-jira" + folder + " "
 
+        # Execute java -jar ck-0.7.1.jar .  .
+        process = subprocess.run(["java", "-jar", 
+                                  self.configuration.code_ck_path,
+                                  self.directory, "."])
+        """
         process = subprocess.run(["java", "-jar",
                                   self.configuration.code_ck_path,
                                   self.directory,
                                   "false", "0", "false", "./", exclude_dir])
+        """
+                                  
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Command return code ' + str(process.returncode))
 
@@ -42,9 +46,13 @@ class CkConnector:
         return round(sum(tmp) / len(tmp), 2)
 
     def compute_metrics(self, version):
+        # Read csv files
         csv_class = pd.read_csv("class.csv")
         csv_method = pd.read_csv("method.csv")
+        csv_field = pd.read_csv("field.csv")
+        csv_variable = pd.read_csv("variable.csv")
 
+        # Calculate mean CK values
         wmc = self.compute_mean('wmc', csv_class)
         dit = self.compute_mean('dit', csv_class)
         noc = self.compute_mean('noc', csv_class)
@@ -79,9 +87,10 @@ class CkConnector:
         visibleMethodsQty = self.compute_mean('visibleMethodsQty', csv_class)
         totalFieldsQty = self.compute_mean('totalFieldsQty', csv_class)
         stringLiteralsQty = self.compute_mean('stringLiteralsQty', csv_class)
-
         hasJavadoc = self.compute_mean("hasJavaDoc", csv_method)
         methodsInvokedQty = self.compute_mean("methodsInvokedQty", csv_method)
+        usageFields = self.compute_mean("usage", csv_field)
+        usageVars = self.compute_mean("usage", csv_variable)
 
 
         # metrics = ['wmc', 'dit', 'noc', 'cbo', 'lcom', 'fanin', 'fanout', 'nom', 'nopm', 'noprm']
@@ -92,6 +101,7 @@ class CkConnector:
         #     writer.writerow(metrics)
         #     writer.writerow(data)
 
+        # Create metric object with CK values
         metric = Metric(
             version_id=version.version_id,
             ck_wmc=wmc,
@@ -129,9 +139,12 @@ class CkConnector:
             ck_qty_try_catch=tryCatchQty,  
             ck_qty_unique_words=uniqueWordsQty,  
             ck_rfc=rfc,
-            ck_tcc=tcc
+            ck_tcc=tcc,
+            ck_usage_fields=usageFields,
+            ck_usage_vars=usageVars
         )
 
+        # Save metric values to Database
         self.session.add(metric)
         self.session.commit()
         logging.info("CK metrics added to database fo version " + version.tag)
