@@ -8,6 +8,7 @@ import subprocess
 import tempfile
 
 from ckconnector import CkConnector
+from models.metric import Metric
 from models.project import Project
 from models.version import Version
 from models.database import setup_database
@@ -72,15 +73,21 @@ if __name__ == '__main__':
                                  cwd=repo_dir)
         logging.info('Executed command line: ' + ' '.join(process.args))
 
+        metric = Metric()
+        metric.version_id = version.version_id
+
         # Get statistics from git log with codemaat
         # codemaat = CodeMaatConnector(repo_dir, session, version)
         # codemaat.populate_db()
 
         # Get statistics with lizard
-        # lizard = FileAnalyzer(directory=repo_dir, session=session, version_id=version.version_id)
-        # lizard.analyze_source_code()
+        lizard = FileAnalyzer(directory=repo_dir, version_id=version.version_id)
+        metric = lizard.complete_metric_values(metric)
 
         # Get metrics with CK
-        ck = CkConnector(directory=repo_dir, session=session)
-        ck.generate_ck_files()
-        ck.compute_metrics(version)
+        ck = CkConnector(directory=repo_dir)
+        metric = ck.complete_metric_values(metric)
+
+        # Save metric values to Database
+        session.add(metric)
+        session.commit()

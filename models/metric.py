@@ -29,6 +29,19 @@ class Metric(Base):
     lizard_warning_count = Column(Integer)
     lizard_fun_rt = Column(Float)
     lizard_nloc_rt = Column(Float)
+    lizard_total_complexity = Column(Integer)
+    lizard_avg_complexity = Column(Float)
+    lizard_total_operands_count = Column(Integer)
+    lizard_unique_operands_count = Column(Integer)
+    lizard_total_operators_count = Column(Integer)
+    lizard_unique_operators_count = Column(Integer)
+
+    # TODO : see if these metrics are still usefuul (maye duplicate from cloc)
+    total_lines = Column(Integer)
+    total_blank_lines = Column(Integer)
+    total_comments = Column(Integer)
+    comments_rt = Column(Float)
+
 
     # CK metrics
     ck_cbo = Column(Float)
