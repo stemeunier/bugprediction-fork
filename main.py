@@ -8,6 +8,7 @@ import subprocess
 import tempfile
 
 from ckconnector import CkConnector
+from jpeekconnector import JPeekConnector
 from models.project import Project
 from models.version import Version
 from models.database import setup_database
@@ -87,3 +88,8 @@ if __name__ == '__main__':
         ck = CkConnector(directory=repo_dir, session=session)
         ck.generate_ck_files()
         ck.compute_metrics(version)
+
+        # Get metrics with JPeek
+        jp = JPeekConnector(directory=repo_dir, session=session)
+        jp.generate_jpeek_files()
+        jp.compute_metrics(version)
