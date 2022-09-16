@@ -147,4 +147,4 @@ class CkConnector:
         # Save metric values to Database
         self.session.add(metric)
         self.session.commit()
-        logging.info("CK metrics added to database fo version " + version.tag)
+        logging.info("CK metrics added to database for version " + version.tag)

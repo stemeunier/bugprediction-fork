@@ -69,3 +69,10 @@ class Metric(Base):
     ck_usage_vars = Column(Float)
     ck_usage_fields = Column(Float)
     ck_method_invok = Column(Float)
+
+    # JPeek metrics
+    jp_camc = Column(Float)
+    jp_lcom = Column(Float)
+    jp_mmac = Column(Float)
+    jp_nhd = Column(Float)
+    jp_scom = Column(Float)

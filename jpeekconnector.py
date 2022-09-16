@@ -3,6 +3,7 @@ import subprocess
 import pandas as pd
 
 from configuration import Configuration
+from models.metric import Metric
 
 class JPeekConnector:
     def __init__(self, directory, session) -> None:
@@ -27,8 +28,29 @@ class JPeekConnector:
     def compute_metrics(self, version):
         # Read xml files
         xml_camc = pd.read_xml("jpeek/CAMC.xml")
-        print(xml_camc)
+        xml_lcom = pd.read_xml("jpeek/LCOM5.xml")
+        xml_mmac = pd.read_xml("jpeek/MMAC.xml")
+        xml_nhd = pd.read_xml("jpeek/NHD.xml")
+        xml_scom = pd.read_xml("jpeek/SCOM.xml")
 
-        mean = self.compute_mean('mean', xml_camc)
+        # Calculate mean JPeek values
+        camc = self.compute_mean('mean', xml_camc)
+        lcom = self.compute_mean('mean', xml_lcom)
+        mmac = self.compute_mean('mean', xml_mmac)
+        nhd = self.compute_mean('mean', xml_nhd)
+        scom = self.compute_mean('mean', xml_scom)
 
-        print(mean)
+        # Create metric object with JPeek values
+        metric = Metric(
+            version_id = version.version_id,
+            jp_camc=camc,
+            jp_lcom=lcom,
+            jp_mmac=mmac,
+            jp_nhd=nhd,
+            jp_scom=scom
+        )
+
+        # Save metric values to Database
+        self.session.add(metric)
+        self.session.commit()
+        logging.info("JPeek metrics added to database for version " + version.tag)

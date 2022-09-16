@@ -87,9 +87,9 @@ if __name__ == '__main__':
         # Get metrics with CK
         ck = CkConnector(directory=repo_dir, session=session)
         ck.generate_ck_files()
-        ck.compute_metrics(version)
+        ck_metric = ck.compute_metrics(version)
 
         # Get metrics with JPeek
         jp = JPeekConnector(directory=repo_dir, session=session)
         jp.generate_jpeek_files()
-        jp.compute_metrics(version)
+        jp_metric = jp.compute_metrics(version)
