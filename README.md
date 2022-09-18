@@ -24,7 +24,7 @@ The tool needs to target a repository with release. In the opposite, you need to
 
 ### General
 
- - Lizard
+ - Lizard : https://github.com/terryyin/lizard
  - CodeMaat : https://github.com/adamtornhill/code-maat
 
 ### Java

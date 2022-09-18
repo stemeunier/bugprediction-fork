@@ -8,3 +8,4 @@ github~=1.2.7
 datetime~=4.4
 pandas~=1.4.4
 pygments~=2.13.0
+lxml~=4.9.1

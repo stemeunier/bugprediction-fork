@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 
 from ckconnector import CkConnector
-from models.metric import Metric
+from jpeekconnector import JPeekConnector
 from models.project import Project
 from models.version import Version
 from models.database import setup_database
@@ -82,3 +82,7 @@ if __name__ == '__main__':
         # Get statistics with lizard
         lizard = FileAnalyzer(directory=repo_dir, session=session, version=version)
         lizard.analyze_source_code()
+
+        # Get metrics with JPeek
+        jp = JPeekConnector(directory=repo_dir, session=session, version=version)
+        jp.analyze_source_code()

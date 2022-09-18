@@ -68,11 +68,12 @@ class FileAnalyzer:
 
     def create_metric_values(self):
         """
-        Analyze a folder containing source files
+        Insert a new set of Lizard metrics into the database
         """
         metric = Metric()
         self.__get_metrics_values_from_source_code()
         metric = self.__transform_values_into_metric(metric)
+        metric.version_id = self.version.version_id
         self.session.add(metric)
         self.session.commit()
 
