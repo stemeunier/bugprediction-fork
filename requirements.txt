@@ -2,8 +2,8 @@ SQLAlchemy~=1.4.40
 pydotenv
 PyGithub~=1.55
 lizard~=1.17.10
-
 python-dotenv~=0.21.0
+pydriller~=2.1
 github~=1.2.7
 datetime~=4.4
 pandas~=1.4.4

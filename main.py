@@ -15,10 +15,7 @@ from dotenv import load_dotenv
 from githubconnector import GitHubConnector
 from codemaatconnector import CodeMaatConnector
 from fileanalyzer import FileAnalyzer
-
-def check_output(command):
-    return subprocess.check_output(command, shell=True).decode("utf-8")
-
+from metrics.versions import compute_version_metrics
 
 if __name__ == '__main__':
     load_dotenv()
@@ -42,16 +39,6 @@ if __name__ == '__main__':
         session.add(project)
         session.commit()
 
-    # Populate the database
-    git = GitHubConnector(
-        os.environ["OTTM_GITHUB_TOKEN"],
-        os.environ["OTTM_SOURCE_REPO"],
-        session,
-        project.project_id)
-    # TODO: uncomment as it is working fine
-    # git.populate_db()
-    git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
-
     # Checkout, execute the tool and inject CSV result into the database
     # with tempfile.TemporaryDirectory() as tmp_dir:
     tmp_dir = tempfile.mkdtemp()
@@ -64,6 +51,17 @@ if __name__ == '__main__':
     logging.info('Executed command line: ' + ' '.join(process.args))
     repo_dir = os.path.join(tmp_dir, os.environ["OTTM_SOURCE_PROJECT"])
 
+    # Populate the database
+    git = GitHubConnector(
+        os.environ["OTTM_GITHUB_TOKEN"],
+        os.environ["OTTM_SOURCE_REPO"],
+        session,
+        project.project_id,
+        repo_dir)
+    git.populate_db()
+    git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
+    compute_version_metrics(session)
+
     # List the versions and checkout each one of them
     versions = session.query(Version).all()
     for version in versions:
@@ -74,13 +72,12 @@ if __name__ == '__main__':
 
         # Get statistics from git log with codemaat
         # codemaat = CodeMaatConnector(repo_dir, session, version)
-        # codemaat.populate_db()
+        # codemaat.analyze_git_log()
 
         # Get statistics with lizard
         # lizard = FileAnalyzer(directory=repo_dir, session=session, version_id=version.version_id)
         # lizard.analyze_source_code()
 
         # Get metrics with CK
-        ck = CkConnector(directory=repo_dir, session=session)
-        ck.generate_ck_files()
-        ck.compute_metrics(version)
+        ck = CkConnector(directory=repo_dir, session=session, version=version)
+        ck.analyze_source_code()
