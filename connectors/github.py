@@ -10,7 +10,7 @@ from models.commit import Commit
 from github import Github
 import datetime
 from sqlalchemy.sql import func
-from gitconnector import GitConnector
+from connectors.git import GitConnector
 from utils.timeit import timeit
 
 class GitHubConnector(GitConnector):

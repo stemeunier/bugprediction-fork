@@ -7,15 +7,16 @@ import platform
 import subprocess
 import tempfile
 
-from ckconnector import CkConnector
-from jpeekconnector import JPeekConnector
+
 from models.project import Project
 from models.version import Version
 from models.database import setup_database
 from dotenv import load_dotenv
-from githubconnector import GitHubConnector
-from codemaatconnector import CodeMaatConnector
-from fileanalyzer import FileAnalyzer
+from connectors.ck import CkConnector
+from connectors.jpeek import JPeekConnector
+from connectors.github import GitHubConnector
+from connectors.codemaat import CodeMaatConnector
+from connectors.fileanalyzer import FileAnalyzer
 from metrics.versions import compute_version_metrics
 
 if __name__ == '__main__':
