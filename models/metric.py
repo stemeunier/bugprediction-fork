@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Table, DateTime, Float
+from sqlalchemy import Column, Integer, ForeignKey, Float
 from sqlalchemy.orm import relationship, backref
 from models.database import Base
 
@@ -6,7 +6,7 @@ from models.database import Base
 class Metric(Base):
     __tablename__ = "metric"
     metrics_id = Column(Integer, primary_key=True)
-    version_id = Column(Integer, ForeignKey("version.version_id"))
+    version_id = Column(Integer, ForeignKey("version.version_id"), unique=True)
     # cloc metrics (filtered on the project's language)
     cloc_text_files = Column(Integer)
     cloc_unique_files = Column(Integer)
@@ -29,6 +29,19 @@ class Metric(Base):
     lizard_warning_count = Column(Integer)
     lizard_fun_rt = Column(Float)
     lizard_nloc_rt = Column(Float)
+    lizard_total_complexity = Column(Integer)
+    lizard_avg_complexity = Column(Float)
+    lizard_total_operands_count = Column(Integer)
+    lizard_unique_operands_count = Column(Integer)
+    lizard_total_operators_count = Column(Integer)
+    lizard_unique_operators_count = Column(Integer)
+
+    # TODO : see if these metrics are still usefuul (maye duplicate from cloc)
+    total_lines = Column(Integer)
+    total_blank_lines = Column(Integer)
+    total_comments = Column(Integer)
+    comments_rt = Column(Float)
+
 
     # CK metrics
     ck_cbo = Column(Float)

@@ -5,8 +5,8 @@ import pandas as pd
 
 from configuration import Configuration
 from models.metric import Metric
+from utils.math import Math
 from utils.timeit import timeit
-
 
 class CkConnector:
     """
@@ -63,9 +63,11 @@ class CkConnector:
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Command return code ' + str(process.returncode))
 
-    def compute_mean(self, metric, csv_file):
+    def __compute_mean(self, metric, csv_file):
         tmp = csv_file[metric].tolist()
-        return round(sum(tmp) / len(tmp), 2)
+        # return Math.get_rounded_mean(tmp)
+        # TODO fixme
+        return Math.get_rounded_mean(tmp)
 
     @timeit
     def compute_metrics(self):
@@ -81,44 +83,44 @@ class CkConnector:
         csv_variable = pd.read_csv("variable.csv")
 
         # Calculate mean CK values
-        wmc = self.compute_mean('wmc', csv_class)
-        dit = self.compute_mean('dit', csv_class)
-        noc = self.compute_mean('noc', csv_class)
-        cbo = self.compute_mean('cbo', csv_class)
-        lcom = self.compute_mean('lcom', csv_class)
-        lcc = self.compute_mean('lcc', csv_class)
-        loc = self.compute_mean('loc', csv_class)
-        fanin = self.compute_mean('fanin', csv_class)
-        fanout = self.compute_mean('fanout', csv_class)
-        nom = self.compute_mean('totalMethodsQty', csv_class)
-        nopm = self.compute_mean('publicMethodsQty', csv_class)
-        noprm = self.compute_mean('privateMethodsQty', csv_class)
-        modifiers = self.compute_mean('modifiers', csv_class)
-        nosi = self.compute_mean('nosi', csv_class)
-        rfc = self.compute_mean('rfc', csv_class)
-        tcc = self.compute_mean('tcc', csv_class)
-        cboModified = self.compute_mean('cboModified', csv_class)
-        lcomModified = self.compute_mean('lcom*', csv_class)
-        returnQty = self.compute_mean('returnQty', csv_class)
-        loopQty = self.compute_mean('loopQty', csv_class)
-        tryCatchQty = self.compute_mean('tryCatchQty', csv_class)
-        parenthesizedExpsQty = self.compute_mean('parenthesizedExpsQty', csv_class)
-        numbersQty = self.compute_mean('numbersQty', csv_class)
-        mathOperationsQty = self.compute_mean('mathOperationsQty', csv_class)
-        maxNestedBlocksQty = self.compute_mean('maxNestedBlocksQty', csv_class)
-        anoInnerLambdaQty = self.compute_mean('anonymousClassesQty', csv_class) + self.compute_mean('innerClassesQty', csv_class) + self.compute_mean('lambdasQty', csv_class)
-        uniqueWordsQty = self.compute_mean('uniqueWordsQty', csv_class)
-        logStatementsQty = self.compute_mean('logStatementsQty', csv_class)
-        variablesQty = self.compute_mean('variablesQty', csv_class)
-        comparisonsQty = self.compute_mean('comparisonsQty', csv_class)
-        totalMethodsQty = self.compute_mean('totalMethodsQty', csv_class)
-        visibleMethodsQty = self.compute_mean('visibleMethodsQty', csv_class)
-        totalFieldsQty = self.compute_mean('totalFieldsQty', csv_class)
-        stringLiteralsQty = self.compute_mean('stringLiteralsQty', csv_class)
-        hasJavadoc = self.compute_mean("hasJavaDoc", csv_method)
-        methodsInvokedQty = self.compute_mean("methodsInvokedQty", csv_method)
-        usageFields = self.compute_mean("usage", csv_field)
-        usageVars = self.compute_mean("usage", csv_variable)
+        wmc = self.__compute_mean('wmc', csv_class)
+        dit = self.__compute_mean('dit', csv_class)
+        noc = self.__compute_mean('noc', csv_class)
+        cbo = self.__compute_mean('cbo', csv_class)
+        lcom = self.__compute_mean('lcom', csv_class)
+        lcc = self.__compute_mean('lcc', csv_class)
+        loc = self.__compute_mean('loc', csv_class)
+        fanin = self.__compute_mean('fanin', csv_class)
+        fanout = self.__compute_mean('fanout', csv_class)
+        nom = self.__compute_mean('totalMethodsQty', csv_class)
+        nopm = self.__compute_mean('publicMethodsQty', csv_class)
+        noprm = self.__compute_mean('privateMethodsQty', csv_class)
+        modifiers = self.__compute_mean('modifiers', csv_class)
+        nosi = self.__compute_mean('nosi', csv_class)
+        rfc = self.__compute_mean('rfc', csv_class)
+        tcc = self.__compute_mean('tcc', csv_class)
+        cboModified = self.__compute_mean('cboModified', csv_class)
+        lcomModified = self.__compute_mean('lcom*', csv_class)
+        returnQty = self.__compute_mean('returnQty', csv_class)
+        loopQty = self.__compute_mean('loopQty', csv_class)
+        tryCatchQty = self.__compute_mean('tryCatchQty', csv_class)
+        parenthesizedExpsQty = self.__compute_mean('parenthesizedExpsQty', csv_class)
+        numbersQty = self.__compute_mean('numbersQty', csv_class)
+        mathOperationsQty = self.__compute_mean('mathOperationsQty', csv_class)
+        maxNestedBlocksQty = self.__compute_mean('maxNestedBlocksQty', csv_class)
+        anoInnerLambdaQty = self.__compute_mean('anonymousClassesQty', csv_class) + self.__compute_mean('innerClassesQty', csv_class) + self.__compute_mean('lambdasQty', csv_class)
+        uniqueWordsQty = self.__compute_mean('uniqueWordsQty', csv_class)
+        logStatementsQty = self.__compute_mean('logStatementsQty', csv_class)
+        variablesQty = self.__compute_mean('variablesQty', csv_class)
+        comparisonsQty = self.__compute_mean('comparisonsQty', csv_class)
+        totalMethodsQty = self.__compute_mean('totalMethodsQty', csv_class)
+        visibleMethodsQty = self.__compute_mean('visibleMethodsQty', csv_class)
+        totalFieldsQty = self.__compute_mean('totalFieldsQty', csv_class)
+        stringLiteralsQty = self.__compute_mean('stringLiteralsQty', csv_class)
+        hasJavadoc = self.__compute_mean("hasJavaDoc", csv_method)
+        methodsInvokedQty = self.__compute_mean("methodsInvokedQty", csv_method)
+        usageFields = self.__compute_mean("usage", csv_field)
+        usageVars = self.__compute_mean("usage", csv_variable)
 
 
         # metrics = ['wmc', 'dit', 'noc', 'cbo', 'lcom', 'fanin', 'fanout', 'nom', 'nopm', 'noprm']
