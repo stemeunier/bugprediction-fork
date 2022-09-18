@@ -1,34 +1,56 @@
-import csv
-import json
 import logging
 import os
 import subprocess
-import tempfile
 import pandas as pd
-from github import Github
 
 from configuration import Configuration
 from models.metric import Metric
+from utils.timeit import timeit
 
 
 class CkConnector:
-    def __init__(self, directory, session):
+    """
+    Connector to CK CLI tool
+    https://github.com/mauricioaniche/ck
+
+    Attributes:
+    -----------
+        - directory   Full path to a cloned GIT repository
+        - session     Connection to a database managed by sqlalchemy
+        - version     Sqlalchemy object representing a Version
+    """
+
+    def __init__(self, directory, session, version):
         self.directory = directory
         self.session = session
+        self.version = version
         self.configuration = Configuration()
 
+    def analyze_source_code(self):
+        """
+        Analyze the repository by using CK analysis tool
+        """
+        logging.info('CK::analyze_repo')
+        # Test if metrics have been already generated for this version
+        metric = self.session.query(Metric).filter(Metric.version_id == self.version.version_id).first()
+        if not metric:
+            self.generate_ck_files()
+            self.compute_metrics()
+        else:
+            logging.info('CK analysis already done for this version')
+
+    @timeit
     def generate_ck_files(self):
         """
-        Analyze git log through code churn axis
+        Generate CK files with the CK analysis tool
         """
-        exclude_folders = json.loads(self.configuration.exclude_folders)
+        logging.info('CK::generate_ck_files')
         exclude_dir = ""
-
-        for folder in exclude_folders:
-            exclude_dir += r"C:\Users\g.dubrasquet-duval\OTTM\connectors\ottm-connector-jira" + folder + " "
+        for folder in self.configuration.exclude_folders.split(";"):
+            exclude_dir += os.path.join(self.directory, folder) + " "
 
         # Execute java -jar ck-0.7.1.jar .  .
-        process = subprocess.run(["java", "-jar", 
+        process = subprocess.run(["java", "-jar",
                                   self.configuration.code_ck_path,
                                   self.directory, "."])
         """
@@ -37,7 +59,7 @@ class CkConnector:
                                   self.directory,
                                   "false", "0", "false", "./", exclude_dir])
         """
-                                  
+
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Command return code ' + str(process.returncode))
 
@@ -45,7 +67,13 @@ class CkConnector:
         tmp = csv_file[metric].tolist()
         return round(sum(tmp) / len(tmp), 2)
 
-    def compute_metrics(self, version):
+    @timeit
+    def compute_metrics(self):
+        """
+        Compute CK metrics. As the metrics were computed at the file or function level,
+        we need to compute the average for the repository.
+        """
+        logging.info('CK::compute_metrics')
         # Read csv files
         csv_class = pd.read_csv("class.csv")
         csv_method = pd.read_csv("method.csv")
@@ -103,7 +131,7 @@ class CkConnector:
 
         # Create metric object with CK values
         metric = Metric(
-            version_id=version.version_id,
+            version_id=self.version.version_id,
             ck_wmc=wmc,
             ck_dit=dit,
             ck_noc=noc,
@@ -136,15 +164,15 @@ class CkConnector:
             ck_qty_parenth_exps=parenthesizedExpsQty,
             ck_qty_returns=returnQty,
             ck_qty_str_literals=stringLiteralsQty,
-            ck_qty_try_catch=tryCatchQty,  
-            ck_qty_unique_words=uniqueWordsQty,  
+            ck_qty_try_catch=tryCatchQty,
+            ck_qty_unique_words=uniqueWordsQty,
             ck_rfc=rfc,
             ck_tcc=tcc,
             ck_usage_fields=usageFields,
             ck_usage_vars=usageVars
         )
 
-        # Save metric values to Database
+        # Save metrics values into the database
         self.session.add(metric)
         self.session.commit()
-        logging.info("CK metrics added to database fo version " + version.tag)
+        logging.info("CK metrics added to database for version " + self.version.tag)

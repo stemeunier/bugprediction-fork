@@ -30,11 +30,19 @@ class CodeMaatConnector:
         self.session = session
         self.version = version
 
-    def populate_db(self):
+    def analyze_git_log(self):
         """Populate the database from the GitHub API"""
         # Preserve the sequence below
+        logging.info('CodeMaat::populate_db')
         git_log_file = self.create_git_log_file()
-        self.ownership_patterns(git_log_file)
+        # Test if metrics have been already generated for this version
+        ownership = self.session.query(Ownership).filter(Ownership.version_id == self.version.version_id).first()
+        if not ownership:
+            self.ownership_patterns(git_log_file)
+        else:
+            logging.info('CodeMaat ownership pattern analysis already done for this version')
+        # git_log_file = self.create_git_log_file()
+        # self.ownership_patterns(git_log_file)
         # self.number_of_authors_per_module(git_log_file)
         # self.logical_coupling(git_log_file)
 
