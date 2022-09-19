@@ -13,9 +13,7 @@ from models.metric import Metric
 from lizard_ext.keywords import IGNORED_WORDS
 
 class FileAnalyzer:
-    """
-    Connector to Lizard
-    TODO: in fact this connector should be renamed and reporpose as we parse all the files of a version
+    """Connector to Lizard
     We should compute all custom metrics for performance issue
     
     Attributes:
@@ -109,11 +107,7 @@ class FileAnalyzer:
             # lizard
 
             file_analyze = self.__analyze_file(filename)
-            try:
-                nb_lines, nb_blank_lines = self.__count_lines(filename)
-            except Exception:
-                # TODO : handle decode exception
-                continue
+            nb_lines, nb_blank_lines = self.__count_lines(filename)
 
             nb_loc = file_analyze.nloc
             self.__nb_loc_values.append(nb_loc)
@@ -152,12 +146,11 @@ class FileAnalyzer:
             nb_comments = nb_lines - nb_loc - nb_blank_lines
             self.__nb_comments_values.append(nb_comments)
 
-            # TODO : Get warnings -> Is that possible with an extension ?
-
     def __get_supported_language_files(self) -> Iterator[str]:
         # TODO: we should take into account the inclusion/exclusion env var
-        # TODO: we should analyze only the main language ?
         for filename in glob.iglob(self.directory + '/**/**', recursive=True):
+            # TODO: in  case of model seperation by language, we should make a 
+            # switch according to the language
             file_suffix = pathlib.Path(filename).suffix
             file_language = guess_programing_language(file_suffix)
             if file_language in self.__supported_languages:
@@ -171,7 +164,7 @@ class FileAnalyzer:
     def __count_lines(self, filename: str) -> Tuple[int, int]:
         nb_lines = 0
         nb_blank_lines = 0
-        with open(filename) as f:
+        with open(filename, encoding="utf-8", errors="ignore") as f:
             for line in f:
                 nb_lines += 1
                 if not line.strip():
