@@ -4,6 +4,7 @@
 *.sqlite3
 *.html
 *.pkl
+*.parquet
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

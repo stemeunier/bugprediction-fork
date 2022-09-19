@@ -1,5 +1,6 @@
 import logging
 import os
+import tempfile
 import subprocess
 import pandas as pd
 
@@ -53,12 +54,6 @@ class CkConnector:
         process = subprocess.run(["java", "-jar",
                                   self.configuration.code_ck_path,
                                   self.directory, "."])
-        """
-        process = subprocess.run(["java", "-jar",
-                                  self.configuration.code_ck_path,
-                                  self.directory,
-                                  "false", "0", "false", "./", exclude_dir])
-        """
 
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Command return code ' + str(process.returncode))
@@ -121,15 +116,6 @@ class CkConnector:
         methodsInvokedQty = self.__compute_mean("methodsInvokedQty", csv_method)
         usageFields = self.__compute_mean("usage", csv_field)
         usageVars = self.__compute_mean("usage", csv_variable)
-
-
-        # metrics = ['wmc', 'dit', 'noc', 'cbo', 'lcom', 'fanin', 'fanout', 'nom', 'nopm', 'noprm']
-        # data = [wmc, dit, noc, cbo, lcom, fanin, fanout, nom, nopm, noprm]
-        # with open('metrics/metrics_' + version.tag + '.csv', 'w') as f:
-        #     writer = csv.writer(f)
-        #
-        #     writer.writerow(metrics)
-        #     writer.writerow(data)
 
         # Create metric object with CK values
         metric = Metric(
