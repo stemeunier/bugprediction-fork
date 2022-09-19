@@ -14,7 +14,6 @@ from lizard_ext.keywords import IGNORED_WORDS
 
 class FileAnalyzer:
     """Connector to Lizard
-    TODO: in fact this connector should be renamed and reporpose as we parse all the files of a version
     We should compute all custom metrics for performance issue
     
     Attributes:
@@ -100,12 +99,11 @@ class FileAnalyzer:
             nb_comments = nb_lines - nb_loc - nb_blank_lines
             self.__nb_comments_values.append(nb_comments)
 
-            # TODO : Get warnings -> Is that possible with an extension ?
-
     def __get_supported_language_files(self) -> Iterator[str]:
         # TODO: we should take into account the inclusion/exclusion env var
-        # TODO: we should analyze only the main language ?
         for filename in glob.iglob(self.directory + '/**/**', recursive=True):
+            # TODO: in  case of model seperation by language, we should make a 
+            # switch according to the language
             file_suffix = pathlib.Path(filename).suffix
             file_language = guess_programing_language(file_suffix)
             if file_language in self.__supported_languages:

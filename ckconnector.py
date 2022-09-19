@@ -49,8 +49,6 @@ class CkConnector:
 
     def __compute_mean(self, metric, csv_file):
         tmp = csv_file[metric].tolist()
-        # return Math.get_rounded_mean(tmp)
-        # TODO fixme
         return Math.get_rounded_mean(tmp)
 
     def __compute_metrics(self, metric: Metric) -> Metric:
