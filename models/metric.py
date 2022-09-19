@@ -26,7 +26,6 @@ class Metric(Base):
     lizard_avg_nloc = Column(Float)
     lizard_avg_token = Column(Float)
     lizard_fun_count = Column(Integer)
-    lizard_warning_count = Column(Integer)
     lizard_fun_rt = Column(Float)
     lizard_nloc_rt = Column(Float)
     lizard_total_complexity = Column(Integer)
