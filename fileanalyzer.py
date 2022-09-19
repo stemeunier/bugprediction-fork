@@ -61,11 +61,7 @@ class FileAnalyzer:
             # lizard
 
             file_analyze = self.__analyze_file(filename)
-            try:
-                nb_lines, nb_blank_lines = self.__count_lines(filename)
-            except Exception:
-                # TODO : handle decode exception
-                continue
+            nb_lines, nb_blank_lines = self.__count_lines(filename)
 
             nb_loc = file_analyze.nloc
             self.__nb_loc_values.append(nb_loc)
@@ -123,7 +119,7 @@ class FileAnalyzer:
     def __count_lines(self, filename: str) -> Tuple[int, int]:
         nb_lines = 0
         nb_blank_lines = 0
-        with open(filename) as f:
+        with open(filename, encoding="utf-8", errors="ignore") as f:
             for line in f:
                 nb_lines += 1
                 if not line.strip():
