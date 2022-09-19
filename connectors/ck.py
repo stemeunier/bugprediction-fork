@@ -45,20 +45,11 @@ class CkConnector:
         Generate CK files with the CK analysis tool
         """
         logging.info('CK::generate_ck_files')
-        exclude_dir = ""
-        for folder in self.configuration.exclude_folders.split(";"):
-            exclude_dir += os.path.join(self.directory, folder) + " "
 
         # Execute java -jar ck-0.7.1.jar .  .
         process = subprocess.run(["java", "-jar",
                                   self.configuration.code_ck_path,
                                   self.directory, "."])
-        """
-        process = subprocess.run(["java", "-jar",
-                                  self.configuration.code_ck_path,
-                                  self.directory,
-                                  "false", "0", "false", "./", exclude_dir])
-        """
 
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Command return code ' + str(process.returncode))

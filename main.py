@@ -1,7 +1,6 @@
 import os
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 import logging
 import platform
 import subprocess
@@ -18,6 +17,7 @@ from connectors.github import GitHubConnector
 from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
 from metrics.versions import compute_version_metrics
+from utils.dirs import TmpDirCopyFilteredWithEnv
 
 if __name__ == '__main__':
     load_dotenv()
@@ -72,18 +72,20 @@ if __name__ == '__main__':
                                  cwd=repo_dir)
         logging.info('Executed command line: ' + ' '.join(process.args))
 
-        # Get statistics from git log with codemaat
-        # codemaat = CodeMaatConnector(repo_dir, session, version)
-        # codemaat.analyze_git_log()
+        with TmpDirCopyFilteredWithEnv(repo_dir) as tmp_work_dir:
 
-        # Get metrics with CK
-        ck = CkConnector(directory=repo_dir, session=session, version=version)
-        ck.analyze_source_code()
+            # Get statistics from git log with codemaat
+            # codemaat = CodeMaatConnector(repo_dir, session, version)
+            # codemaat.analyze_git_log()
 
-        # Get statistics with lizard
-        lizard = FileAnalyzer(directory=repo_dir, session=session, version=version)
-        lizard.analyze_source_code()
+            # Get metrics with CK
+            ck = CkConnector(directory=tmp_work_dir, session=session, version=version)
+            ck.analyze_source_code()
 
-        # Get metrics with JPeek
-        jp = JPeekConnector(directory=repo_dir, session=session, version=version)
-        jp.analyze_source_code()
+            # Get statistics with lizard
+            lizard = FileAnalyzer(directory=tmp_work_dir, session=session, version=version)
+            lizard.analyze_source_code()
+
+            # Get metrics with JPeek
+            jp = JPeekConnector(directory=tmp_work_dir, session=session, version=version)
+            jp.analyze_source_code()

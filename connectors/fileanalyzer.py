@@ -34,7 +34,6 @@ class FileAnalyzer:
         self.__nb_loc_values = []
         self.__nb_tokens_values = []
         self.__nb_functions_values = []
-        self.__nb_warning_values = []
         self.__total_complexities_values = []
         self.__average_complexities_values = []
         
