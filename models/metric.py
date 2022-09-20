@@ -1,12 +1,12 @@
 from sqlalchemy import Column, Integer, ForeignKey, Float
 from sqlalchemy.orm import relationship, backref
 from models.database import Base
-
+from models.version import Version
 
 class Metric(Base):
     __tablename__ = "metric"
     metrics_id = Column(Integer, primary_key=True)
-    version_id = Column(Integer, ForeignKey("version.version_id"), unique=True)
+    version_id = Column(Integer, ForeignKey(Version.version_id), unique=True)
     # cloc metrics (filtered on the project's language)
     cloc_text_files = Column(Integer)
     cloc_unique_files = Column(Integer)
@@ -88,3 +88,12 @@ class Metric(Base):
     jp_mmac = Column(Float)
     jp_nhd = Column(Float)
     jp_scom = Column(Float)
+
+    # halstead metrics
+    halstead_length = Column(Float)
+    halstead_vocabulary = Column(Integer)
+    halstead_volume = Column(Float)
+    halstead_difficulty = Column(Float)
+    halstead_effort = Column(Float)
+    halstead_time = Column(Float)
+    halstead_bugs = Column(Float)
