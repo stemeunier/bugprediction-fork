@@ -13,16 +13,24 @@ class Configuration:
         self.code_ck_path = os.environ["OTTM_CODE_CK_PATH"]
         self.code_jpeek_path = os.environ["OTTM_CODE_JPEEK_PATH"]
 
+        self.language = os.environ["OTTM_LANGUAGE"]
+
         if "OTTM_ISSUE_TAGS" in os.environ:
             self.issue_tags = os.environ["OTTM_ISSUE_TAGS"].split(",")
         else:
             self.issue_tags = []
+
         if "OTTM_EXCLUDE_ISSSUERS" in os.environ:
             self.exclude_issuers = os.environ["OTTM_EXCLUDE_ISSSUERS"].split(",")
         else:
             self.exclude_issuers = []
+
         if "OTTM_EXCLUDE_AUTHORS" in os.environ:
             self.exclude_authors = os.environ["OTTM_EXCLUDE_AUTHORS"].split(",")
         else:
             self.exclude_authors = []
-        
+
+        if "OTTM_EXCLUDE_FOLDERS" in os.environ:
+            self.exclude_folders = os.environ["OTTM_EXCLUDE_FOLDERS"].split(";")
+        else:
+            self.exclude_folders = []

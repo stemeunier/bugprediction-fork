@@ -60,7 +60,7 @@ if __name__ == '__main__':
         session,
         project.project_id,
         repo_dir)
-    git.populate_db()
+    #git.populate_db()
     git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
     compute_version_metrics(session)
 
@@ -81,9 +81,9 @@ if __name__ == '__main__':
         ck.analyze_source_code()
 
         # Get statistics with lizard
-        lizard = FileAnalyzer(directory=repo_dir, session=session, version=version)
-        lizard.analyze_source_code()
+        # lizard = FileAnalyzer(directory=repo_dir, session=session, version=version)
+        # lizard.analyze_source_code()
 
         # Get metrics with JPeek
-        jp = JPeekConnector(directory=repo_dir, session=session, version=version)
-        jp.analyze_source_code()
+        # jp = JPeekConnector(directory=repo_dir, session=session, version=version)
+        # jp.analyze_source_code()
