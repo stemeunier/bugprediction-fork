@@ -39,20 +39,9 @@ class CkConnector:
         if self.configuration.language != "Java":
             logging.info('CK is only used for Java language')
         elif not metric:
-            self.create_metric_values()
+            self.compute_metrics()
         else:
             logging.info('CK analysis already done for this version')
-
-    def create_metric_values(self):
-        """
-        Insert a new set of Lizard metrics into the database
-        """
-        metric = Metric()
-        metric = self.compute_metrics(metric)
-        metric.version_id = self.version.version_id
-        self.session.add(metric)
-        self.session.commit()
-        logging.info("CK metrics added to database for version " + self.version.tag)
 
     def __compute_mean(self, metric, csv_file):
         tmp = csv_file[metric].tolist()
@@ -61,7 +50,7 @@ class CkConnector:
         return Math.get_rounded_mean(tmp)
 
     @timeit
-    def compute_metrics(self, metric: Metric) -> Metric:
+    def compute_metrics(self):
         """
         Compute CK metrics. As the metrics were computed at the file or function level,
         we need to compute the average for the repository.
@@ -74,22 +63,26 @@ class CkConnector:
             logging.info('CK::generate_ck_files')
             exclude_dir = ""
             for folder in self.configuration.exclude_folders:
-                exclude_dir += os.path.join(self.directory, folder) + " "
+                exclude_dir += self.directory + folder + " "
 
             process = subprocess.run(["java", "-jar",
                                       self.configuration.code_ck_path,
-                                      self.directory, "True", "0", "True", os.path.join(tmp_dir, '')])
-
+                                      self.directory, "True", "0", "True", os.path.join(tmp_dir, ''), exclude_dir])
             logging.info('Executed command line: ' + ' '.join(process.args))
             logging.info('Command return code ' + str(process.returncode))
 
-            if (exists("class.csv") and exists("method.csv") and exists("field.csv") and exists("variable.csv")):
+            if exists(os.path.join(tmp_dir, "class.csv")) and exists(os.path.join(tmp_dir, "method.csv")) and exists(
+                    os.path.join(tmp_dir, "field.csv")) and exists(os.path.join(tmp_dir, "variable.csv")):
                 try:
+                    logging.info('CK files generated correctly')
+                    metric = Metric()
+                    metric.version_id = self.version.version_id
+
                     # Read csv files
-                    csv_class = pd.read_csv("class.csv")
-                    csv_method = pd.read_csv("method.csv")
-                    csv_field = pd.read_csv("field.csv")
-                    csv_variable = pd.read_csv("variable.csv")
+                    csv_class = pd.read_csv(os.path.join(tmp_dir, "class.csv"))
+                    csv_method = pd.read_csv(os.path.join(tmp_dir, "method.csv"))
+                    csv_field = pd.read_csv(os.path.join(tmp_dir, "field.csv"))
+                    csv_variable = pd.read_csv(os.path.join(tmp_dir, "variable.csv"))
 
                     # Calculate mean CK values
                     metric.ck_wmc = self.__compute_mean('wmc', csv_class)
@@ -133,12 +126,13 @@ class CkConnector:
                     metric.ck_usage_fields = self.__compute_mean("usage", csv_field)
                     metric.ck_usage_vars = self.__compute_mean("usage", csv_variable)
 
-                    logging.info('Metric Calculated')
-
-                    return metric
+                    # Save metrics values into the database
+                    self.session.add(metric)
+                    self.session.commit()
+                    logging.info("CK metrics added to database for version " + self.version.tag)
                 except pd.errors.EmptyDataError:
                     logging.error("No columns to parse from CK report /version " + self.version.tag)
                 except:
-                    logging.error("An error occured while reading CK report for version " + self.version.tag)
-            else:
-                logging.error("An error occured while generating CK report for version " + self.version.tag)
+                    logging.error("An error occurred while reading CK report for version " + self.version.tag)
+                else:
+                    logging.error("An error occurred while generating CK report for version " + self.version.tag)
