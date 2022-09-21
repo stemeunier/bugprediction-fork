@@ -8,6 +8,7 @@ import subprocess
 import tempfile
 
 
+
 from models.project import Project
 from models.version import Version
 from models.database import setup_database
@@ -15,6 +16,7 @@ from dotenv import load_dotenv
 from connectors.ck import CkConnector
 from connectors.jpeek import JPeekConnector
 from connectors.github import GitHubConnector
+from connectors.gitlab import GitLabConnector
 from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
 from metrics.versions import compute_version_metrics
@@ -54,8 +56,8 @@ if __name__ == '__main__':
     repo_dir = os.path.join(tmp_dir, os.environ["OTTM_SOURCE_PROJECT"])
 
     # Populate the database
-    git = GitHubConnector(
-        os.environ["OTTM_GITHUB_TOKEN"],
+    git = GitLabConnector(
+        os.environ["OTTM_GITLAB_TOKEN"],
         os.environ["OTTM_SOURCE_REPO"],
         session,
         project.project_id,
@@ -77,13 +79,13 @@ if __name__ == '__main__':
         # codemaat.analyze_git_log()
 
         # Get metrics with CK
-        ck = CkConnector(directory=repo_dir, session=session, version=version)
-        ck.analyze_source_code()
+        #ck = CkConnector(directory=repo_dir, session=session, version=version)
+        #ck.analyze_source_code()
 
         # Get statistics with lizard
-        lizard = FileAnalyzer(directory=repo_dir, session=session, version=version)
-        lizard.analyze_source_code()
+        #lizard = FileAnalyzer(directory=repo_dir, session=session, version=version)
+        #lizard.analyze_source_code()
 
         # Get metrics with JPeek
-        jp = JPeekConnector(directory=repo_dir, session=session, version=version)
-        jp.analyze_source_code()
+        #jp = JPeekConnector(directory=repo_dir, session=session, version=version)
+        #jp.analyze_source_code()
