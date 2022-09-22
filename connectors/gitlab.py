@@ -57,14 +57,14 @@ class GitLabConnector(GitConnector):
         for issue in git_issues:
             # Check if the issue is linked to a selected version (included or not excluded)
             # if version.end_date > issue.created_at > version.start_date:
-            if issue.user.login not in self.configuration.exclude_issuers:
+            if issue.author['username'] not in self.configuration.exclude_issuers:
                 bugs.append(
                     Issue(
                         project_id=self.project_id,
                         title=issue.title,
-                        number=issue.number,
-                        created_at=issue.created_at,
-                        updated_at=issue.updated_at
+                        number=issue.iid,
+                        created_at=datetime.datetime.strptime(issue.created_at, '%Y-%m-%dT%H:%M:%S.%f%z'),
+                        updated_at=datetime.datetime.strptime(issue.updated_at, '%Y-%m-%dT%H:%M:%S.%f%z')
                     )
                 )
 
@@ -83,8 +83,6 @@ class GitLabConnector(GitConnector):
         self.session.query(Version).delete()
         self.session.commit()
 
-        print(releases)
-
         versions = []
         # GitLab API sorts the version from the latest to the oldest
         last_day = datetime.datetime.now()
@@ -92,13 +90,13 @@ class GitLabConnector(GitConnector):
             versions.append(
                 Version(
                     project_id=self.project_id,
-                    name=release.title,
+                    name=release.name,
                     tag=release.tag_name,
-                    start_date=release.published_at,
+                    start_date=datetime.datetime.strptime(release.released_at, '%Y-%m-%dT%H:%M:%S.%f%z'),
                     end_date=last_day
                 )
             )
-            last_day = release.published_at
+            last_day = datetime.datetime.strptime(release.released_at, '%Y-%m-%dT%H:%M:%S.%f%z')
         
         self.session.add_all(versions)
         self.session.commit()
