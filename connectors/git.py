@@ -18,7 +18,7 @@ class GitConnector:
     
     Attributes:
     -----------
-     - token        Token for the GitHub API
+     - token        Token for the SCM API
      - repo         Git repository (cloned locally, not bare repo)
      - session      Database connection managed by sqlachemy
      - project_id   Identifier of the project

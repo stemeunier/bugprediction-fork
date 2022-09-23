@@ -1,4 +1,5 @@
 import os
+import sys
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -6,8 +7,6 @@ import logging
 import platform
 import subprocess
 import tempfile
-
-
 
 from models.project import Project
 from models.version import Version
@@ -56,12 +55,24 @@ if __name__ == '__main__':
     repo_dir = os.path.join(tmp_dir, os.environ["OTTM_SOURCE_PROJECT"])
 
     # Populate the database
-    git = GitLabConnector(
-        os.environ["OTTM_GITLAB_TOKEN"],
-        os.environ["OTTM_SOURCE_REPO"],
-        session,
-        project.project_id,
-        repo_dir)
+    if os.environ["OTTM_SOURCE_REPO_SMC"] == "github":
+        git = GitHubConnector(
+            os.environ["OTTM_SMC_TOKEN"],
+            os.environ["OTTM_SOURCE_REPO"],
+            session,
+            project.project_id,
+            repo_dir)
+    elif os.environ["OTTM_SOURCE_REPO_SMC"] == "gitlab":
+        git = GitLabConnector(
+            os.environ["OTTM_SMC_BASE_URL"],
+            os.environ["OTTM_SMC_TOKEN"],
+            os.environ["OTTM_SOURCE_REPO"],
+            session,
+            project.project_id,
+            repo_dir)
+    else:
+        sys.exit('Unsupported SCM')
+
     git.populate_db()
     git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
     compute_version_metrics(session)

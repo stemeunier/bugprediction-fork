@@ -13,6 +13,8 @@ class Configuration:
         self.code_ck_path = os.environ["OTTM_CODE_CK_PATH"]
         self.code_jpeek_path = os.environ["OTTM_CODE_JPEEK_PATH"]
 
+        self.source_repo_url = os.environ["OTTM_SOURCE_REPO_URL"]
+
         if "OTTM_ISSUE_TAGS" in os.environ:
             self.issue_tags = os.environ["OTTM_ISSUE_TAGS"].split(",")
         else:
