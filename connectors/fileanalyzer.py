@@ -2,15 +2,17 @@ import copy
 import glob
 import logging
 import pathlib
+import math
 from typing import Iterator, Tuple
 
 import lizard
+from lizard_ext.keywords import IGNORED_WORDS
 
 from utils.math import Math
+from utils.timeit import timeit
 from utils.proglang import guess_programing_language
 from models.metric import Metric
 
-from lizard_ext.keywords import IGNORED_WORDS
 
 class FileAnalyzer:
     """Connector to Lizard
@@ -64,6 +66,7 @@ class FileAnalyzer:
             else:
                 logging.info('Lizard analysis already done for this version')
 
+    @timeit
     def create_metric_values(self):
         """
         Insert a new set of Lizard metrics into the database
@@ -75,6 +78,7 @@ class FileAnalyzer:
         self.session.add(metric)
         self.session.commit()
 
+    @timeit
     def complete_metric_values(self, metric: Metric):
         """
         Analyze a folder containing source files
@@ -99,6 +103,15 @@ class FileAnalyzer:
         metric.total_blank_lines = new_metric.total_blank_lines
         metric.total_comments = new_metric.total_comments
         metric.comments_rt = new_metric.comments_rt
+        # Halstead
+        metric.halstead_length = new_metric.halstead_length
+        metric.halstead_vocabulary = new_metric.halstead_vocabulary
+        metric.halstead_volume = new_metric.halstead_volume
+        metric.halstead_difficulty = new_metric.halstead_difficulty
+        metric.halstead_effort = new_metric.halstead_effort
+        metric.halstead_time = new_metric.halstead_time
+        metric.halstead_bugs = new_metric.halstead_bugs
+
         self.session.commit()
 
     def __get_metrics_values_from_source_code(self):
@@ -194,7 +207,6 @@ class FileAnalyzer:
         # operators /operands        
         new_metric.lizard_total_operands_count = sum(self.__nb_operands_values)
         new_metric.lizard_unique_operands_count = len(self.__unique_operands_values)
-
         new_metric.lizard_total_operators_count = sum(self.__nb_operators_values)
         new_metric.lizard_unique_operators_count = len(self.__unique_operators_values)
 
@@ -204,6 +216,27 @@ class FileAnalyzer:
         new_metric.total_blank_lines = sum(self.__nb_blank_lines_values)
         new_metric.total_comments = total_comments
         new_metric.comments_rt = Math.get_rounded_rate(total_comments, total_lines)
+
+        # Compute halstead metrics
+        mu1 = new_metric.lizard_unique_operators_count
+        mu2 = new_metric.lizard_unique_operands_count
+        N1 = new_metric.lizard_total_operators_count
+        N2 = new_metric.lizard_total_operands_count
+        #Vocabulary
+        mu = mu1 + mu2
+        #length
+        N = N1 + N2
+        if mu1 and mu2:
+            new_metric.halstead_length = mu1 * math.log(mu1, 2) + mu2 * math.log(mu2, 2)
+        else:
+            new_metric.halstead_length = 0
+        
+        new_metric.halstead_vocabulary = mu
+        new_metric.halstead_volume = N * math.log(mu, 2) if mu != 0 else 0 # the number of mental comparisons needed to write a program of length N
+        new_metric.halstead_difficulty = (mu1 * N2) / float(2 * mu2) if mu2 != 0 else 0
+        new_metric.halstead_effort = new_metric.halstead_difficulty * new_metric.halstead_volume
+        new_metric.halstead_time = new_metric.halstead_effort / 18.0
+        new_metric.halstead_bugs = new_metric.halstead_volume / 3000
 
         logging.info("Lizard metrics added to metric object")
 

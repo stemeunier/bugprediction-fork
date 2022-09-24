@@ -18,17 +18,19 @@ class GitHubConnector(GitConnector):
     Connector to Github
     """
 
-    def __init__(self, token, repo, session, project_id, directory):
-        GitConnector.__init__(self, token, repo, session, project_id, directory)
+    def __init__(self, token, repo, current, session, project_id, directory):
+        GitConnector.__init__(self, token, repo, current, session, project_id, directory)
         self.api = Github(self.token)
         self.remote = self.api.get_repo(self.repo)
 
     def populate_db(self):
         """Populate the database from the GitHub API"""
         # Preserve the sequence below
+        self.clean_next_release_metrics()
         self.create_versions_from_github()
         self.create_commits_from_repo()
         self.create_issues_from_github()
+        self.compute_version_metrics()
 
     @timeit
     def create_issues_from_github(self):
@@ -132,6 +134,7 @@ class GitHubConnector(GitConnector):
                 )
             )
             last_day = release.published_at
-
+        # Put current branch at the end of the list
+        versions.append(Version(project_id=self.project_id, tag=self.current, name="Next Release"))
         self.session.add_all(versions)
         self.session.commit()

@@ -17,8 +17,8 @@ class GitLabConnector(GitConnector):
     -----------
      - base_url     URL to GitLab, empty if gitlab.com
     """
-    def __init__(self, base_url, token, repo, session, project_id, directory):
-        GitConnector.__init__(self, token, repo, session, project_id, directory)
+    def __init__(self, base_url, token, repo, current, session, project_id, directory):
+        GitConnector.__init__(self, token, repo, current, session, project_id, directory)
         if not base_url and not self.token:
             logging.info("anonymous read-only access for public resources (GitLab.com)")
             self.api = Gitlab()
@@ -37,9 +37,11 @@ class GitLabConnector(GitConnector):
     def populate_db(self):
         """Populate the database from the GitLab API"""
         # Preserve the sequence below
+        self.clean_next_release_metrics()
         self.create_versions_from_gitlab()
         self.create_commits_from_repo()
         self.create_issues_from_gitlab()
+        self.compute_version_metrics()
     
     @timeit
     def create_issues_from_gitlab(self):
@@ -112,6 +114,7 @@ class GitLabConnector(GitConnector):
                 )
             )
             last_day = datetime.strptime(release.released_at, '%Y-%m-%dT%H:%M:%S.%f%z')
-        
+        # Put current branch at the end of the list
+        versions.append(Version(project_id=self.project_id, tag=self.current, name="Next Release"))
         self.session.add_all(versions)
         self.session.commit()

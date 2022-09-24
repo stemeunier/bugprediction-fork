@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 
 from models.project import Project
 from models.version import Version
+from models.issue import Issue
+from models.metric import Metric
 from models.database import setup_database
 from connectors.ck import CkConnector
 from connectors.jpeek import JPeekConnector
@@ -20,7 +22,6 @@ from connectors.github import GitHubConnector
 from connectors.gitlab import GitLabConnector
 from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
-from metrics.versions import compute_version_metrics
 from exporters import flatfile
 
 session = None
@@ -79,15 +80,31 @@ def predict(ctx):
 @cli.command()
 @click.pass_context
 def info(ctx):
-    """Provide information about the current configuration"""
+    """Provide information about the current configuration
+    If these values are not populated, the tool won't work.
+    """
+    versions_count = session.query(Version).count()
+    issues_count = session.query(Issue).count()
+    metrics_count = session.query(Metric).count()
 
     out = """ -- OTTM Bug Predictor --
-    Project : {project}
-    SCM     : {scm}
+    Project  : {project}
+    Language : {language}
+    SCM      : {scm} / {repo}
+    Release  : {release}
     
+    Versions : {versions}
+    Issues   : {issues}
+    Metrics  : {metrics}
     """.format(
         project=os.environ["OTTM_SOURCE_PROJECT"],
-        scm=os.environ["OTTM_SOURCE_REPO_SMC"]
+        language=os.environ["OTTM_LANGUAGE"],
+        scm=os.environ["OTTM_SOURCE_REPO_SMC"],
+        repo=os.environ["OTTM_SOURCE_REPO_URL"],
+        release=os.environ["OTTM_CURRENT_BRANCH"],
+        versions=versions_count,
+        issues=issues_count,
+        metrics=metrics_count
         )
     click.echo(out)
 
@@ -127,6 +144,7 @@ def populate(ctx):
         git = GitHubConnector(
             os.environ["OTTM_SMC_TOKEN"],
             os.environ["OTTM_SOURCE_REPO"],
+            os.environ["OTTM_CURRENT_BRANCH"],
             session,
             project.project_id,
             repo_dir)
@@ -136,6 +154,7 @@ def populate(ctx):
             os.environ["OTTM_SMC_BASE_URL"],
             os.environ["OTTM_SMC_TOKEN"],
             os.environ["OTTM_SOURCE_REPO"],
+            os.environ["OTTM_CURRENT_BRANCH"],
             session,
             project.project_id,
             repo_dir)
@@ -144,8 +163,7 @@ def populate(ctx):
         sys.exit('Unsupported SCM')
 
     git.populate_db()
-    git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
-    compute_version_metrics(session)
+    # if we use code maat git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
 
     # List the versions and checkout each one of them
     versions = session.query(Version).all()
@@ -160,12 +178,12 @@ def populate(ctx):
         # codemaat.analyze_git_log()
 
         # Get metrics with CK
-        #ck = CkConnector(directory=repo_dir, session=session, version=version)
-        #ck.analyze_source_code()
+        ck = CkConnector(directory=repo_dir, session=session, version=version)
+        ck.analyze_source_code()
 
         # Get statistics with lizard
-        #lizard = FileAnalyzer(directory=repo_dir, session=session, version=version)
-        #lizard.analyze_source_code()
+        lizard = FileAnalyzer(directory=repo_dir, session=session, version=version)
+        lizard.analyze_source_code()
 
         # Get metrics with JPeek
         #jp = JPeekConnector(directory=repo_dir, session=session, version=version)
@@ -181,11 +199,13 @@ if __name__ == '__main__':
     logging.info('python: ' + platform.python_version())
     logging.info('system: ' + platform.system())
     logging.info('machine: ' + platform.machine())
-    # logging.info('java: ' + check_output("java -version"))
 
+    # Setup database
     engine = db.create_engine(os.environ["OTTM_TARGET_DATABASE"])
     Session = sessionmaker()
     Session.configure(bind=engine)
     session = Session()
     setup_database(engine)
+
+    # Setup command line options
     cli(obj={})
