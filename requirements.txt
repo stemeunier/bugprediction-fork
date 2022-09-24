@@ -1,5 +1,5 @@
 SQLAlchemy~=1.4.40
-pydotenv
+python-dotenv~=0.21.0
 PyGithub~=1.55
 lizard~=1.17.10
 python-dotenv~=0.21.0
@@ -10,3 +10,4 @@ datetime~=4.4
 pandas~=1.4.4
 pygments~=2.13.0
 lxml~=4.9.1
+Click==7.0
