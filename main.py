@@ -15,6 +15,7 @@ from models.project import Project
 from models.version import Version
 from models.issue import Issue
 from models.metric import Metric
+from models.model import Model
 from models.database import setup_database
 from connectors.ck import CkConnector
 from connectors.jpeek import JPeekConnector
@@ -23,8 +24,10 @@ from connectors.gitlab import GitLabConnector
 from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
 from exporters import flatfile
+from ml.bugvelocity import BugVelocity
 
 session = None
+project = None
 
 @click.group()
 @click.pass_context
@@ -64,18 +67,24 @@ def report(ctx):
     pass
 
 @cli.command()
-@click.option('--model', default='bugvelocity', help='Name of the model')
+@click.option('--model-name', default='bugvelocity', help='Name of the model')
 @click.pass_context
-def train(ctx):
+def train(ctx, model_name):
     """Train a model"""
-    pass
+    # TODO : the concrete object should be returned by a factory
+    model = BugVelocity(session, project.project_id)
+    model.train()
+    click.echo("Model was trained")
 
 @cli.command()
-@click.option('--model', default='bugvelocity', help='Name of the model')
+@click.option('--model-name', default='bugvelocity', help='Name of the model')
 @click.pass_context
-def predict(ctx):
+def predict(ctx, model_name):
     """Predict next value with a trained model"""
-    pass
+    # TODO : the concrete object should be returned by a factory
+    model = BugVelocity(session, project.project_id)
+    value = model.predict()
+    click.echo("Predicted value : " + str(value))
 
 @cli.command()
 @click.pass_context
@@ -83,9 +92,10 @@ def info(ctx):
     """Provide information about the current configuration
     If these values are not populated, the tool won't work.
     """
-    versions_count = session.query(Version).count()
-    issues_count = session.query(Issue).count()
-    metrics_count = session.query(Metric).count()
+    versions_count = session.query(Version).filter(Version.project_id == project.project_id).count()
+    issues_count = session.query(Issue).filter(Issue.project_id == project.project_id).count()
+    metrics_count = session.query(Metric).join(Version).filter(Version.project_id == project.project_id).count()
+    trained_models = session.query(Model.name).filter(Version.project_id == project.project_id).all()
 
     out = """ -- OTTM Bug Predictor --
     Project  : {project}
@@ -96,6 +106,8 @@ def info(ctx):
     Versions : {versions}
     Issues   : {issues}
     Metrics  : {metrics}
+
+    Trained models : {models}
     """.format(
         project=os.environ["OTTM_SOURCE_PROJECT"],
         language=os.environ["OTTM_LANGUAGE"],
@@ -104,7 +116,8 @@ def info(ctx):
         release=os.environ["OTTM_CURRENT_BRANCH"],
         versions=versions_count,
         issues=issues_count,
-        metrics=metrics_count
+        metrics=metrics_count,
+        models=",".join(trained_models[0])
         )
     click.echo(out)
 
@@ -118,13 +131,6 @@ def check(ctx):
 @click.pass_context
 def populate(ctx):
     """Populate the database with the provided configuration"""
-    project = session.query(Project).filter(Project.name == os.environ["OTTM_SOURCE_PROJECT"]).first()
-    if not project:
-        project = Project(name=os.environ["OTTM_SOURCE_PROJECT"],
-                        repo=os.environ["OTTM_SOURCE_REPO"],
-                        language=os.environ["OTTM_LANGUAGE"])
-        session.add(project)
-        session.commit()
 
     # Checkout, execute the tool and inject CSV result into the database
     # with tempfile.TemporaryDirectory() as tmp_dir:
@@ -206,6 +212,14 @@ if __name__ == '__main__':
     Session.configure(bind=engine)
     session = Session()
     setup_database(engine)
+
+    project = session.query(Project).filter(Project.name == os.environ["OTTM_SOURCE_PROJECT"]).first()
+    if not project:
+        project = Project(name=os.environ["OTTM_SOURCE_PROJECT"],
+                        repo=os.environ["OTTM_SOURCE_REPO"],
+                        language=os.environ["OTTM_LANGUAGE"])
+        session.add(project)
+        session.commit()
 
     # Setup command line options
     cli(obj={})
