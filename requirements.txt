@@ -12,3 +12,5 @@ pygments~=2.13.0
 lxml~=4.9.1
 Click==7.0
 scikit-learn~=1.1.2
+plotly~=5.10.0
+beautifulsoup4~=4.11.1

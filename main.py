@@ -10,6 +10,7 @@ import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
+from exporters.html import HtmlExporter
 
 from models.project import Project
 from models.version import Version
@@ -62,8 +63,10 @@ def export(ctx, output, format):
 @cli.command()
 @click.option('--output', default='.', help='Destination folder')
 @click.pass_context
-def report(ctx):
+def report(ctx, output):
     """Create a basic HTML report"""
+    exporter = HtmlExporter(session, output)
+    exporter.generate(project, 'report.html')
     pass
 
 @cli.command()
