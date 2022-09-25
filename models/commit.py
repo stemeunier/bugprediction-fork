@@ -8,7 +8,7 @@ class Commit(Base):
     commit_id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey("project.project_id"))
     """hash of the commit"""
-    hash = Column(String, unique=True, nullable=False)
+    hash = Column(String)
     """commit committer (name, email)"""
     committer = Column(String)
     """commit date"""

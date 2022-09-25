@@ -45,18 +45,18 @@ class GitConnector(ABC):
         if aliases:
             aliases = y = json.loads(aliases)
             for alias, alternatives in aliases.items():
-                author = self.session.query(Author).filter(Author.name == alias).first()
+                author = self.session.query(Author).filter(Author.name == alias).filter(Version.project_id == self.project_id).first()
                 if not author:
                     author = Author(name=alias)
                     self.session.add(author)
                     self.session.commit()
                 for alternative in alternatives:
-                    syno = self.session.query(Author).filter(Author.name == alternative).first()
+                    syno = self.session.query(Author).filter(Author.name == alternative).filter(Version.project_id == self.project_id).first()
                     if not syno:
                         syno = Author(name=alternative)
                         self.session.add(syno)
                         self.session.commit()
-                    author_alias = self.session.query(Alias).filter(Alias.name == alternative).first()
+                    author_alias = self.session.query(Alias).filter(Alias.name == alternative).filter(Version.project_id == self.project_id).first()
                     if not author_alias:
                         author_alias = Alias(author_id=author.author_id, name=alternative)
                         self.session.add(author_alias)
@@ -71,7 +71,7 @@ class GitConnector(ABC):
         logging.info('create_commits_from_repo')
 
         # Check what was the las inserted commit
-        last_commit = self.session.query(Commit).order_by(Commit.date.desc()).first()
+        last_commit = self.session.query(Commit).filter(Version.project_id == self.project_id).order_by(Commit.date.desc()).first()
         if last_commit is not None:
             last_synced = last_commit.date + datetime.timedelta(seconds=1)
             logging.info('Update existing database by fetching new commits since ' + str(last_synced))
@@ -117,7 +117,7 @@ class GitConnector(ABC):
             if version.tag.lower() != self.current.lower():
                 # Count the number of issues that occurred between the start and end dates
                 bugs_count = self.session.query(Issue).filter(
-                    Issue.created_at.between(version.start_date, version.end_date)).count()
+                    Issue.created_at.between(version.start_date, version.end_date)).filter(Version.project_id == self.project_id).count()
 
                 # Compute the bug velocity of the release
                 delta = version.end_date - version.start_date
@@ -130,12 +130,12 @@ class GitConnector(ABC):
                 # Compute a rough estimate of the total changes
                 rough_changes = self.session.query(
                     func.sum(Commit.lines).label("total_changes")
-                ).filter(Commit.date.between(version.start_date, version.end_date)).scalar()
+                ).filter(Commit.date.between(version.start_date, version.end_date)).filter(Commit.project_id == self.project_id).scalar()
 
                 # Compute the average seniorship of the team
                 team_members = self.session.query(Commit.committer).filter(
                     Commit.date.between(version.start_date, version.end_date)
-                ).group_by(Commit.committer).all()
+                ).filter(Commit.project_id == self.project_id).group_by(Commit.committer).all()
                 seniority_total = 0
                 for member in team_members:
                     first_commit = self.session.query(
@@ -156,10 +156,13 @@ class GitConnector(ABC):
         """
         Clean the metrics assosciated to the current branch so as to compute them again
         """
-        next_release = self.session.query(Version).filter(Version.name == "Next Release").first()
-        self.session.query(Metric).filter(Metric.version_id == next_release.version_id).delete()
-        self.session.commit()
-        logging.info("Deleted Metrics associated with version " + next_release.name)
+        next_release = self.session.query(Version).filter(Commit.project_id == self.project_id).filter(Version.name == "Next Release").first()
+        if next_release is None:
+            logging.info("No Metrics to clean up")
+        else:
+            self.session.query(Metric).filter(Metric.version_id == next_release.version_id).delete()
+            self.session.commit()
+            logging.info("Deleted Metrics associated with version " + next_release.name)
 
     def populate_db(self):
         """Populate the database from the Git API"""
