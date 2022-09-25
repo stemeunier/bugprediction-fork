@@ -26,6 +26,7 @@ from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
 from exporters import flatfile
 from ml.bugvelocity import BugVelocity
+from utils.dirs import TmpDirCopyFilteredWithEnv
 
 session = None
 project = None
@@ -182,21 +183,23 @@ def populate(ctx):
                                  cwd=repo_dir)
         logging.info('Executed command line: ' + ' '.join(process.args))
 
-        # Get statistics from git log with codemaat
-        # codemaat = CodeMaatConnector(repo_dir, session, version)
-        # codemaat.analyze_git_log()
+        with TmpDirCopyFilteredWithEnv(repo_dir) as tmp_work_dir:
 
-        # Get metrics with CK
-        ck = CkConnector(directory=repo_dir, session=session, version=version)
-        ck.analyze_source_code()
+            # Get statistics from git log with codemaat
+            # codemaat = CodeMaatConnector(repo_dir, session, version)
+            # codemaat.analyze_git_log()
 
-        # Get statistics with lizard
-        lizard = FileAnalyzer(directory=repo_dir, session=session, version=version)
-        lizard.analyze_source_code()
+            # Get metrics with CK
+            ck = CkConnector(directory=tmp_work_dir, session=session, version=version)
+            ck.analyze_source_code()
 
-        # Get metrics with JPeek
-        #jp = JPeekConnector(directory=repo_dir, session=session, version=version)
-        #jp.analyze_source_code()
+            # Get statistics with lizard
+            lizard = FileAnalyzer(directory=tmp_work_dir, session=session, version=version)
+            lizard.analyze_source_code()
+
+            # Get metrics with JPeek
+            # jp = JPeekConnector(directory=tmp_work_dir, session=session, version=version)
+            # jp.analyze_source_code()
 
 @click.command()
 def main():
