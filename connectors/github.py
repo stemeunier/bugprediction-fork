@@ -23,21 +23,12 @@ class GitHubConnector(GitConnector):
         self.api = Github(self.token)
         self.remote = self.api.get_repo(self.repo)
 
-    def populate_db(self):
-        """Populate the database from the GitHub API"""
-        # Preserve the sequence below
-        self.clean_next_release_metrics()
-        self.create_versions_from_github()
-        self.create_commits_from_repo()
-        self.create_issues_from_github()
-        self.compute_version_metrics()
-
     @timeit
-    def create_issues_from_github(self):
+    def create_issues(self):
         """
         Create issues into the database from GitHub Issues
         """
-        logging.info('create_issues_from_github')
+        logging.info('GitHubConnector: create_issues')
 
         # Check if a database already exist
         last_issue = self.session.query(Issue).order_by(desc(models.issue.Issue.updated_at)).get(1)
@@ -80,11 +71,11 @@ class GitHubConnector(GitConnector):
         self.session.commit()
 
     @timeit
-    def create_versions_from_github(self):
+    def create_versions(self):
         """
         Create versions into the database from GitHub tags
         """
-        logging.info('create_versions_from_github')
+        logging.info('GitHubConnector: create_versions')
         releases = self.remote.get_releases()
         self.session.query(Version).delete()
         self.session.commit()

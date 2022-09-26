@@ -34,21 +34,12 @@ class GitLabConnector(GitConnector):
 
         self.remote = self.api.projects.get(self.repo)
         
-    def populate_db(self):
-        """Populate the database from the GitLab API"""
-        # Preserve the sequence below
-        self.clean_next_release_metrics()
-        self.create_versions_from_gitlab()
-        self.create_commits_from_repo()
-        self.create_issues_from_gitlab()
-        self.compute_version_metrics()
-    
     @timeit
-    def create_issues_from_gitlab(self):
+    def create_issues(self):
         """
         Create issues into the database from GitLab Issues
         """
-        logging.info('create_issues_from_gitlab')
+        logging.info('GitLabConnector: create_issues')
 
         # Check if a database already exist
         last_issue = self.session.query(Issue).order_by(desc(Issue.updated_at)).get(1)
@@ -91,11 +82,11 @@ class GitLabConnector(GitConnector):
         self.session.commit()
     
     @timeit
-    def create_versions_from_gitlab(self):
+    def create_versions(self):
         """
         Create versions into the database from GitLab releases
         """
-        logging.info('create_versions_from_gitlab')
+        logging.info('GitLabConnector: create_versions')
         releases = self.remote.releases.list()
         self.session.query(Version).delete()
         self.session.commit()
