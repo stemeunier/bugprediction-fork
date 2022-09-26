@@ -174,6 +174,15 @@ class GitConnector(ABC):
         self.create_issues()
         self.compute_version_metrics()
 
+    def _clean_project_existing_versions(self):
+        self.session.query(Version).filter(Version.project_id == self.project_id).delete()
+        self.session.commit()
+
+    def _get_first_commit_date(self):
+        commits_iterator = Repository(self.directory).traverse_commits()
+        first_commit = next(commits_iterator)
+        return first_commit.committer_date
+
     @abstractmethod
     def create_issues(self):
         raise NotImplementedError
