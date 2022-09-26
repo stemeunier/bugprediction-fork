@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import logging
 import datetime
 import json
@@ -15,7 +16,7 @@ from models.author import Author
 from models.alias import Alias
 from utils.timeit import timeit
 
-class GitConnector:
+class GitConnector(ABC):
     """Connector to Github
     
     Attributes:
@@ -159,3 +160,20 @@ class GitConnector:
         self.session.query(Metric).filter(Metric.version_id == next_release.version_id).delete()
         self.session.commit()
         logging.info("Deleted Metrics associated with version " + next_release.name)
+
+    def populate_db(self):
+        """Populate the database from the Git API"""
+        # Preserve the sequence below
+        self.clean_next_release_metrics()
+        self.create_versions()
+        self.create_commits_from_repo()
+        self.create_issues()
+        self.compute_version_metrics()
+
+    @abstractmethod
+    def create_issues(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def create_versions(self):
+        raise NotImplementedError
