@@ -77,55 +77,32 @@ class GitHubConnector(GitConnector):
         """
         logging.info('GitHubConnector: create_versions')
         releases = self.remote.get_releases()
-        self.session.query(Version).delete()
-        self.session.commit()
-
-        # Check if a database already exist
-        # last_version = self.session.query(Version).order_by(desc(Version.start_date)).get(1)
-        # if last_version:
-        #     # Update existing database by fetching new versions and versions on "include" list but not in "exclude" one
-        #     # TODO : Not working with the last_day algo
-        #     releases = [release for release in releases
-        #                 if (release.published_at > last_version.start_date + datetime.timedelta(seconds=1)
-        #                     or release.tag_name in self.configuration.include_versions)
-        #                 and release.tag_name not in self.configuration.exclude_versions]
-
-        # else:
-            # Create a database with all versions
-            # releases = [release for release in releases if release.tag_name not in self.configuration.exclude_versions]
-
-        # Remove potential duplicated values
-        # list(dict.fromkeys(releases))
-        # commits = self.session.query(Commit).all()
-        # issues = self.session.query(Issue).all()
-        # versions = self.session.query(Version).all()
-
-        # for version in versions:
-        #     for commit in commits:
-        #         if version.end_date > commit.date > version.start_date:
-        #             self.session.delete(commit)
-        #     for issue in issues:
-        #         if version.end_date > issue.created_at > version.start_date:
-        #             self.session.delete(issue)
-        #     if version.tag in self.configuration.exclude_versions:
-        #         self.session.delete(version)
-
+        self._clean_project_existing_versions()
 
         versions = []
-        # GitHub API sorts the version from the latest to the oldest
-        last_day = datetime.datetime.now()
-        for release in releases:
+        previous_release_published_at = self._get_first_commit_date()
+
+        for release in releases.reversed:
             versions.append(
                 Version(
                     project_id=self.project_id,
                     name=release.title,
                     tag=release.tag_name,
-                    start_date=release.published_at,
-                    end_date=last_day
+                    start_date=previous_release_published_at,
+                    end_date=release.published_at,
                 )
             )
-            last_day = release.published_at
+            previous_release_published_at = release.published_at
+
         # Put current branch at the end of the list
-        versions.append(Version(project_id=self.project_id, tag=self.current, name="Next Release"))
+        versions.append(
+            Version(
+                project_id=self.project_id, 
+                name="Next Release",
+                tag=self.current, 
+                start_date=previous_release_published_at,
+                end_date=datetime.datetime.now(),
+            )
+        )
         self.session.add_all(versions)
         self.session.commit()

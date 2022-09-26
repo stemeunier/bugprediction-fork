@@ -29,8 +29,9 @@ class GitLabConnector(GitConnector):
             logging.info("private token or personal token authentication (GitLab.com)")
             self.api = Gitlab(private_token=self.token)
         
-        # Check the authentification
-        self.api.auth()
+        # Check the authentification. Doesn't work for public read only access
+        if base_url or self.token:
+            self.api.auth()
 
         self.remote = self.api.projects.get(self.repo)
         
@@ -87,25 +88,34 @@ class GitLabConnector(GitConnector):
         Create versions into the database from GitLab releases
         """
         logging.info('GitLabConnector: create_versions')
-        releases = self.remote.releases.list()
-        self.session.query(Version).delete()
-        self.session.commit()
+        releases = self.remote.releases.list(all=True, order_by="released_at", sort="asc")
+        self._clean_project_existing_versions()
 
         versions = []
-        # GitLab API sorts the version from the latest to the oldest
-        last_day = datetime.now()
+        previous_release_published_at = self._get_first_commit_date()
+
         for release in releases:
+            release_published_at = datetime.strptime(release.released_at, '%Y-%m-%dT%H:%M:%S.%f%z')
             versions.append(
                 Version(
                     project_id=self.project_id,
                     name=release.name,
                     tag=release.tag_name,
-                    start_date=datetime.strptime(release.released_at, '%Y-%m-%dT%H:%M:%S.%f%z'),
-                    end_date=last_day
+                    start_date=previous_release_published_at,
+                    end_date=release_published_at,
                 )
             )
-            last_day = datetime.strptime(release.released_at, '%Y-%m-%dT%H:%M:%S.%f%z')
+            previous_release_published_at = release_published_at
+
         # Put current branch at the end of the list
-        versions.append(Version(project_id=self.project_id, tag=self.current, name="Next Release"))
+        versions.append(
+            Version(
+                project_id=self.project_id,
+                name="Next Release",
+                tag=self.current,
+                start_date=previous_release_published_at,
+                end_date=datetime.now(),
+            )
+        )
         self.session.add_all(versions)
         self.session.commit()
