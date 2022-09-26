@@ -1,9 +1,11 @@
+from datetime import datetime
 import os
 import sys
 import logging
 import platform
 import subprocess
 import tempfile
+import csv
 
 import click
 import sqlalchemy as db
@@ -69,6 +71,38 @@ def report(ctx, output):
     exporter = HtmlExporter(session, output)
     exporter.generate(project, 'report.html')
     pass
+
+@cli.command()
+@click.option('--version-file', default='version.csv', help='CSV Version file')
+@click.option('--overwrite', default=False, help='Overwrite database')
+@click.pass_context
+def import_csv(ctx, version_file, overwrite):
+    """Import CSV file into tables"""
+    # Overwrite option
+    if overwrite:
+        session.query(Version).delete()
+        click.echo("Clearning version table")
+
+    # Read Version CSV file
+    versions = list(csv.DictReader(open(version_file, 'r')))
+    
+    for version in versions:
+        # Instanciation with Version model
+        newVersion = Version(project_id=version['project_id'],
+        name=version["name"], 
+        tag=version["tag"], 
+        start_date=datetime.strptime(version["start_date"], '%Y-%m-%d %H:%M:%S.%f'), 
+        end_date=datetime.strptime(version["end_date"], '%Y-%m-%d %H:%M:%S.%f'), 
+        bugs=version["bugs"], 
+        changes=version["changes"], 
+        avg_team_xp=version["avg_team_xp"], 
+        bug_velocity=version["bug_velocity"])
+
+        # Save on database
+        session.add(newVersion)
+
+    session.commit()
+    click.echo("Add " + str(len(versions)) + " version(s) in database")
 
 @cli.command()
 @click.option('--model-name', default='bugvelocity', help='Name of the model')
