@@ -89,6 +89,7 @@ class GitConnector(ABC):
                         hash=git_commit.hash,
                         committer=git_commit.committer.name,
                         date=git_commit.committer_date,
+                        message=git_commit.msg,
                         insertions=git_commit.insertions,
                         deletions=git_commit.deletions,
                         lines=git_commit.lines,
