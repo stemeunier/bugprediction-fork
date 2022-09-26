@@ -73,18 +73,23 @@ def report(ctx, output):
     pass
 
 @cli.command()
-@click.option('--version-file', default='version.csv', help='CSV Version file')
+@click.option('--version-file', default='version.csv', help='Path of Version CSV file')
+@click.option('--issue-file', default='issue.csv', help='Path of Issue CSV file')
 @click.option('--overwrite', default=False, help='Overwrite database')
 @click.pass_context
-def import_csv(ctx, version_file, overwrite):
+def import_csv(ctx, version_file, issue_file, overwrite):
     """Import CSV file into tables"""
     # Overwrite option
     if overwrite:
         session.query(Version).delete()
-        click.echo("Clearning version table")
+        click.echo("Overwrite version table")
+        session.query(Issue).delete()
+        click.echo("Overwrite issue table")
 
     # Read Version CSV file
     versions = list(csv.DictReader(open(version_file, 'r')))
+    # Read Issue CSV file
+    issues = list(csv.DictReader(open(issue_file, 'r')))
     
     for version in versions:
         # Instanciation with Version model
@@ -101,8 +106,21 @@ def import_csv(ctx, version_file, overwrite):
         # Save on database
         session.add(newVersion)
 
+    for issue in issues:
+        # Instanciation with Issue model
+        newIssue = Issue(project_id=issue['project_id'],
+        number=issue["number"],
+        title=issue["title"],
+        created_at=datetime.strptime(issue["created_at"], '%Y-%m-%d %H:%M:%S.%f'),
+        updated_at=datetime.strptime(issue["updated_at"], '%Y-%m-%d %H:%M:%S.%f')
+        )
+
+        # Save on database
+        session.add(newIssue)
+
     session.commit()
     click.echo("Add " + str(len(versions)) + " version(s) in database")
+    click.echo("Add " + str(len(issues)) + " issue(s) in database")
 
 @cli.command()
 @click.option('--model-name', default='bugvelocity', help='Name of the model')
