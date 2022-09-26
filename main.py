@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
 from exporters.html import HtmlExporter
+from ml.mlfactory import MlFactory
 
 from models.project import Project
 from models.version import Version
@@ -71,22 +72,22 @@ def report(ctx, output):
     pass
 
 @cli.command()
+@click.option('--train')
 @click.option('--model-name', default='bugvelocity', help='Name of the model')
 @click.pass_context
 def train(ctx, model_name):
     """Train a model"""
-    # TODO : the concrete object should be returned by a factory
-    model = BugVelocity(session, project.project_id)
+    model = MlFactory.create_ml_model(model_name, session, project.project_id)
     model.train()
     click.echo("Model was trained")
 
 @cli.command()
+@click.option('--predict')
 @click.option('--model-name', default='bugvelocity', help='Name of the model')
 @click.pass_context
 def predict(ctx, model_name):
     """Predict next value with a trained model"""
-    # TODO : the concrete object should be returned by a factory
-    model = BugVelocity(session, project.project_id)
+    model = MlFactory.create_ml_model(model_name, session, project.project_id)
     value = model.predict()
     click.echo("Predicted value : " + str(value))
 

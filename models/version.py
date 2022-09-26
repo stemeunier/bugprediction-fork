@@ -16,4 +16,4 @@ class Version(Base):
     changes = Column(Integer)
     avg_team_xp = Column(Float)
     bug_velocity = Column(Float)
-
+    predict_bug = Column(Float)
