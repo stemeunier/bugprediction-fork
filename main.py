@@ -159,7 +159,7 @@ def populate(ctx):
     # if we use code maat git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
 
     # List the versions and checkout each one of them
-    versions = session.query(Version).all()
+    versions = session.query(Version).filter(Version.project_id == project.project_id).all()
     for version in versions:
         process = subprocess.run(["git", "checkout", version.tag],
                                  stdout=subprocess.PIPE,
