@@ -72,55 +72,70 @@ def report(ctx, output):
     exporter.generate(project, 'report.html')
     pass
 
-@cli.command()
-@click.option('--version-file', default='version.csv', help='Path of Version CSV file')
-@click.option('--issue-file', default='issue.csv', help='Path of Issue CSV file')
+@cli.command(name="import")
+@click.option('--target-table', help='Target table in database for the import')
+@click.option('--file', help='Path of file')
 @click.option('--overwrite', default=False, help='Overwrite database')
 @click.pass_context
-def import_csv(ctx, version_file, issue_file, overwrite):
-    """Import CSV file into tables"""
-    # Overwrite option
-    if overwrite:
-        session.query(Version).delete()
-        click.echo("Overwrite version table")
-        session.query(Issue).delete()
-        click.echo("Overwrite issue table")
+def import_file(ctx, target_table, file, overwrite):
+    """Import file into tables"""
+    logging.info("import")
+    if target_table and str(target_table).lower() in ["alias", "author", "commit", "file", "issue", 
+                                                      "metric", "model", "ownership", "project", "version"]:
+        # Overwrite option
+        if overwrite:
+            session.execute('DELETE FROM {target_table}'.format(target_table=str(target_table).capitalize()))
+            click.echo('Overwrite ' + str(target_table).capitalize() + ' table')
 
-    # Read Version CSV file
-    versions = list(csv.DictReader(open(version_file, 'r')))
-    # Read Issue CSV file
-    issues = list(csv.DictReader(open(issue_file, 'r')))
+        if file:
+            # Read CSV file
+            csv_data = list(csv.DictReader(open(file, 'r')))
+            
+            if str(target_table).capitalize() == "Version":
+                for version in csv_data:
+                    # Instanciation with Version model
+                    newVersion = Version(project_id=version['project_id'],
+                    name=version["name"], 
+                    tag=version["tag"], 
+                    start_date=datetime.strptime(version["start_date"], '%Y-%m-%d %H:%M:%S.%f'), 
+                    end_date=datetime.strptime(version["end_date"], '%Y-%m-%d %H:%M:%S.%f'), 
+                    bugs=version["bugs"], 
+                    changes=version["changes"], 
+                    avg_team_xp=version["avg_team_xp"], 
+                    bug_velocity=version["bug_velocity"])
+
+                    # Save on database
+                    try:
+                        session.add(newVersion)
+                        click.echo("Add " + str(len(csv_data)) + " version(s) in database")
+                    except Exception:
+                        logging.error(Exception)
+
+            if str(target_table).capitalize() == "Issue":
+                for issue in csv_data:
+                    # Instanciation with Issue model
+                    newIssue = Issue(project_id=issue['project_id'],
+                    number=issue["number"],
+                    title=issue["title"],
+                    created_at=datetime.strptime(issue["created_at"], '%Y-%m-%d %H:%M:%S.%f'),
+                    updated_at=datetime.strptime(issue["updated_at"], '%Y-%m-%d %H:%M:%S.%f')
+                    )
+
+                    # Save on database
+                    try:
+                        session.add(newIssue)
+                        click.echo("Add " + str(len(csv_data)) + " issue(s) in database")
+                    except Exception:
+                        logging.error(Exception)
+
+            session.commit()
+        else:
+            logging.error('File not found')
+            sys.exit('File not found')
+    else:
+        logging.error('Target table not indicated')
+        sys.exit('Target table not indicated')
     
-    for version in versions:
-        # Instanciation with Version model
-        newVersion = Version(project_id=version['project_id'],
-        name=version["name"], 
-        tag=version["tag"], 
-        start_date=datetime.strptime(version["start_date"], '%Y-%m-%d %H:%M:%S.%f'), 
-        end_date=datetime.strptime(version["end_date"], '%Y-%m-%d %H:%M:%S.%f'), 
-        bugs=version["bugs"], 
-        changes=version["changes"], 
-        avg_team_xp=version["avg_team_xp"], 
-        bug_velocity=version["bug_velocity"])
-
-        # Save on database
-        session.add(newVersion)
-
-    for issue in issues:
-        # Instanciation with Issue model
-        newIssue = Issue(project_id=issue['project_id'],
-        number=issue["number"],
-        title=issue["title"],
-        created_at=datetime.strptime(issue["created_at"], '%Y-%m-%d %H:%M:%S.%f'),
-        updated_at=datetime.strptime(issue["updated_at"], '%Y-%m-%d %H:%M:%S.%f')
-        )
-
-        # Save on database
-        session.add(newIssue)
-
-    session.commit()
-    click.echo("Add " + str(len(versions)) + " version(s) in database")
-    click.echo("Add " + str(len(issues)) + " issue(s) in database")
 
 @cli.command()
 @click.option('--model-name', default='bugvelocity', help='Name of the model')

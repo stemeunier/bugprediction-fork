@@ -23,7 +23,7 @@ class FlatFileExporter:
         """
         Export the database to CSV
         """
-        logging.info('export_tocsv')
+        logging.info('export_to_csv')
         metrics_statement = self.session.query(Version, Metric).join(Metric, Metric.version_id == Version.version_id).statement
         logging.debug(metrics_statement)
         df = pd.read_sql(metrics_statement, self.session.get_bind())
