@@ -1,11 +1,9 @@
-from datetime import datetime
 import os
 import sys
 import logging
 import platform
 import subprocess
 import tempfile
-import csv
 
 import click
 import sqlalchemy as db
@@ -13,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
 from exporters.html import HtmlExporter
+from importers.flatfile import FlatFileImporter
 
 from models.project import Project
 from models.version import Version
@@ -74,69 +73,14 @@ def report(ctx, output):
 
 @cli.command(name="import")
 @click.option('--target-table', help='Target table in database for the import')
-@click.option('--file', help='Path of file')
+@click.option('--filename', help='Path of file')
 @click.option('--overwrite', default=False, help='Overwrite database')
 @click.pass_context
-def import_file(ctx, target_table, file, overwrite):
+def import_file(ctx, target_table, filename, overwrite):
     """Import file into tables"""
-    logging.info("import")
-    if target_table and str(target_table).lower() in ["alias", "author", "commit", "file", "issue", 
-                                                      "metric", "model", "ownership", "project", "version"]:
-        # Overwrite option
-        if overwrite:
-            session.execute('DELETE FROM {target_table}'.format(target_table=str(target_table).capitalize()))
-            click.echo('Overwrite ' + str(target_table).capitalize() + ' table')
-
-        if file:
-            # Read CSV file
-            csv_data = list(csv.DictReader(open(file, 'r')))
-            
-            if str(target_table).capitalize() == "Version":
-                for version in csv_data:
-                    # Instanciation with Version model
-                    newVersion = Version(project_id=version['project_id'],
-                    name=version["name"], 
-                    tag=version["tag"], 
-                    start_date=datetime.strptime(version["start_date"], '%Y-%m-%d %H:%M:%S.%f'), 
-                    end_date=datetime.strptime(version["end_date"], '%Y-%m-%d %H:%M:%S.%f'), 
-                    bugs=version["bugs"], 
-                    changes=version["changes"], 
-                    avg_team_xp=version["avg_team_xp"], 
-                    bug_velocity=version["bug_velocity"])
-
-                    # Save on database
-                    try:
-                        session.add(newVersion)
-                        click.echo("Add " + str(len(csv_data)) + " version(s) in database")
-                    except Exception:
-                        logging.error(Exception)
-
-            if str(target_table).capitalize() == "Issue":
-                for issue in csv_data:
-                    # Instanciation with Issue model
-                    newIssue = Issue(project_id=issue['project_id'],
-                    number=issue["number"],
-                    title=issue["title"],
-                    created_at=datetime.strptime(issue["created_at"], '%Y-%m-%d %H:%M:%S.%f'),
-                    updated_at=datetime.strptime(issue["updated_at"], '%Y-%m-%d %H:%M:%S.%f')
-                    )
-
-                    # Save on database
-                    try:
-                        session.add(newIssue)
-                        click.echo("Add " + str(len(csv_data)) + " issue(s) in database")
-                    except Exception:
-                        logging.error(Exception)
-
-            session.commit()
-        else:
-            logging.error('File not found')
-            sys.exit('File not found')
-    else:
-        logging.error('Target table not indicated')
-        sys.exit('Target table not indicated')
+    importer = FlatFileImporter(session, filename, target_table, overwrite)
+    importer.import_from_csv()
     
-
 @cli.command()
 @click.option('--model-name', default='bugvelocity', help='Name of the model')
 @click.pass_context
