@@ -99,7 +99,7 @@ def info(ctx):
     versions_count = session.query(Version).filter(Version.project_id == project.project_id).count()
     issues_count = session.query(Issue).filter(Issue.project_id == project.project_id).count()
     metrics_count = session.query(Metric).join(Version).filter(Version.project_id == project.project_id).count()
-    trained_models = session.query(Model.name).filter(Version.project_id == project.project_id).all()
+    trained_models = session.query(Model.name).filter(Model.project_id == project.project_id).all()
 
     out = """ -- OTTM Bug Predictor --
     Project  : {project}
