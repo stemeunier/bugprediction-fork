@@ -19,7 +19,44 @@ We hope that you will find this tool helpful for benchmarking your model.
 
 ## Usage
 
-The tool needs to target a repository with release. In the opposite, you need to import them into the version table.
+The tool needs to target a repository with releases and issues. If you use another tool, you'd need to import versions and issues into the database.
+
+You need to create and ```.env``` file (by copying the ```.env-example```) and to fill at least these variables :
+
+ - ```OTTM_SMC_PATH``` : Path to git executable, leave "git" if it's into system env. path
+ - ```OTTM_SOURCE_PROJECT``` : Name of the project (e.g. dbeaver)
+ - ```OTTM_SOURCE_REPO``` : Repositiory name (e.g. dbeaver/dbeaver)
+ - ```OTTM_CURRENT_BRANCH``` :  The branch containing the next release (e.g. devel)
+ - ```OTTM_SOURCE_REPO_URL``` : # The full path to repo (e.g. https://github.com/dbeaver/dbeaver)
+ - ```OTTM_SOURCE_REPO_SMC``` : Either "github" or "gitlab", other SCM are not yet supported
+ - ```OTTM_SMC_BASE_URL``` : SMC base URL - leave empty for public repo
+ - ```OTTM_SMC_TOKEN``` Token to access github or gitlab
+ - ```OTTM_TARGET_DATABASE``` : The default value will generate a SQLite database into the current folder
+ 
+ The first step (it might take a while) is to populate the database with versions, issues and commits. The repository will be cloned into a temporary folder and we will checkout all versions in order to generate code metrics. You can run this command in many times as it will only amend the database with latest changes.
+
+    python main.py populate
+
+The tool is shipped with two simple bug prediction models. You need to train each model before you can use it:
+
+    python main.py train --model-name bugvelocity
+
+And then use it to predict the number of bugs into the comming release (based on the metrics extracted from ```OTTM_CURRENT_BRANCH```):
+
+    $ python main.py predict --model-name bugvelocity
+    Predicted value : 31
+
+See the [list of commands](./docs/commands.md) for other options.
+
+## Limitations
+
+The tool currently doesn't support repositories with multiple releases in parallel (i.e. a latest version maintained in parallel of a LTS version). You have to [import](./docs/import.md) the version line that you want to examine.
+
+Linking issues and commits to a version is a tedious task. At this stage, the tool roughly estimate that issues and commits are linked to a version if the objects were created between the start and and dates of the version. 
+
+## Contribute
+
+The tool is released under a MIT licence. Contributors are welcomed in many areas (imporve the tool, add your own model, add a more clever Git tree exploration algo, etc.).
 ## Tools
 
 ### General
