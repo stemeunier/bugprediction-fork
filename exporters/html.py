@@ -3,14 +3,18 @@ import logging
 import os
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import jinja2
 from sqlalchemy.orm import Session
 
 from configuration import Configuration
 from models.project import Project
 from models.metric import Metric
+from models.model import Model
 from models.version import Version
 from utils.timeit import timeit
+from ml.bugvelocity import BugVelocity
+from metrics.commits import compute_commit_msg_quality
 
 class HtmlExporter:
     """
@@ -82,11 +86,40 @@ class HtmlExporter:
         fig = px.bar(x=tags, y=avg_team_xp)
         fig3_html = fig.to_html(full_html=False, include_plotlyjs=False)
 
+        current_release = self.session.query(Version) \
+                .order_by(Version.end_date.desc()) \
+                .filter(Version.project_id == project.project_id) \
+                .filter(Version.name == "Next Release").first()
+
+        trained_models = self.session.query(Model.name).filter(Model.project_id == project.project_id).all()
+        trained_models = [r for r, in trained_models]
+        predicted_bugs = -1
+        model_name = ""
+        if 'bugvelocity' in trained_models:
+            model_name = "bugvelocity"
+            model = BugVelocity(self.session, project.project_id)
+            predicted_bugs = model.predict()
+
+        commit_msg_stats = compute_commit_msg_quality(self.session, current_release)
+
+        fig = go.Figure(go.Indicator(
+            mode = "gauge+number",
+            value = 12,
+            title = {'text': "Risk"},
+            domain = {'x': [0, 1], 'y': [0, 1]}
+        ))
+        fig_risk_html = fig.to_html(full_html=False, include_plotlyjs=False)
+
         data = {
+            "model_name" : "bugvelocity",
+            "current_release" : current_release,
+            "predicted_bugs" : predicted_bugs,
             "project": project,
-            "graph1": fig1_html,
-            "graph2": fig2_html,
-            "graph3": fig3_html
+            "graph_bugs": fig1_html,
+            "graph_changes": fig2_html,
+            "graph_xp": fig3_html,
+            "graph_risk": fig_risk_html,
+            "commit_msg_stats": commit_msg_stats
         }
 
         # Render the template and save the output

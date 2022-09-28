@@ -125,14 +125,18 @@ class GitConnector(ABC):
             self.session.commit()
             logging.info("Deleted Metrics associated with version " + next_release.name)
 
-    def populate_db(self):
+    def populate_db(self, skip_version):
         """Populate the database from the Git API"""
+        if skip_version:
+            logging.info("Skipping version populate")
+        else:
+            self.create_versions()
+            self.compute_version_metrics()
+        
         # Preserve the sequence below
         self.clean_next_release_metrics()
-        self.create_versions()
         self.create_commits_from_repo()
         self.create_issues()
-        self.compute_version_metrics()
 
     def _clean_project_existing_versions(self):
         self.session.query(Version).filter(Version.project_id == self.project_id).delete()
