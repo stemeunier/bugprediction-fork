@@ -12,6 +12,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
 from connectors.git import GitConnector
 from exporters.html import HtmlExporter
+from importers.flatfile import FlatFileImporter
 
 from models.project import Project
 from models.version import Version
@@ -70,6 +71,16 @@ def report(ctx, output):
     exporter.generate(project, 'report.html')
     pass
 
+@cli.command(name="import")
+@click.option('--target-table', help='Target table in database for the import')
+@click.option('--filename', help='Path of file')
+@click.option('--overwrite', default=False, help='Overwrite database')
+@click.pass_context
+def import_file(ctx, target_table, filename, overwrite):
+    """Import file into tables"""
+    importer = FlatFileImporter(session, filename, target_table, overwrite)
+    importer.import_from_csv()
+    
 @cli.command()
 @click.option('--model-name', default='bugvelocity', help='Name of the model')
 @click.pass_context

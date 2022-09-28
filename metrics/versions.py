@@ -24,7 +24,7 @@ def compute_version_metrics(session, current:str, project_id:int):
         SQLAlchemy session
     - current : str
         Current branch being developed
-    project_id : int
+    - project_id : int
         Project Identifier
     """
     versions = session.query(Version).filter(Version.project_id == project_id).all()
