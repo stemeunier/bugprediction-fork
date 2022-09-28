@@ -43,3 +43,9 @@ class Configuration:
             self.exclude_folders = os.environ["OTTM_EXCLUDE_FOLDERS"].split(";")
         else:
             self.exclude_folders = []
+
+        if "OTTM_COMMIT_BAD_MSG" in os.environ:
+            self.insignificant_commits_messages = os.environ["OTTM_COMMIT_BAD_MSG"].split(";")
+        else:
+            self.insignificant_commits_messages = []
+        

@@ -3,7 +3,7 @@ import logging
 import os
 import pandas as pd
 import plotly.express as px
-from bs4 import BeautifulSoup
+import jinja2
 from sqlalchemy.orm import Session
 
 from configuration import Configuration
@@ -60,15 +60,8 @@ class HtmlExporter:
         # logging.debug(metrics_statement)
         # df = pd.read_sql(metrics_statement, self.session.get_bind())
         # Load HTML template
-        template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/simple_report.html")
-        fd = open(template_path, mode='r')
-        html_doc = fd.read()
-        fd.close()
-        soup = BeautifulSoup(html_doc, 'html.parser')
-        
-        # Set the name of the project
-        soup.find(id="project-name").append(project.name)
-        
+        template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/")
+
         last_three_releases = self.session.query(Version) \
                 .order_by(Version.end_date.desc()) \
                 .filter(Version.project_id == project.project_id) \
@@ -79,22 +72,27 @@ class HtmlExporter:
         changes = [row.changes for row in last_three_releases]
         avg_team_xp = [row.avg_team_xp for row in last_three_releases]
 
-        # Append the graphs about the last three releases
+        # # Append the graphs about the last three releases
         fig = px.bar(x=tags, y=bugs)
-        fig_html = fig.to_html(full_html=False, include_plotlyjs=False)
-        aSoup = BeautifulSoup(fig_html, 'html.parser')
-        soup.find(id="graph1").append(aSoup)
+        fig1_html = fig.to_html(full_html=False, include_plotlyjs=False)
 
         fig = px.bar(x=tags, y=changes)
-        fig_html = fig.to_html(full_html=False, include_plotlyjs=False)
-        aSoup = BeautifulSoup(fig_html, 'html.parser')
-        soup.find(id="graph2").append(aSoup)
+        fig2_html = fig.to_html(full_html=False, include_plotlyjs=False)
         
         fig = px.bar(x=tags, y=avg_team_xp)
-        fig_html = fig.to_html(full_html=False, include_plotlyjs=False)
-        aSoup = BeautifulSoup(fig_html, 'html.parser')
-        soup.find(id="graph3").append(aSoup)
+        fig3_html = fig.to_html(full_html=False, include_plotlyjs=False)
 
-        # Export the report
+        data = {
+            "project": project,
+            "graph1": fig1_html,
+            "graph2": fig2_html,
+            "graph3": fig3_html
+        }
+
+        # Render the template and save the output
+        template_loader = jinja2.FileSystemLoader(searchpath=template_path)
+        template_env = jinja2.Environment(loader=template_loader)
+        template = template_env.get_template("simple_report.html")
+        output_text = template.render(data)
         with open(os.path.join(self.directory, filename), "w") as file:
-            file.write(str(soup))
+            file.write(output_text)

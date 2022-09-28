@@ -1,3 +1,4 @@
+import logging
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
@@ -9,6 +10,11 @@ from models.version import Version
 from utils.timeit import timeit
 
 class BugVelocity(ml):
+    """
+    BugVelocity is a simple Machine Learning model (a bit naive) based on the history of
+    bug velocity values. It demonstrate how you can integrate your own model into the tool.
+    """
+    
     def __init__(self, session, project_id):
         ml.__init__(self, session, project_id)
         self.name = "bugvelocity"
@@ -16,7 +22,8 @@ class BugVelocity(ml):
     @timeit
     def train(self):
         """Train the model"""
-        releases_statement = self.session.query(Version).order_by(Version.version_id.asc()).filter(Version.project_id == self.project_id).filter(Version.name != "Next Release").statement
+        logging.info("BugVelocity:train")
+        releases_statement = self.session.query(Version).order_by(Version.start_date.asc()).filter(Version.project_id == self.project_id).filter(Version.name != "Next Release").statement
         df = pd.read_sql(releases_statement, self.session.get_bind())
         X=df[['bug_velocity']]
         y=df[['bugs']].values.ravel()
@@ -28,12 +35,14 @@ class BugVelocity(ml):
         y_pred = self.model.predict(X_test)
         rdmForest_predictions = [round(value) for value in y_pred]
         self.mse = mean_squared_error(y_test, rdmForest_predictions)
+        logging.info("BugVelocity: Mean Square Error : " + str(self.mse))
         self.store()
 
 
     @timeit
     def predict(self)->int:
         """Predict the next value"""
+        logging.info("BugVelocity::predict")
         self.restore()  # unpickle the model
         next_release = self.session.query(Version).filter(Version.project_id == self.project_id).filter(Version.name == "Next Release").first()
         last_release = self.session.query(Version).order_by(Version.end_date.desc()).filter(Version.project_id == self.project_id).limit(2)[1]

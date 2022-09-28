@@ -10,6 +10,7 @@ import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
+from connectors.git import GitConnector
 from exporters.html import HtmlExporter
 from importers.flatfile import FlatFileImporter
 
@@ -21,10 +22,9 @@ from models.model import Model
 from models.database import setup_database
 from connectors.ck import CkConnector
 from connectors.jpeek import JPeekConnector
-from connectors.github import GitHubConnector
-from connectors.gitlab import GitLabConnector
 from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
+from connectors.gitfactory import GitConnectorFactory
 from exporters import flatfile
 from ml.bugvelocity import BugVelocity
 from utils.dirs import TmpDirCopyFilteredWithEnv
@@ -110,7 +110,7 @@ def info(ctx):
     versions_count = session.query(Version).filter(Version.project_id == project.project_id).count()
     issues_count = session.query(Issue).filter(Issue.project_id == project.project_id).count()
     metrics_count = session.query(Metric).join(Version).filter(Version.project_id == project.project_id).count()
-    trained_models = session.query(Model.name).filter(Version.project_id == project.project_id).all()
+    trained_models = session.query(Model.name).filter(Model.project_id == project.project_id).all()
 
     out = """ -- OTTM Bug Predictor --
     Project  : {project}
@@ -159,35 +159,18 @@ def populate(ctx):
     logging.info('Executed command line: ' + ' '.join(process.args))
     repo_dir = os.path.join(tmp_dir, os.environ["OTTM_SOURCE_PROJECT"])
 
-    # Populate the database
-    if os.environ["OTTM_SOURCE_REPO_SMC"] == "github":
-        logging.info('Using GiHub')
-        git = GitHubConnector(
-            os.environ["OTTM_SMC_TOKEN"],
-            os.environ["OTTM_SOURCE_REPO"],
-            os.environ["OTTM_CURRENT_BRANCH"],
-            session,
-            project.project_id,
-            repo_dir)
-    elif os.environ["OTTM_SOURCE_REPO_SMC"] == "gitlab":
-        logging.info('Using GitLab')
-        git = GitLabConnector(
-            os.environ["OTTM_SMC_BASE_URL"],
-            os.environ["OTTM_SMC_TOKEN"],
-            os.environ["OTTM_SOURCE_REPO"],
-            os.environ["OTTM_CURRENT_BRANCH"],
-            session,
-            project.project_id,
-            repo_dir)
-    else:
-        logging.error("Unsupported SCM")
-        sys.exit('Unsupported SCM')
+    git: GitConnector = GitConnectorFactory.create_git_connector(
+        os.environ,
+        session,
+        project.project_id,
+        repo_dir
+    )
 
     git.populate_db()
     # if we use code maat git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
 
     # List the versions and checkout each one of them
-    versions = session.query(Version).all()
+    versions = session.query(Version).filter(Version.project_id == project.project_id).all()
     for version in versions:
         process = subprocess.run(["git", "checkout", version.tag],
                                  stdout=subprocess.PIPE,
