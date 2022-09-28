@@ -6,10 +6,6 @@ from sqlalchemy import desc
 from configuration import Configuration
 from models.version import Version
 from models.commit import Commit
-from models.issue import Issue
-from models.metric import Metric
-from models.author import Author
-from models.alias import Alias
 from utils.timeit import timeit
 
 
