@@ -56,7 +56,7 @@ def export(ctx, output, format):
         if format not in ['csv','parquet']:
             logging.error("Unsupported output format")
             sys.exit('Unsupported output format')
-    exporter = flatfile.FlatFileExporter(session, output)
+    exporter = flatfile.FlatFileExporter(session, project.project_id, output)
     if format == 'csv':
         exporter.export_to_csv("metrics.csv")
     elif format == 'parquet':
