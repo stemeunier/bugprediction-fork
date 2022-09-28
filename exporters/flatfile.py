@@ -41,7 +41,7 @@ class FlatFileExporter:
         filename : str
             name of the file with extension - not the fullpath
         """
-        logging.info('export_tocsv')
+        logging.info('export_to_csv')
         metrics_statement = self.session.query(Version, Metric) \
             .filter(Version.project_id == self.project_id) \
             .join(Metric, Metric.version_id == Version.version_id).statement
