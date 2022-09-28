@@ -83,7 +83,6 @@ def import_file(ctx, target_table, filename, overwrite):
     importer.import_from_csv()
 
 @cli.command()
-@click.option('--train')
 @click.option('--model-name', default='bugvelocity', help='Name of the model')
 @click.pass_context
 def train(ctx, model_name):
@@ -93,7 +92,6 @@ def train(ctx, model_name):
     click.echo("Model was trained")
 
 @cli.command()
-@click.option('--predict')
 @click.option('--model-name', default='bugvelocity', help='Name of the model')
 @click.pass_context
 def predict(ctx, model_name):

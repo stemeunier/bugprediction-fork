@@ -3,7 +3,7 @@ import sys
 
 from ml.ml import ml
 from ml.bugvelocity import BugVelocity
-from ml.predictbug import PredictBug
+from ml.codemetrics import CodeMetrics
 
 
 class MlFactory:
@@ -13,9 +13,9 @@ class MlFactory:
         if model_name == "bugvelocity":
             logging.info("Using BugVelocity Model")
             return BugVelocity(session, project_id)
-        if model_name == "predictbug":
-            logging.info("Using PredicBug Model")
-            return PredictBug(session, project_id)
+        if model_name == "codemetrics":
+            logging.info("Using CodeMetrics Model")
+            return CodeMetrics(session, project_id)
         else:
             logging.error(f"Unknown ml model: {model_name}")
             sys.exit('Unknown ml model')
