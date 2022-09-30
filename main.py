@@ -1,4 +1,3 @@
-from email.policy import default
 import os
 import sys
 import logging
@@ -13,6 +12,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
 from connectors.git import GitConnector
 from exporters.html import HtmlExporter
+from ml.mlfactory import MlFactory
 from importers.flatfile import FlatFileImporter
 
 from models.project import Project
@@ -73,22 +73,21 @@ def report(ctx, output):
     pass
 
 @cli.command(name="import")
-@click.option('--target-table', help='Target table in database for the import')
-@click.option('--filename', help='Path of file')
-@click.option('--overwrite', default=False, help='Overwrite database')
+@click.option('--target-table', is_flag=True, help='Target table in database for the import')
+@click.option('--file-path', is_flag=True, help='Path of file')
+@click.option('--overwrite', is_flag=True, default=False, help='Overwrite database table')
 @click.pass_context
-def import_file(ctx, target_table, filename, overwrite):
+def import_file(ctx, target_table, file_path, overwrite):
     """Import file into tables"""
-    importer = FlatFileImporter(session, filename, target_table, overwrite)
+    importer = FlatFileImporter(session, file_path, target_table, overwrite)
     importer.import_from_csv()
-    
+
 @cli.command()
 @click.option('--model-name', default='bugvelocity', help='Name of the model')
 @click.pass_context
 def train(ctx, model_name):
     """Train a model"""
-    # TODO : the concrete object should be returned by a factory
-    model = BugVelocity(session, project.project_id)
+    model = MlFactory.create_ml_model(model_name, session, project.project_id)
     model.train()
     click.echo("Model was trained")
 
@@ -97,8 +96,7 @@ def train(ctx, model_name):
 @click.pass_context
 def predict(ctx, model_name):
     """Predict next value with a trained model"""
-    # TODO : the concrete object should be returned by a factory
-    model = BugVelocity(session, project.project_id)
+    model = MlFactory.create_ml_model(model_name, session, project.project_id)
     value = model.predict()
     click.echo("Predicted value : " + str(value))
 
