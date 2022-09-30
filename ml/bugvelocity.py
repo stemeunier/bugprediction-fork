@@ -9,6 +9,7 @@ from models.metric import Metric
 from models.version import Version
 from utils.timeit import timeit
 
+
 class BugVelocity(ml):
     """
     BugVelocity is a simple Machine Learning model (a bit naive) based on the history of

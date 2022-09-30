@@ -1,5 +1,6 @@
 import logging
 import pickle
+from abc import abstractmethod, ABC
 from datetime import datetime
 from unicodedata import name
 
@@ -9,7 +10,8 @@ from utils.timeit import timeit
 from models.model import Model
 from configuration import Configuration
 
-class ml:
+
+class ml(ABC):
     """
     Model
     
@@ -23,6 +25,9 @@ class ml:
     """
 
     def __init__(self, session, project_id):
+        self.model = None
+        self.name = None
+        self.mse = None
         self.session = session
         self.project_id = project_id
         self.configuration = Configuration()
@@ -60,4 +65,11 @@ class ml:
             self.model = None
         else:
             self.model = pickle.loads(model_in_db.data)
-        
+
+    @abstractmethod
+    def train(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def predict(self):
+        raise NotImplementedError
