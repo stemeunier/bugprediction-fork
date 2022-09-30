@@ -73,13 +73,13 @@ def report(ctx, output):
     pass
 
 @cli.command(name="import")
-@click.option('--target-table', help='Target table in database for the import')
-@click.option('--filename', help='Path of file')
-@click.option('--overwrite', default=False, help='Overwrite database')
+@click.option('--target-table', is_flag=True, help='Target table in database for the import')
+@click.option('--file-path', is_flag=True, help='Path of file')
+@click.option('--overwrite', is_flag=True, default=False, help='Overwrite database table')
 @click.pass_context
-def import_file(ctx, target_table, filename, overwrite):
+def import_file(ctx, target_table, file_path, overwrite):
     """Import file into tables"""
-    importer = FlatFileImporter(session, filename, target_table, overwrite)
+    importer = FlatFileImporter(session, file_path, target_table, overwrite)
     importer.import_from_csv()
     
 @cli.command()

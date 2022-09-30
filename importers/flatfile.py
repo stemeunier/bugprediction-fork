@@ -5,6 +5,7 @@ import pandas as pd
 import click
 import sys
 
+from os.path import exists
 from datetime import datetime
 from metrics.versions import compute_version_metrics
 from models.version import Version
@@ -16,9 +17,23 @@ class FlatFileImporter:
     Import CSV file data to the database
     """
 
-    def __init__(self, session, filename:str, target_table:str, overwrite:bool) -> None:
+    def __init__(self, session, file_path:str, target_table:str, overwrite:bool) -> None:
+        """
+        Constructor
+
+        Parameters:
+        -----------
+        session : Session
+            SQLAlchemy session
+        file_path : str
+            Fullpath of import file
+        target_table : str
+            Database table for the import
+        overwrite : boolean
+            Overwrite database table
+        """
         self.session = session
-        self.filename = filename
+        self.file_path = file_path
         self.target_table = target_table
         self.overwrite = overwrite
 
@@ -28,9 +43,9 @@ class FlatFileImporter:
         """
         logging.info('import_from_csv')
         if self.target_table and str(self.target_table).lower() in ["issue", "version"]:
-            if self.filename:
+            if self.file_path and exists(self.file_path):
                 # Read CSV file
-                csv_data = pd.read_csv(self.filename).to_dict('records')
+                csv_data = pd.read_csv(self.file_path).to_dict('records')
 
                 # Import Version
                 if str(self.target_table).capitalize() == "Version":
