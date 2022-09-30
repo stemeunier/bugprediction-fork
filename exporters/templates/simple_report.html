@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bug Predictor report</title>
+    <link rel="shortcut icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAD////////////////////////////////////////////////////////////////////////////////////////////+/v///////////////////////////////////////////////////////////////////v7//////////////////v7+//7+/f////////////7+/v/+/fz//v39//7+/v////////////7+/f/+/v3//////////////v7/9uvb//79+////////v79//7+/v/+/v7////////////+/v7//v7+//7+/f///////v37//nw5P//////9ejX//Lcv//m3tX/39LD////////////9fDr/9/Sw//f08P/8ezm////////////5NnL/+LXy//y2r3/9uvd//DawP/36tn/+fj4/7WXc//Zybf/+vn2/4tdJf+Xbjz/oHpN/4NSFv/08Ov/4NPE/7KTbf/08vD/9+nY//Dbwf/x3ML/9uvc///////z7uj/waiM/8GpjP9qLwD/on1Q/6qIX/9pLQD/up59/8Stkv/r4tj///////bq3P/w3ML/8uDJ//bo1///////9fHs/7yigv+kgFT/cjoA/6B6TP+nhVv/cTkA/596TP+6n37/7+jg///////26dn/8t/I//Dcw//569v/08Sy/6uJYP/czrz/mnJC/3M7AP+gekz/qIVb/3M8AP+TaDT/28y7/66NZv/MuaT/9+nY//HdxP/pyaL/+/fx//v7+v/m28//vaOD/6B7Tf9vNgD/m3RE/6N/U/9uNQD/m3ND/76khf/h1Mb//Pz8//r07f/qzKb/7tW2//ju4f///////////+Xbz/+RZTD/hFQZ/5JnM/+TaDT/hlYb/4xfKP/f08T////////////58eb/7NKx//LgyP/05dL////////////Dq5H/0L6q/9vNu/+qiGD/qYde/9TDrv/Zyrn/u6CE////////////9OXR//LfyP/x3sX/9unZ///////s5Nv/t5p4/////v/h1sn/eEIF/3Q9AP/VxbL//////7mefP/l287///////Xo2P/x3sb/8NvA//br3P//////+/n3//z7+v//////wKaI/9nKuP/g1MX/up9+//7+/v/9/fz/+/n2///////369z/8NvA//LgyP/y4cr////////////o39P/tpl2/9C+qP///////////9bGs/+0lnL/5NnM///+/v//////8+PO//Hexv/79e7/7NOz///////u6OD/up99/+nh1v///////f38//39/P//////7ufe/7yhgf/p4NX//////+vQrv/68un/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==" />
+    <style>{% include 'bootstrap.min.css' %}</style>
+    <script>{% include 'jquery-3.6.1.min.js' %}</script>
+    <script>{% include 'plotly-2.14.0.min.js' %}</script>
+    <script>{% include 'bootstrap.bundle.min.js' %}</script>
+</head>
+
+<body>
+    <div class=".container-xxl">
+        <h1>Project {{ project.name }} ({{ project.language }})</h1>
+        <p>Projected statistics are based on the branch <code>{{ current_release.tag }}</code></p>
+        <div class="row mb-3">
+            <div class="col-4 themed-grid-col">
+                Number of issues (so far) : {{ current_release.bugs }}
+                {% if predicted_bugs > -1 %}
+                <br />Predicted number of bugs: {{ predicted_bugs }} ({{ model_name }})
+                {% endif %}
+                <br />
+                {{ graph_risk | safe }}
+            </div>
+            <div class="col-4 themed-grid-col">
+                Changes : {{ current_release.changes }}
+            </div>
+            <div class="col-4 themed-grid-col">
+                XP : {{ current_release.avg_team_xp }}
+            </div>
+        </div> 
+        <h2>Last 3 versions</h2>
+        <div class="row mb-3 text-center">
+            <div class="col-4 themed-grid-col">
+                <h4>Estimated number of Bugs</h4>
+                {{ graph_bugs | safe }}
+            </div>
+            <div class="col-4 themed-grid-col">
+                <h4>Estimated number of changes</h4>
+                {{ graph_changes | safe }}
+            </div>
+            <div class="col-4 themed-grid-col">
+                <h4>Avg XP of the devs</h4>
+                {{ graph_xp | safe }}
+            </div>  
+        </div>
+        
+        <h2>Code block legacy</h2>
+        <p>Coming soon...</p>
+
+        <h2>Commit message quality</h2>
+
+        <h3>Statistics</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Commits</th>
+                    <th scope="col">Valid messages</th>
+                    <th scope="col">Valid messages ratio</th>
+                    <th scope="col">Empty messages ratio</th>
+                    <th scope="col">One word messages ratio</th>
+                    <th scope="col">Insignificants messages ratio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ commit_msg_stats.nb_commits }}</td>
+                    <td>{{ commit_msg_stats.valid_commits }}</td>
+                    <td>{{ "%.0f%%" | format(commit_msg_stats.valid_commits_ratio) }}</td>
+                    <td>{{ "%.0f%%" | format(commit_msg_stats.empty_commits_ratio) }}</td>
+                    <td>{{ "%.0f%%" | format(commit_msg_stats.one_word_commits_ratio) }}</td>
+                    <td>{{ "%.0f%%" | format(commit_msg_stats.insignificant_commits_ratio) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Frequent messages</h3>
+        {% if commit_msg_stats.frequent_messages.empty is false %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Message</th>
+                        <th scope="col">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+            {% for commit in commit_msg_stats.frequent_messages %}
+                    <tr>
+                        <td>{{ commit.message }}</td>
+                        <td>{{ commit.frequency }}</td>
+                    </tr>
+            {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No frequent commit messages found in current release</p>
+        {% endif %}
+        <h2>Code metrics</h2>
+        <p>Coming soon...</p>
+    </div>
+</body>
+</html>
