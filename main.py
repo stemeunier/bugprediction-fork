@@ -110,6 +110,7 @@ def info(ctx):
     issues_count = session.query(Issue).filter(Issue.project_id == project.project_id).count()
     metrics_count = session.query(Metric).join(Version).filter(Version.project_id == project.project_id).count()
     trained_models = session.query(Model.name).filter(Model.project_id == project.project_id).all()
+    trained_models = [r for r, in trained_models]
 
     out = """ -- OTTM Bug Predictor --
     Project  : {project}
@@ -131,7 +132,7 @@ def info(ctx):
         versions=versions_count,
         issues=issues_count,
         metrics=metrics_count,
-        models=",".join(trained_models[0])
+        models=", ".join(trained_models)
         )
     click.echo(out)
 
