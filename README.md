@@ -19,7 +19,7 @@ We hope that you will find this tool helpful for benchmarking your model.
 
 ## Usage
 
-The tool needs to target a repository with releases and issues. If you use another tool, you'd need to import versions and issues into the database.
+The tool needs to target a repository (e.g. GitHub, GitLab) with releases and issues. If you use another tool, you'd need to import releases and issues into the database.
 
 You need to create and ```.env``` file (by copying the ```.env-example```) and to fill at least these variables :
 

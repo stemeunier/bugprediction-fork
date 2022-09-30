@@ -144,7 +144,7 @@ def check(ctx):
     pass
 
 @cli.command()
-@click.option('--skip-version', default=False, help="Skip populate Version")
+@click.option('--skip-version', is_flag=True, default=False, help="Skip populate Version")
 @click.pass_context
 def populate(ctx, skip_version):
     """Populate the database with the provided configuration"""
