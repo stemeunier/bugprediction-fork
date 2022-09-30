@@ -6,4 +6,6 @@ The tool is shipped with two simple bug prediction models. You need to train eac
 
 Of course, you need to [populate](./populate.md) the database before training the model with the metrics.
 
+See the [list of models](./ml/models.md) for more information.
+
 See the [list of commands](./commands.md) for other options.

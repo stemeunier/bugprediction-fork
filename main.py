@@ -1,3 +1,4 @@
+from email.policy import default
 import os
 import sys
 import logging
@@ -143,8 +144,9 @@ def check(ctx):
     pass
 
 @cli.command()
+@click.option('--skip-version', is_flag=True, default=False, help="Skip populate Version")
 @click.pass_context
-def populate(ctx):
+def populate(ctx, skip_version):
     """Populate the database with the provided configuration"""
 
     # Checkout, execute the tool and inject CSV result into the database
@@ -166,7 +168,7 @@ def populate(ctx):
         repo_dir
     )
 
-    git.populate_db()
+    git.populate_db(skip_version)
     # if we use code maat git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
 
     # List the versions and checkout each one of them
