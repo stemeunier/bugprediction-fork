@@ -12,6 +12,6 @@ RUN python -m pip install -r requirements.txt
 
 USER optittm-user
 
-COPY . .
+COPY --chown=optittm-user . .
 
 ENTRYPOINT ["python", "main.py"]

@@ -57,6 +57,7 @@ def export(ctx, output, format):
         if format not in ['csv','parquet']:
             logging.error("Unsupported output format")
             sys.exit('Unsupported output format')
+    os.makedirs(output, exist_ok=True)
     exporter = flatfile.FlatFileExporter(session, project.project_id, output)
     if format == 'csv':
         exporter.export_to_csv("metrics.csv")
@@ -200,7 +201,7 @@ def main():
     pass
 
 if __name__ == '__main__':
-    load_dotenv()
+    load_dotenv("./data/.env")
     logging.basicConfig(level=logging.DEBUG)
     logging.info('python: ' + platform.python_version())
     logging.info('system: ' + platform.system())

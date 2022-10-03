@@ -21,7 +21,7 @@ We hope that you will find this tool helpful for benchmarking your model.
 
 The tool needs to target a repository (e.g. GitHub, GitLab) with releases and issues. If you use another tool, you'd need to import releases and issues into the database.
 
-You need to create and ```.env``` file (by copying the ```.env-example```) and to fill at least these variables :
+You need to create and ```data/.env``` file (by copying the ```.env-example```) and to fill at least these variables :
 
  - ```OTTM_SMC_PATH``` : Path to git executable, leave "git" if it's into system env. path
  - ```OTTM_SOURCE_PROJECT``` : Name of the project (e.g. dbeaver)
