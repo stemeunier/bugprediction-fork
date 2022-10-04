@@ -13,8 +13,9 @@ from models.metric import Metric
 from models.model import Model
 from models.version import Version
 from utils.timeit import timeit
-from ml.bugvelocity import BugVelocity
+from ml.mlfactory import MlFactory
 from metrics.commits import compute_commit_msg_quality
+from metrics.versions import assess_next_release_risk
 
 class HtmlExporter:
     """
@@ -97,21 +98,30 @@ class HtmlExporter:
         model_name = ""
         if 'bugvelocity' in trained_models:
             model_name = "bugvelocity"
-            model = BugVelocity(self.session, project.project_id)
+            model = MlFactory.create_ml_model(model_name, self.session, project.project_id)
             predicted_bugs = model.predict()
+        elif 'codemetrics' in trained_models:
+            model_name = "codemetrics"
+            model = MlFactory.create_ml_model(model_name, self.session, project.project_id)
+            predicted_bugs = model.predict()
+
 
         commit_msg_stats = compute_commit_msg_quality(self.session, current_release)
 
+        risk = assess_next_release_risk(self.session, project.project_id)
+
         fig = go.Figure(go.Indicator(
-            mode = "gauge+number",
-            value = 12,
+            mode = "gauge+number+delta",
+            value = risk['score'],
             title = {'text': "Risk"},
+            delta = {'reference': risk['median'], "valueformat": ".0f"},
+            gauge = {'axis': {'range': [0, risk['max']]}},
             domain = {'x': [0, 1], 'y': [0, 1]}
         ))
         fig_risk_html = fig.to_html(full_html=False, include_plotlyjs=False)
 
         data = {
-            "model_name" : "bugvelocity",
+            "model_name" : model_name,
             "current_release" : current_release,
             "predicted_bugs" : predicted_bugs,
             "project": project,

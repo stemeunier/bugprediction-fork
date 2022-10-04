@@ -27,7 +27,6 @@ from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
 from connectors.gitfactory import GitConnectorFactory
 from exporters import flatfile
-from ml.bugvelocity import BugVelocity
 from utils.dirs import TmpDirCopyFilteredWithEnv
 
 session = None
