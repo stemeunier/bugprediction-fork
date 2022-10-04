@@ -1,21 +1,15 @@
 # ![logo](https://raw.githubusercontent.com/optittm/bugprediction/main/logo.png) Bug Prediction
 
-An experimental tool to compile code metrics (static analysis) from a project hosted on a git repository.
-The objective is to automatically build a comprehensive dataset. This dataset will benchmark bug prediction machine learning models.
+*bugprediction* compile data from a SCM server (e.g. github), static code analysis, and optional manual import (e.g. issues, releases). It can provide an offline HTML report about the assessment of the risk of delivering the next release. It can be usefull for datascientists who wants to benchmark bug prediction machine learning models.
 
 ## Introduction
-
-Our objective is to create a tool that automatically generates a comprehensive dataset for testing bug prediction models. 
-The first prototype will target Java based projects hosted on GitHub.
 
 The tool will connect to a SCM repository and fecth releases, code history, and issues.
 For each release the tool will:
  - Checkout the code and run static analysis tools to build metrics (e.g. cyclomatic complexity, object coupling, etc.)
- - Analyze the declared issues and compute metrics such as bug velocity
- - Exploit git log so as to build metrics related to churn, team seniority, etc.
+ - Analyze the issues and compute metrics such as bug velocity
+ - Analyze git log so as to build metrics related to churn, team seniority, etc.
  - Compute metrics from a curated list of tools and academic papers.
- 
-We hope that you will find this tool helpful for benchmarking your model.
 
 ## Usage
 
@@ -45,6 +39,14 @@ And then use it to predict the number of bugs into the comming release (based on
 
     $ python main.py predict --model-name bugvelocity
     Predicted value : 31
+
+You can generate an offline HTML report:
+
+    $ python main.py predict 
+
+One of the features of the report is to assess the risk of releasing the next version of your project:
+
+[risk assessment gauge](https://raw.githubusercontent.com/optittm/bugprediction/main/docs/images/gauge_risk.png)
 
 See the [list of commands](./docs/commands.md) for other options.
 
