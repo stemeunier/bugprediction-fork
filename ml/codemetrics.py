@@ -98,7 +98,8 @@ class CodeMetrics(ml):
                                    Metric.halstead_effort, Metric.halstead_time, Metric.halstead_bugs). \
             filter(Version.project_id == self.project_id). \
             filter(Metric.version_id == Version.version_id). \
-            order_by(Version.end_date.asc()).statement
+            order_by(Version.end_date.asc()). \
+            filter(Version.name == "Next Release").statement
         dataframe = pd.read_sql(versions_metrics_statement, self.session.get_bind())
         dataframe = dataframe.iloc[0]
 
