@@ -46,7 +46,7 @@ You can generate an offline HTML report:
 
 One of the features of the report is to assess the risk of releasing the next version of your project:
 
-[risk assessment gauge](./docs/images/gauge_risk.png)
+[risk assessment gauge](https://raw.githubusercontent.com/optittm/bugprediction/main/docs/images/gauge_risk.png)
 
 See the [list of commands](./docs/commands.md) for other options.
 
