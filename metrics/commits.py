@@ -63,11 +63,11 @@ def compute_commit_msg_quality(session, version:Version):
 
     value = dict()
     value["nb_commits"] = len(commits)
-    value["valid_commits"] = valid_commits_nb
-    value["valid_commits_ratio"] = valid_commits_nb / len(commits)
-    value["empty_commits_ratio"] = empty_commits_nb / len(commits)
-    value["one_word_commits_ratio"] = one_word_commits_nb / len(commits)
-    value["insignificant_commits_ratio"] = insignificant_commits_nb / len(commits)
-    value["frequent_messages"] = df
+    value["valid_commits"] = valid_commits_nb if len(commits) > 0 else 0
+    value["valid_commits_ratio"] = valid_commits_nb / len(commits)if len(commits) > 0 else 0
+    value["empty_commits_ratio"] = empty_commits_nb / len(commits)if len(commits) > 0 else 0
+    value["one_word_commits_ratio"] = one_word_commits_nb / len(commits)if len(commits) > 0 else 0
+    value["insignificant_commits_ratio"] = insignificant_commits_nb / len(commits)if len(commits) > 0 else 0
+    value["frequent_messages"] = df if len(commits) > 0 else 0
 
     return value

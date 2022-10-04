@@ -14,22 +14,27 @@
     <div class=".container-xxl">
         <h1>Project {{ project.name }} ({{ project.language }})</h1>
         <p>Projected statistics are based on the branch <code>{{ current_release.tag }}</code></p>
-        <div class="row mb-3">
-            <div class="col-4 themed-grid-col">
-                Number of issues (so far) : {{ current_release.bugs }}
-                {% if predicted_bugs > -1 %}
-                <br />Predicted number of bugs: {{ predicted_bugs }} ({{ model_name }})
-                {% endif %}
-                <br />
-                {{ graph_risk | safe }}
+        
+        <div class="d-flex justify-content-around">
+            <div class="row mb-3 w-75 align-items-center">
+                <div class="col-4 themed-grid-col">
+                    Number of issues (so far) : {{ current_release.bugs }}
+                    {% if predicted_bugs > -1 %}
+                    <br />Predicted number of bugs: {{ predicted_bugs }} ({{ model_name }})
+                    {% endif %}
+                    <br />
+                </div>
+                <div class="col-4 themed-grid-col">
+                    Changes : {{ current_release.changes }}
+                </div>
+                <div class="col-4 themed-grid-col">
+                    XP : {{ current_release.avg_team_xp }}
+                </div>
             </div>
-            <div class="col-4 themed-grid-col">
-                Changes : {{ current_release.changes }}
-            </div>
-            <div class="col-4 themed-grid-col">
-                XP : {{ current_release.avg_team_xp }}
-            </div>
-        </div> 
+
+            <div class="w-50">{{ graph_risk | safe }}</div>
+        </div>
+
         <h2>Last 3 versions</h2>
         <div class="row mb-3 text-center">
             <div class="col-4 themed-grid-col">

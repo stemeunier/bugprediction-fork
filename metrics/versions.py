@@ -1,11 +1,15 @@
 import logging
+import math
 
 import pandas as pd
 from sqlalchemy import desc
 from sqlalchemy.sql import func
+from sklearn import preprocessing
+import pandas as pd
+import numpy as np
 
-from configuration import Configuration
 from models.version import Version
+from models.metric import Metric
 from models.commit import Commit
 from models.issue import Issue
 from utils.timeit import timeit
@@ -66,3 +70,58 @@ def compute_version_metrics(session, current:str, project_id:int):
         version.avg_team_xp=seniority_avg
         version.bug_velocity=bug_velo_release
         session.commit()
+
+@timeit
+def assess_next_release_risk(session, project_id:int):
+    """
+    Assess the risk of deploying the next release by using 
+    weighed metrics from version
+
+    Parameters:
+    - session : Session
+        SQLAlchemy session
+    - project_id : int
+        Project Identifier
+    """
+
+    # Get the version metrics and the average cyclomatic complexity
+    metrics_statement = session.query(Version, Metric) \
+        .filter(Version.project_id == project_id) \
+        .join(Metric, Metric.version_id == Version.version_id) \
+        .order_by(Version.start_date.asc()).statement
+    logging.debug(metrics_statement)
+    df = pd.read_sql(metrics_statement, session.get_bind())
+
+    bug_velocity = np.array(df['bug_velocity'])
+    bug_velocity = preprocessing.normalize([bug_velocity])
+    changes = np.array(df['changes'])
+    changes = preprocessing.normalize([changes])
+    avg_team_xp = np.array(df['avg_team_xp'])
+    avg_team_xp = preprocessing.normalize([avg_team_xp])
+    lizard_avg_complexity = np.array(df['lizard_avg_complexity'])
+    lizard_avg_complexity = preprocessing.normalize([lizard_avg_complexity])
+
+    scaled_df = pd.DataFrame({
+        'bug_velocity': bug_velocity[0],
+        'changes': changes[0],
+        'avg_team_xp': avg_team_xp[0],
+        'lizard_avg_complexity': lizard_avg_complexity[0]
+        })
+
+    old_cols = df[["name", "bugs"]]
+    scaled_df = scaled_df.join(old_cols)
+
+    scaled_df["risk_assessment"] = (
+        (scaled_df["bug_velocity"] * 90) +
+         (scaled_df["changes"] * 20) +
+         ((1 / scaled_df["avg_team_xp"]) * 0.008) +
+         (scaled_df["lizard_avg_complexity"] * 40)
+    )
+
+    median_risk = scaled_df["risk_assessment"].median()
+    max_risk = scaled_df["risk_assessment"].max()
+    risk_score = scaled_df.loc[(scaled_df["name"] == "Next Release")]
+    return {
+        "median": math.ceil(median_risk),
+        "max": math.ceil(max_risk),
+        "score": math.ceil(risk_score.iloc[0]['risk_assessment'])}
