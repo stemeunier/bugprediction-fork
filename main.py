@@ -201,7 +201,7 @@ def main():
     pass
 
 if __name__ == '__main__':
-    load_dotenv("./data/.env")
+    load_dotenv()
     logging.basicConfig(level=logging.DEBUG)
     logging.info('python: ' + platform.python_version())
     logging.info('system: ' + platform.system())
