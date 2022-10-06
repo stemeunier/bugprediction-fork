@@ -7,31 +7,40 @@ from sqlalchemy.sql import func
 from sklearn import preprocessing
 import pandas as pd
 import numpy as np
+from pydriller.metrics.process.code_churn import CodeChurn
 
 from models.version import Version
 from models.metric import Metric
 from models.commit import Commit
 from models.issue import Issue
 from utils.timeit import timeit
+import utils.math as mt
 
 @timeit
-def compute_version_metrics(session, current:str, project_id:int):
+def compute_version_metrics(session, repo_dir:str, project_id:int):
     """
     Compute version related metics:
     - Rough volume of changes (total lines)
     - Number of issues
     - Bug velocity
     - Average seniorship of the team
+    - Code churn
 
     Parameters:
     - session : Session
         SQLAlchemy session
-    - current : str
-        Current branch being developed
+    - repo_dir : str
+        Local folder where the repository was clones
     - project_id : int
         Project Identifier
     """
-    versions = session.query(Version).filter(Version.project_id == project_id).all()
+    versions = session.query(Version) \
+        .filter(Version.project_id == project_id) \
+        .order_by(Version.start_date.asc()).all()
+
+    from_commit = session.query(Commit.hash) \
+        .filter(Commit.project_id == project_id) \
+            .order_by(Commit.date.asc()).first()[0]
 
     for version in versions:
         # Count the number of issues that occurred between the start and end dates
@@ -65,6 +74,25 @@ def compute_version_metrics(session, current:str, project_id:int):
             seniority_total += seniority
         seniority_avg = seniority_total / max(len(team_members), 1)
 
+        # Compute the count, average, and max code churn on the version
+        logging.info("Counting churn between " + from_commit + " and " + version.tag)
+        metric = CodeChurn(path_to_repo=repo_dir,
+                        from_commit=from_commit,
+                        to_commit=version.tag)
+        files_count = metric.count()
+        files_avg = metric.avg()
+        files_max = metric.max()
+        churn_count = 0
+        for file_count in files_count.values():
+            churn_count += abs(file_count)
+        churn_avg = abs(mt.Math.get_rounded_mean(list(files_avg.values())))
+        churn_max = max(list(files_max.values()))
+        logging.info('Chrun count: ' + str(churn_count) + ' / Chrun avg: ' + str(churn_avg) + ' / Chrun max: ' + str(churn_max))
+        from_commit = version.tag
+
+        version.code_churn_count = churn_count
+        version.code_churn_avg = churn_avg
+        version.code_churn_max = churn_max
         version.bugs=bugs_count
         version.changes=rough_changes
         version.avg_team_xp=seniority_avg
@@ -92,6 +120,19 @@ def assess_next_release_risk(session, project_id:int):
     logging.debug(metrics_statement)
     df = pd.read_sql(metrics_statement, session.get_bind())
 
+    # TODO : we should Remove outliers in the dataframe
+    # while preserving the "Next Release" row
+    # cols = ['pdays', 'campaign', 'previous'] # The columns you want to search for outliers in
+    # # Calculate quantiles and IQR
+    # Q1 = df[cols].quantile(0.25) # Same as np.percentile but maps (0,1) and not (0,100)
+    # Q3 = df[cols].quantile(0.75)
+    # IQR = Q3 - Q1
+    # # Return a boolean array of the rows with (any) non-outlier column values
+    # condition = ~((df[cols] < (Q1 - 1.5 * IQR)) | (df[cols] > (Q3 + 1.5 * IQR))).any(axis=1)
+    #  ---> or (df['name'] == 'Next Release')
+    # # Filter our dataframe based on condition
+    # filtered_df = df[condition]
+
     bug_velocity = np.array(df['bug_velocity'])
     bug_velocity = preprocessing.normalize([bug_velocity])
     changes = np.array(df['changes'])
@@ -100,12 +141,15 @@ def assess_next_release_risk(session, project_id:int):
     avg_team_xp = preprocessing.normalize([avg_team_xp])
     lizard_avg_complexity = np.array(df['lizard_avg_complexity'])
     lizard_avg_complexity = preprocessing.normalize([lizard_avg_complexity])
+    code_churn_avg = np.array(df['code_churn_avg'])
+    code_churn_avg = preprocessing.normalize([code_churn_avg])
 
     scaled_df = pd.DataFrame({
         'bug_velocity': bug_velocity[0],
         'changes': changes[0],
         'avg_team_xp': avg_team_xp[0],
-        'lizard_avg_complexity': lizard_avg_complexity[0]
+        'lizard_avg_complexity': lizard_avg_complexity[0],
+        'code_churn_avg': code_churn_avg[0]
         })
 
     old_cols = df[["name", "bugs"]]
@@ -115,7 +159,8 @@ def assess_next_release_risk(session, project_id:int):
         (scaled_df["bug_velocity"] * 90) +
          (scaled_df["changes"] * 20) +
          ((1 / scaled_df["avg_team_xp"]) * 0.008) +
-         (scaled_df["lizard_avg_complexity"] * 40)
+         (scaled_df["lizard_avg_complexity"] * 40) +
+         (scaled_df["code_churn_avg"] * 20)
     )
 
     median_risk = scaled_df["risk_assessment"].median()
