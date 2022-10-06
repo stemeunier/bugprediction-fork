@@ -65,11 +65,17 @@ def export(ctx, output, format):
 
 @cli.command()
 @click.option('--output', default='.', help='Destination folder')
+@click.option('--report-name', default='release', help='Path of file')
 @click.pass_context
-def report(ctx, output):
+def report(ctx, output, report_name):
     """Create a basic HTML report"""
     exporter = HtmlExporter(session, output)
-    exporter.generate(project, 'report.html')
+    if report_name == "churn":
+        exporter.generate_churn_report(project, 'churn.html')
+    elif report_name == "release":
+        exporter.generate_release_report(project, 'release.html')
+    else:
+        click.echo("This report doesn't exist")
     pass
 
 @cli.command(name="import")
