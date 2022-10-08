@@ -165,6 +165,11 @@ def assess_next_release_risk(session, project_id:int):
          (scaled_df["code_churn_avg"] * 20)
     )
 
+    # Elimininate "empty" version (too short to have XP, changes, etc.)
+    scaled_df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    scaled_df.dropna()
+
+    # Return risk assessment along with median and max risk scores for all versions
     median_risk = scaled_df["risk_assessment"].median()
     max_risk = scaled_df["risk_assessment"].max()
     risk_score = scaled_df.loc[(scaled_df["name"] == "Next Release")]
