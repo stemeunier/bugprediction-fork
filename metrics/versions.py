@@ -59,6 +59,7 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
         rough_changes = session.query(
             func.sum(Commit.lines).label("total_changes")
         ).filter(Commit.date.between(version.start_date, version.end_date)).filter(Commit.project_id == project_id).scalar()
+        if rough_changes is None: rough_changes = 0
 
         # Compute the average seniorship of the team
         team_members = session.query(Commit.committer).filter(
@@ -90,6 +91,7 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
         logging.info('Chrun count: ' + str(churn_count) + ' / Chrun avg: ' + str(churn_avg) + ' / Chrun max: ' + str(churn_max))
         from_commit = version.tag
 
+        # Modify the version into the database
         version.code_churn_count = churn_count
         version.code_churn_avg = churn_avg
         version.code_churn_max = churn_max
