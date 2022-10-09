@@ -1,4 +1,12 @@
 import logging
+import subprocess
+import os
+import tempfile
+from datetime import datetime
+
+from sqlalchemy.sql import func
+import pandas as pd
+
 from models.issue import Issue
 from models.version import Version
 from models.commit import Commit
@@ -6,13 +14,8 @@ from models.file import File
 from models.author import Author
 from models.ownership import Ownership
 from utils.proglang import guess_programing_language
-from datetime import datetime
-from sqlalchemy.sql import func
-import subprocess
-import os
-import tempfile
-import pandas as pd
-from pygments.lexers import guess_lexer
+from configuration import Configuration
+
 
 class CodeMaatConnector:
     """
@@ -29,6 +32,7 @@ class CodeMaatConnector:
         self.directory = directory
         self.session = session
         self.version = version
+        self.configuration = Configuration()
 
     def analyze_git_log(self):
         """Populate the database from the GitHub API"""
@@ -73,7 +77,7 @@ class CodeMaatConnector:
         logging.info('abs_churn = ' + git_log_file)
         output_file = tempfile.mkstemp(suffix=".csv")[1]
         # java -jar ./ext-tools/code-maat-1.0.2.jar -l gitlogfile.log -c git2 -a abs-churn > code-maat-abs-churn.csv
-        process = subprocess.run(["java", "-jar", os.environ["OTTM_CODE_MAAT_PATH"], "-l", git_log_file,
+        process = subprocess.run(["java", "-jar", self.configuration.code_maat_path, "-l", git_log_file,
                  "-c", "git2", "-a", "abs-churn", "-o", output_file])
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Code Maat output file: ' + output_file)
@@ -85,7 +89,7 @@ class CodeMaatConnector:
         """
         logging.info('number_of_authors_per_module = ' + git_log_file)
         output_file = tempfile.mkstemp(suffix=".csv")[1]
-        process = subprocess.run(["java", "-jar", os.environ["OTTM_CODE_MAAT_PATH"], "-l", git_log_file,
+        process = subprocess.run(["java", "-jar", self.configuration.code_maat_path, "-l", git_log_file,
                  "-c", "git2", "-o", output_file])
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Code Maat output file: ' + output_file)
@@ -97,7 +101,7 @@ class CodeMaatConnector:
         """
         logging.info('logical_coupling = ' + git_log_file)
         output_file = tempfile.mkstemp(suffix=".csv")[1]
-        process = subprocess.run(["java", "-jar", os.environ["OTTM_CODE_MAAT_PATH"], "-l", git_log_file,
+        process = subprocess.run(["java", "-jar", self.configuration.code_maat_path, "-l", git_log_file,
                  "-c", "git2", "-a", "coupling", "-o", output_file])
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Code Maat output file: ' + output_file)
@@ -109,7 +113,7 @@ class CodeMaatConnector:
         """
         logging.info('code_age = ' + git_log_file)
         output_file = tempfile.mkstemp(suffix=".csv")[1]
-        process = subprocess.run(["java", "-jar", os.environ["OTTM_CODE_MAAT_PATH"], "-l", git_log_file,
+        process = subprocess.run(["java", "-jar", self.configuration.code_maat_path, "-l", git_log_file,
                  "-c", "git2", "-a", "age", "-o", output_file])
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Code Maat output file: ' + output_file)
@@ -121,7 +125,7 @@ class CodeMaatConnector:
         """
         logging.info('churn_by_author = ' + git_log_file)
         output_file = tempfile.mkstemp(suffix=".csv")[1]
-        process = subprocess.run(["java", "-jar", os.environ["OTTM_CODE_MAAT_PATH"], "-l", git_log_file,
+        process = subprocess.run(["java", "-jar", self.configuration.code_maat_path, "-l", git_log_file,
                  "-c", "git2", "-a", "author-churn", "-o", output_file])
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Code Maat output file: ' + output_file)
@@ -133,7 +137,7 @@ class CodeMaatConnector:
         """
         logging.info('churn_by_entity = ' + git_log_file)
         output_file = tempfile.mkstemp(suffix=".csv")[1]
-        process = subprocess.run(["java", "-jar", os.environ["OTTM_CODE_MAAT_PATH"], "-l", git_log_file,
+        process = subprocess.run(["java", "-jar", self.configuration.code_maat_path, "-l", git_log_file,
                  "-c", "git2", "-a", "entity-churn", "-o", output_file])
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Code Maat output file: ' + output_file)
@@ -147,13 +151,13 @@ class CodeMaatConnector:
         """
         logging.info('ownership_patterns = ' + git_log_file)
         ownership_file = tempfile.mkstemp(suffix=".csv")[1]
-        process = subprocess.run(["java", "-jar", os.environ["OTTM_CODE_MAAT_PATH"], "-l", git_log_file,
+        process = subprocess.run(["java", "-jar", self.configuration.code_maat_path, "-l", git_log_file,
                  "-c", "git2", "-a", "entity-ownership", "-o", ownership_file])
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Code Maat output file: ' + ownership_file)
 
         effort_file = tempfile.mkstemp(suffix=".csv")[1]
-        process = subprocess.run(["java", "-jar", os.environ["OTTM_CODE_MAAT_PATH"], "-l", git_log_file,
+        process = subprocess.run(["java", "-jar", self.configuration.code_maat_path, "-l", git_log_file,
                  "-c", "git2", "-a", "entity-effort", "-o", effort_file])
         logging.info('Executed command line: ' + ' '.join(process.args))
         logging.info('Code Maat output file: ' + effort_file)

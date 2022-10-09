@@ -9,12 +9,11 @@ import click
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from dependency_injector.wiring import Provide, inject
 from dotenv import load_dotenv
-from connectors.git import GitConnector
-from exporters.html import HtmlExporter
-from ml.mlfactory import MlFactory
-from importers.flatfile import FlatFileImporter
 
+from container import Container
+from configuration import Configuration
 from models.project import Project
 from models.version import Version
 from models.issue import Issue
@@ -26,11 +25,16 @@ from connectors.jpeek import JPeekConnector
 from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
 from connectors.gitfactory import GitConnectorFactory
+from connectors.git import GitConnector
+from exporters.html import HtmlExporter
 from exporters import flatfile
+from importers.flatfile import FlatFileImporter
+from ml.mlfactory import MlFactory
 from utils.dirs import TmpDirCopyFilteredWithEnv
 
 session = None
 project = None
+configuration = None
 
 @click.group()
 @click.pass_context
@@ -130,11 +134,11 @@ def info(ctx):
 
     Trained models : {models}
     """.format(
-        project=os.environ["OTTM_SOURCE_PROJECT"],
-        language=os.environ["OTTM_LANGUAGE"],
-        scm=os.environ["OTTM_SOURCE_REPO_SMC"],
-        repo=os.environ["OTTM_SOURCE_REPO_URL"],
-        release=os.environ["OTTM_CURRENT_BRANCH"],
+        project=configuration.source_project,
+        language=configuration.language,
+        scm=configuration.source_repo_smc,
+        repo=configuration.source_repo_url,
+        release=configuration.current_branch,
         versions=versions_count,
         issues=issues_count,
         metrics=metrics_count,
@@ -160,21 +164,20 @@ def populate(ctx, skip_version):
     logging.info('created temporary directory: ' + tmp_dir)
 
     # Clone the repository
-    process = subprocess.run(["git", "clone", os.environ["OTTM_SOURCE_REPO_URL"]],
+    process = subprocess.run(["git", "clone", configuration.source_repo_url],
                              stdout=subprocess.PIPE,
                              cwd=tmp_dir)
     logging.info('Executed command line: ' + ' '.join(process.args))
-    repo_dir = os.path.join(tmp_dir, os.environ["OTTM_SOURCE_PROJECT"])
+    repo_dir = os.path.join(tmp_dir, configuration.source_project)
 
     git: GitConnector = GitConnectorFactory.create_git_connector(
-        os.environ,
         session,
         project.project_id,
         repo_dir
     )
 
     git.populate_db(skip_version)
-    # if we use code maat git.setup_aliases(os.environ["OTTM_AUTHOR_ALIAS"])
+    # if we use code maat git.setup_aliases(configuration.author_alias)
 
     # List the versions and checkout each one of them
     versions = session.query(Version).filter(Version.project_id == project.project_id).all()
@@ -203,28 +206,33 @@ def populate(ctx, skip_version):
             # jp.analyze_source_code()
 
 @click.command()
+@inject
 def main():
     pass
 
 if __name__ == '__main__':
     load_dotenv()
-    logging.basicConfig(level=logging.DEBUG)
+    configuration = Configuration()
+    container = Container()
+    container.wire(modules=[__name__])
+
+    logging.basicConfig(level=configuration.log_level)
     logging.info('python: ' + platform.python_version())
     logging.info('system: ' + platform.system())
     logging.info('machine: ' + platform.machine())
 
     # Setup database
-    engine = db.create_engine(os.environ["OTTM_TARGET_DATABASE"])
+    engine = db.create_engine(configuration.target_database)
     Session = sessionmaker()
     Session.configure(bind=engine)
     session = Session()
     setup_database(engine)
 
-    project = session.query(Project).filter(Project.name == os.environ["OTTM_SOURCE_PROJECT"]).first()
+    project = session.query(Project).filter(Project.name == configuration.source_project).first()
     if not project:
-        project = Project(name=os.environ["OTTM_SOURCE_PROJECT"],
-                        repo=os.environ["OTTM_SOURCE_REPO"],
-                        language=os.environ["OTTM_LANGUAGE"])
+        project = Project(name=configuration.source_project,
+                        repo=configuration.source_repo,
+                        language=configuration.language)
         session.add(project)
         session.commit()
 
