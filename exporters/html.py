@@ -95,6 +95,10 @@ class HtmlExporter:
                 .filter(Version.project_id == project.project_id) \
                 .filter(Version.name == "Next Release").first()
 
+        metrics = self.session.query(Metric) \
+                .filter(Metric.version_id == current_release.version_id) \
+                .first()
+
         trained_models = self.session.query(Model.name).filter(Model.project_id == project.project_id).all()
         trained_models = [r for r, in trained_models]
         predicted_bugs = -1
@@ -126,6 +130,7 @@ class HtmlExporter:
         data = {
             "model_name" : model_name,
             "current_release" : current_release,
+            "metrics" : metrics,
             "predicted_bugs" : predicted_bugs,
             "project": project,
             "graph_bugs": fig1_html,

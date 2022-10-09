@@ -163,6 +163,8 @@ def assess_next_release_risk(session, project_id:int):
     old_cols = df[["name", "bugs"]]
     scaled_df = scaled_df.join(old_cols)
 
+    # Set XP to 1 day for all versions that are too short (avoid inf values in dataframe)
+    scaled_df['avg_team_xp'] = scaled_df['avg_team_xp'].replace({0:1})
     scaled_df["risk_assessment"] = (
         (scaled_df["bug_velocity"] * 90) +
          (scaled_df["changes"] * 20) +
@@ -170,10 +172,6 @@ def assess_next_release_risk(session, project_id:int):
          (scaled_df["lizard_avg_complexity"] * 40) +
          (scaled_df["code_churn_avg"] * 20)
     )
-
-    # Elimininate "empty" version (too short to have XP, changes, etc.)
-    scaled_df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    scaled_df.dropna()
 
     # Return risk assessment along with median and max risk scores for all versions
     median_risk = scaled_df["risk_assessment"].median()

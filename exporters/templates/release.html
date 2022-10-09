@@ -11,98 +11,170 @@
 </head>
 
 <body>
-    <div class=".container-xxl">
-        <h1>Project {{ project.name }} ({{ project.language }})</h1>
-        <p>Projected statistics are based on the branch <code>{{ current_release.tag }}</code></p>
+    <div class="container-fluid">
         
-        <div class="d-flex justify-content-around">
-            <div class="row mb-3 w-75 align-items-center">
-                <div class="col-4 themed-grid-col">
-                    Number of issues (so far) : {{ current_release.bugs }}
-                    {% if predicted_bugs > -1 %}
-                    <br />Predicted number of bugs: {{ predicted_bugs }} ({{ model_name }})
-                    {% endif %}
-                    <br />
+        <div class="row">
+            <div class="col">
+                <h1>Project {{ project.name }} ({{ project.language }})</h1>
+                <p>Projected statistics are based on the branch <code>{{ current_release.tag }}</code></p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-6">
+                <div class="row">
+
+                    <div class="col-4">
+                        <div class="card" style="width: 12rem; height: 11rem;">
+                            <div class="card-body text-center align-middle">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item"><b>Issues</b> (so far): {{ current_release.bugs }}</li>
+                                    <li class="list-group-item">
+                                        {% if predicted_bugs > -1 %}
+                                            Predicted bugs: {{ predicted_bugs }} ({{ model_name }})
+                                        {% endif %}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-4">
+                        <div class="card" style="width: 12rem; height: 11rem;">
+                            <div class="card-body text-center align-middle">
+                                <b>Changes</b><br />
+                                {{ current_release.changes }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-4">
+                        <div class="card" style="width: 12rem; height: 11rem;">
+                            <div class="card-body text-center align-middle">
+                                <b>XP of devs</b><br />
+                                {{ current_release.avg_team_xp }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-4 themed-grid-col">
-                    Changes : {{ current_release.changes }}
+
+                <div class="row">
+                    <div class="col-4">&nbsp;</div>
                 </div>
-                <div class="col-4 themed-grid-col">
-                    XP : {{ current_release.avg_team_xp }}
+
+                <div class="row">
+                    <div class="col-4">
+                        <div class="card" style="width: 12rem; height: 11rem;">
+                            <div class="card-body text-center align-middle">
+                                <b>Avg Cycl. complexity</b><br />
+                                {{ metrics.lizard_avg_complexity }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card" style="width: 12rem; height: 11rem;">
+                            <div class="card-body text-center align-middle">
+                                <b>Avg churn</b><br />
+                                {{ current_release.code_churn_avg }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card" style="width: 12rem; height: 11rem;">
+                            <div class="card-body text-center align-middle">
+                                <b>Blocks legacy</b><br />
+                                <i>Coming soon</i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="w-50">{{ graph_risk | safe }}</div>
+            <div class="col-6">
+                <div>{{ graph_risk | safe }}</div>
+            </div>
+
         </div>
 
-        <h2>Last 3 versions</h2>
-        <div class="row mb-3 text-center">
-            <div class="col-4 themed-grid-col">
-                <h4>Estimated number of Bugs</h4>
+        
+        <div class="row">
+            <h2>Last 3 versions</h2>
+            <div class="col-4">
+                <h4>Number of Bugs</h4>
                 {{ graph_bugs | safe }}
             </div>
-            <div class="col-4 themed-grid-col">
-                <h4>Estimated number of changes</h4>
+            <div class="col-4">
+                <h4>Number of changes</h4>
                 {{ graph_changes | safe }}
             </div>
-            <div class="col-4 themed-grid-col">
+            <div class="col-4">
                 <h4>Avg XP of the devs</h4>
                 {{ graph_xp | safe }}
             </div>  
         </div>
         
-        <h2>Code block legacy</h2>
-        <p>Coming soon...</p>
+        <div class="row">
+            <div class="col">
+                <h2>Code block legacy</h2>
+                <p>Coming soon...</p>
+            </div>
+        </div>
 
-        <h2>Commit message quality</h2>
+        <div class="row">
+            <div class="col">
 
-        <h3>Statistics</h3>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">Commits</th>
-                    <th scope="col">Valid messages</th>
-                    <th scope="col">Valid messages ratio</th>
-                    <th scope="col">Empty messages ratio</th>
-                    <th scope="col">One word messages ratio</th>
-                    <th scope="col">Insignificants messages ratio</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{ commit_msg_stats.nb_commits }}</td>
-                    <td>{{ commit_msg_stats.valid_commits }}</td>
-                    <td>{{ "%.0f%%" | format(commit_msg_stats.valid_commits_ratio) }}</td>
-                    <td>{{ "%.0f%%" | format(commit_msg_stats.empty_commits_ratio) }}</td>
-                    <td>{{ "%.0f%%" | format(commit_msg_stats.one_word_commits_ratio) }}</td>
-                    <td>{{ "%.0f%%" | format(commit_msg_stats.insignificant_commits_ratio) }}</td>
-                </tr>
-            </tbody>
-        </table>
+                <h2>Commit message quality</h2>
 
-        <h3>Frequent messages</h3>
-        {% if commit_msg_stats.frequent_messages.empty is false %}
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Message</th>
-                        <th scope="col">Frequency</th>
-                    </tr>
-                </thead>
-                <tbody>
-            {% for commit in commit_msg_stats.frequent_messages %}
-                    <tr>
-                        <td>{{ commit.message }}</td>
-                        <td>{{ commit.frequency }}</td>
-                    </tr>
-            {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No frequent commit messages found in current release</p>
-        {% endif %}
-        <h2>Code metrics</h2>
-        <p>Coming soon...</p>
+                <h3>Statistics</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Commits</th>
+                            <th scope="col">Valid messages</th>
+                            <th scope="col">Valid messages ratio</th>
+                            <th scope="col">Empty messages ratio</th>
+                            <th scope="col">One word messages ratio</th>
+                            <th scope="col">Insignificants messages ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ commit_msg_stats.nb_commits }}</td>
+                            <td>{{ commit_msg_stats.valid_commits }}</td>
+                            <td>{{ "%.0f%%" | format(commit_msg_stats.valid_commits_ratio) }}</td>
+                            <td>{{ "%.0f%%" | format(commit_msg_stats.empty_commits_ratio) }}</td>
+                            <td>{{ "%.0f%%" | format(commit_msg_stats.one_word_commits_ratio) }}</td>
+                            <td>{{ "%.0f%%" | format(commit_msg_stats.insignificant_commits_ratio) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Frequent messages</h3>
+                {% if commit_msg_stats.frequent_messages.empty is false %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Message</th>
+                                <th scope="col">Frequency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    {% for commit in commit_msg_stats.frequent_messages %}
+                            <tr>
+                                <td>{{ commit.message }}</td>
+                                <td>{{ commit.frequency }}</td>
+                            </tr>
+                    {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No frequent commit messages found in current release</p>
+                {% endif %}
+                <h2>Code metrics</h2>
+                <p>Coming soon...</p>
+            </div>
+        </div>
+
     </div>
 </body>
 </html>
