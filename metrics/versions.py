@@ -1,5 +1,6 @@
 import logging
 import math
+from datetime import datetime, timedelta
 
 import pandas as pd
 from sqlalchemy import desc
@@ -27,6 +28,7 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
     - Code churn
 
     Parameters:
+    -----------
     - session : Session
         SQLAlchemy session
     - repo_dir : str
@@ -34,6 +36,8 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
     - project_id : int
         Project Identifier
     """
+    logging.info("compute_version_metrics")
+
     versions = session.query(Version) \
         .filter(Version.project_id == project_id) \
         .order_by(Version.start_date.asc()).all()
@@ -108,11 +112,13 @@ def assess_next_release_risk(session, project_id:int):
     weighed metrics from version
 
     Parameters:
+    -----------
     - session : Session
         SQLAlchemy session
     - project_id : int
         Project Identifier
     """
+    logging.info("assess_next_release_risk")
 
     # Get the version metrics and the average cyclomatic complexity
     metrics_statement = session.query(Version, Metric) \
@@ -177,3 +183,49 @@ def assess_next_release_risk(session, project_id:int):
         "median": math.ceil(median_risk),
         "max": math.ceil(max_risk),
         "score": math.ceil(risk_score.iloc[0]['risk_assessment'])}
+
+@timeit
+def compute_bugvelocity_last_30_days(session, project_id:int)->pd.DataFrame:
+    """
+    Compute the bugvelocity during the last 30 days
+
+    Parameters:
+    -----------
+    - session : Session
+        SQLAlchemy session
+    - project_id : int
+        Project Identifier
+    """
+    logging.info("compute_bugvelocity_last_30_days")
+
+    # Count the number of issues that occurred between the start and end dates
+    # Group by date
+    end_date = datetime.now()
+    start_date = end_date + timedelta(days=-30)
+    bugs_count_statement = session.query(Issue) \
+        .filter(Issue.created_at.between(start_date, end_date)) \
+        .filter(Issue.project_id == project_id) \
+        .order_by(Issue.created_at.desc()) \
+        .statement
+    df_bugs_count = pd.read_sql(bugs_count_statement, session.get_bind())
+
+    # Most of end users will use SQLite which doesn't support GROUP BY DAY (or it's ugly with strftime / SUBSTR)
+    # so let's do it with pandas as we are dealing with 30 rows
+    df = (pd.to_datetime(df_bugs_count['created_at'])
+       .value_counts()
+       .rename_axis('created_at')
+       .reset_index(name='count'))
+    df['created_at'] = df['created_at'].dt.date
+
+    # Create a dataframe with all 30 days between start and end dates
+    df_range = pd.DataFrame({'created_at': pd.date_range(start_date, end_date, freq='D'), 'count': 0})
+    df_range['created_at'] = df_range['created_at'].dt.date
+
+    # Melt the two dataframes to get a bug velocity for each day (and fill with zero the missing days)
+    df = df.merge(df_range, how='right', on='created_at')
+    df['count_x'] = df['count_x'].fillna(0)
+    df['count_x'] = df['count_x'].astype(int)
+    df = df.rename(columns={'count_x': 'count'})
+    df = df.drop('count_y', axis=1)
+
+    return df

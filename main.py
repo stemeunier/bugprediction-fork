@@ -69,7 +69,7 @@ def export(ctx, output, format):
 
 @cli.command()
 @click.option('--output', default='.', help='Destination folder')
-@click.option('--report-name', default='release', help='Path of file')
+@click.option('--report-name', default='release', help='Name of the report (release, churn, bugvelocity)')
 @click.pass_context
 def report(ctx, output, report_name):
     """Create a basic HTML report"""
@@ -78,6 +78,8 @@ def report(ctx, output, report_name):
         exporter.generate_churn_report(project, 'churn.html')
     elif report_name == "release":
         exporter.generate_release_report(project, 'release.html')
+    elif report_name == "bugvelocity":
+        exporter.generate_bugvelocity_report(project, 'bugvelocity.html')
     else:
         click.echo("This report doesn't exist")
     pass
@@ -153,9 +155,9 @@ def check(ctx):
     pass
 
 @cli.command()
-@click.option('--skip-version', is_flag=True, default=False, help="Skip populate Version")
+@click.option('--skip-versions', is_flag=True, default=False, help="Skip the step <populate Version table>")
 @click.pass_context
-def populate(ctx, skip_version):
+def populate(ctx, skip_versions):
     """Populate the database with the provided configuration"""
 
     # Checkout, execute the tool and inject CSV result into the database
@@ -176,7 +178,7 @@ def populate(ctx, skip_version):
         repo_dir
     )
 
-    git.populate_db(skip_version)
+    git.populate_db(skip_versions)
     # if we use code maat git.setup_aliases(configuration.author_alias)
 
     # List the versions and checkout each one of them
