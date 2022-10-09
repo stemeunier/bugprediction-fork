@@ -1,5 +1,6 @@
 import logging
 import math
+from datetime import datetime, timedelta
 
 import pandas as pd
 from sqlalchemy import desc
@@ -27,6 +28,7 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
     - Code churn
 
     Parameters:
+    -----------
     - session : Session
         SQLAlchemy session
     - repo_dir : str
@@ -34,6 +36,8 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
     - project_id : int
         Project Identifier
     """
+    logging.info("compute_version_metrics")
+
     versions = session.query(Version) \
         .filter(Version.project_id == project_id) \
         .order_by(Version.start_date.asc()).all()
@@ -108,11 +112,13 @@ def assess_next_release_risk(session, project_id:int):
     weighed metrics from version
 
     Parameters:
+    -----------
     - session : Session
         SQLAlchemy session
     - project_id : int
         Project Identifier
     """
+    logging.info("assess_next_release_risk")
 
     # Get the version metrics and the average cyclomatic complexity
     metrics_statement = session.query(Version, Metric) \
@@ -157,6 +163,8 @@ def assess_next_release_risk(session, project_id:int):
     old_cols = df[["name", "bugs"]]
     scaled_df = scaled_df.join(old_cols)
 
+    # Set XP to 1 day for all versions that are too short (avoid inf values in dataframe)
+    scaled_df['avg_team_xp'] = scaled_df['avg_team_xp'].replace({0:1})
     scaled_df["risk_assessment"] = (
         (scaled_df["bug_velocity"] * 90) +
          (scaled_df["changes"] * 20) +
@@ -164,10 +172,6 @@ def assess_next_release_risk(session, project_id:int):
          (scaled_df["lizard_avg_complexity"] * 40) +
          (scaled_df["code_churn_avg"] * 20)
     )
-
-    # Elimininate "empty" version (too short to have XP, changes, etc.)
-    scaled_df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    scaled_df.dropna()
 
     # Return risk assessment along with median and max risk scores for all versions
     median_risk = scaled_df["risk_assessment"].median()
@@ -177,3 +181,49 @@ def assess_next_release_risk(session, project_id:int):
         "median": math.ceil(median_risk),
         "max": math.ceil(max_risk),
         "score": math.ceil(risk_score.iloc[0]['risk_assessment'])}
+
+@timeit
+def compute_bugvelocity_last_30_days(session, project_id:int)->pd.DataFrame:
+    """
+    Compute the bugvelocity during the last 30 days
+
+    Parameters:
+    -----------
+    - session : Session
+        SQLAlchemy session
+    - project_id : int
+        Project Identifier
+    """
+    logging.info("compute_bugvelocity_last_30_days")
+
+    # Count the number of issues that occurred between the start and end dates
+    # Group by date
+    end_date = datetime.now()
+    start_date = end_date + timedelta(days=-30)
+    bugs_count_statement = session.query(Issue) \
+        .filter(Issue.created_at.between(start_date, end_date)) \
+        .filter(Issue.project_id == project_id) \
+        .order_by(Issue.created_at.desc()) \
+        .statement
+    df_bugs_count = pd.read_sql(bugs_count_statement, session.get_bind())
+
+    # Most of end users will use SQLite which doesn't support GROUP BY DAY (or it's ugly with strftime / SUBSTR)
+    # so let's do it with pandas as we are dealing with 30 rows
+    df = (pd.to_datetime(df_bugs_count['created_at'])
+       .value_counts()
+       .rename_axis('created_at')
+       .reset_index(name='count'))
+    df['created_at'] = df['created_at'].dt.date
+
+    # Create a dataframe with all 30 days between start and end dates
+    df_range = pd.DataFrame({'created_at': pd.date_range(start_date, end_date, freq='D'), 'count': 0})
+    df_range['created_at'] = df_range['created_at'].dt.date
+
+    # Melt the two dataframes to get a bug velocity for each day (and fill with zero the missing days)
+    df = df.merge(df_range, how='right', on='created_at')
+    df['count_x'] = df['count_x'].fillna(0)
+    df['count_x'] = df['count_x'].astype(int)
+    df = df.rename(columns={'count_x': 'count'})
+    df = df.drop('count_y', axis=1)
+
+    return df

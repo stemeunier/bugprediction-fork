@@ -16,6 +16,7 @@ from utils.timeit import timeit
 from ml.mlfactory import MlFactory
 from metrics.commits import compute_commit_msg_quality
 from metrics.versions import assess_next_release_risk
+from metrics.versions import compute_bugvelocity_last_30_days
 
 class HtmlExporter:
     """
@@ -94,6 +95,10 @@ class HtmlExporter:
                 .filter(Version.project_id == project.project_id) \
                 .filter(Version.name == "Next Release").first()
 
+        metrics = self.session.query(Metric) \
+                .filter(Metric.version_id == current_release.version_id) \
+                .first()
+
         trained_models = self.session.query(Model.name).filter(Model.project_id == project.project_id).all()
         trained_models = [r for r, in trained_models]
         predicted_bugs = -1
@@ -125,6 +130,7 @@ class HtmlExporter:
         data = {
             "model_name" : model_name,
             "current_release" : current_release,
+            "metrics" : metrics,
             "predicted_bugs" : predicted_bugs,
             "project": project,
             "graph_bugs": fig1_html,
@@ -191,6 +197,69 @@ class HtmlExporter:
         template_loader = jinja2.FileSystemLoader(searchpath=template_path)
         template_env = jinja2.Environment(loader=template_loader)
         template = template_env.get_template("churn.html")
+        output_text = template.render(data)
+        with open(os.path.join(self.directory, filename), "w") as file:
+            file.write(output_text)
+
+    @timeit
+    def generate_bugvelocity_report(self, project:Project, filename:str)->None:
+        """
+        Generate a report showing the code churn during the project
+
+        Parameters
+        ----------
+        project : Project
+            Project object
+        filename : str
+            Filename (not fullpath) of the report
+        """
+        logging.info('Generate HTML report')
+        filename = os.path.join(self.directory, filename)
+        template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/")
+
+        # Generate a graph about Bug velocity during the last 30 days
+        df = compute_bugvelocity_last_30_days(self.session, project.project_id)
+        fig = px.line(df, x="created_at", y=df.columns,
+                    hover_data={"created_at": "|%B %d, %Y"},
+                    title='Bug velocity during the last 30 days')
+        fig.update_xaxes(rangeslider_visible=True)
+        fig2_html = fig.to_html(full_html=False, include_plotlyjs=False)
+
+        # Generate a graph about Bug velocity during the project lifespan
+        bugvelocity_statement = self.session.query(Version.start_date, Version.bug_velocity) \
+                .order_by(Version.end_date.desc()) \
+                .filter(Version.project_id == project.project_id) \
+                .statement
+        df = pd.read_sql(bugvelocity_statement, self.session.get_bind())
+
+        fig = px.line(df, x="start_date", y=df.columns,
+                    hover_data={"start_date": "|%B %d, %Y"},
+                    title='Bug velocity during the project lifespan')
+        fig.update_xaxes(
+            rangeslider_visible=True,
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1, label="1m", step="month", stepmode="backward"),
+                    dict(count=6, label="6m", step="month", stepmode="backward"),
+                    dict(count=1, label="YTD", step="year", stepmode="todate"),
+                    dict(count=1, label="1y", step="year", stepmode="backward"),
+                    dict(step="all")
+                ])
+            )
+        )
+        fig1_html = fig.to_html(full_html=False, include_plotlyjs=False)
+
+        # Send data and generated graph to the template
+        data = {
+            "project": project,
+            "graph_bug_velocity_30_days": fig2_html,
+            "graph_bug_velocity": fig1_html
+        }
+
+        # Render the template and save the output
+        template_loader = jinja2.FileSystemLoader(searchpath=template_path)
+        template_env = jinja2.Environment(loader=template_loader)
+        template = template_env.get_template("bugvelocity.html")
         output_text = template.render(data)
         with open(os.path.join(self.directory, filename), "w") as file:
             file.write(output_text)
