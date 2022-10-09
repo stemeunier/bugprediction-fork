@@ -131,12 +131,12 @@ class GitConnector(ABC):
             logging.info("Skipping version populate")
         else:
             self.create_versions()
-            self.compute_version_metrics()
         
         # Preserve the sequence below
         self.clean_next_release_metrics()
         self.create_commits_from_repo()
         self.create_issues()
+        self.compute_version_metrics()
 
     def _clean_project_existing_versions(self):
         self.session.query(Version).filter(Version.project_id == self.project_id).delete()
