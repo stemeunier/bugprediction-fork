@@ -1,15 +1,15 @@
-import os
 import logging
-import pandas as pd
-
-import click
 import sys
-
-from os.path import exists
 from datetime import datetime
+from os.path import exists
+
+import pandas as pd
+import click
+
 from metrics.versions import compute_version_metrics
 from models.version import Version
 from models.issue import Issue
+from configuration import Configuration
 
 
 class FlatFileImporter:
@@ -36,6 +36,7 @@ class FlatFileImporter:
         self.file_path = file_path
         self.target_table = target_table
         self.overwrite = overwrite
+        self.configuration = Configuration()
 
     def import_from_csv(self) -> None:
         """
@@ -66,7 +67,7 @@ class FlatFileImporter:
                             
                             try:
                                 self.session.add(newVersion)
-                                compute_version_metrics(self.session, os.environ["OTTM_CURRENT_BRANCH"], newVersion.project_id)
+                                compute_version_metrics(self.session, self.configuration.current_branch, newVersion.project_id)
                                 click.echo('Importing ' + str(len(csv_data)) + ' version(s) on database')
                             except Exception:
                                 logging.error(Exception)

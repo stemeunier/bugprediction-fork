@@ -111,7 +111,7 @@ class GitConnector(ABC):
         - Bug velocity
         - Average seniorship of the team
         """
-        compute_version_metrics(self.session, self.current, self.project_id)
+        compute_version_metrics(self.session, self.directory, self.project_id)
             
     def clean_next_release_metrics(self):
         """

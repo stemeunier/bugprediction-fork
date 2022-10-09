@@ -7,19 +7,6 @@ class Metric(Base):
     __tablename__ = "metric"
     metrics_id = Column(Integer, primary_key=True)
     version_id = Column(Integer, ForeignKey(Version.version_id), unique=True)
-    # cloc metrics (filtered on the project's language)
-    cloc_text_files = Column(Integer)
-    cloc_unique_files = Column(Integer)
-    cloc_ignored_files = Column(Integer)
-    cloc_files = Column(Integer)
-    cloc_blank = Column(Integer)
-    cloc_comment = Column(Integer)
-    cloc_code = Column(Integer)
-
-    # https://pypi.org/project/metrics/
-    # McCabe complexity metrics
-
-    # SLOC
 
     # lizard metrics
     lizard_total_nloc = Column(Integer)
@@ -35,12 +22,10 @@ class Metric(Base):
     lizard_total_operators_count = Column(Integer)
     lizard_unique_operators_count = Column(Integer)
 
-    # TODO : see if these metrics are still usefuul (maye duplicate from cloc)
     total_lines = Column(Integer)
     total_blank_lines = Column(Integer)
     total_comments = Column(Integer)
     comments_rt = Column(Float)
-
 
     # CK metrics
     ck_cbo = Column(Float)

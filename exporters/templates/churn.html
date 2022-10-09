@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bug Predictor report</title>
+    <link rel="shortcut icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAD////////////////////////////////////////////////////////////////////////////////////////////+/v///////////////////////////////////////////////////////////////////v7//////////////////v7+//7+/f////////////7+/v/+/fz//v39//7+/v////////////7+/f/+/v3//////////////v7/9uvb//79+////////v79//7+/v/+/v7////////////+/v7//v7+//7+/f///////v37//nw5P//////9ejX//Lcv//m3tX/39LD////////////9fDr/9/Sw//f08P/8ezm////////////5NnL/+LXy//y2r3/9uvd//DawP/36tn/+fj4/7WXc//Zybf/+vn2/4tdJf+Xbjz/oHpN/4NSFv/08Ov/4NPE/7KTbf/08vD/9+nY//Dbwf/x3ML/9uvc///////z7uj/waiM/8GpjP9qLwD/on1Q/6qIX/9pLQD/up59/8Stkv/r4tj///////bq3P/w3ML/8uDJ//bo1///////9fHs/7yigv+kgFT/cjoA/6B6TP+nhVv/cTkA/596TP+6n37/7+jg///////26dn/8t/I//Dcw//569v/08Sy/6uJYP/czrz/mnJC/3M7AP+gekz/qIVb/3M8AP+TaDT/28y7/66NZv/MuaT/9+nY//HdxP/pyaL/+/fx//v7+v/m28//vaOD/6B7Tf9vNgD/m3RE/6N/U/9uNQD/m3ND/76khf/h1Mb//Pz8//r07f/qzKb/7tW2//ju4f///////////+Xbz/+RZTD/hFQZ/5JnM/+TaDT/hlYb/4xfKP/f08T////////////58eb/7NKx//LgyP/05dL////////////Dq5H/0L6q/9vNu/+qiGD/qYde/9TDrv/Zyrn/u6CE////////////9OXR//LfyP/x3sX/9unZ///////s5Nv/t5p4/////v/h1sn/eEIF/3Q9AP/VxbL//////7mefP/l287///////Xo2P/x3sb/8NvA//br3P//////+/n3//z7+v//////wKaI/9nKuP/g1MX/up9+//7+/v/9/fz/+/n2///////369z/8NvA//LgyP/y4cr////////////o39P/tpl2/9C+qP///////////9bGs/+0lnL/5NnM///+/v//////8+PO//Hexv/79e7/7NOz///////u6OD/up99/+nh1v///////f38//39/P//////7ufe/7yhgf/p4NX//////+vQrv/68un/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==" />
+    <style>{% include 'bootstrap.min.css' %}</style>
+    <script>{% include 'jquery-3.6.1.min.js' %}</script>
+    <script>{% include 'plotly-2.14.0.min.js' %}</script>
+    <script>{% include 'bootstrap.bundle.min.js' %}</script>
+</head>
+
+<body>
+    <div class=".container-xxl">
+        <div class="row mb-3">
+            <div class="col-12 themed-grid-col">
+                <h1>Project {{ project.name }} ({{ project.language }})</h1>
+                {{ graph_churn | safe }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

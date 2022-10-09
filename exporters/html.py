@@ -47,9 +47,11 @@ class HtmlExporter:
         self.configuration = Configuration()
 
     @timeit
-    def generate(self, project:Project, filename:str)->None:
+    def generate_release_report(self, project:Project, filename:str)->None:
         """
-        Export the database to CSV
+        Generate a report about the next release
+        The metrics of this report will help the project manager to
+        assess the risk of releasing the next version
 
         Parameters
         ----------
@@ -135,7 +137,60 @@ class HtmlExporter:
         # Render the template and save the output
         template_loader = jinja2.FileSystemLoader(searchpath=template_path)
         template_env = jinja2.Environment(loader=template_loader)
-        template = template_env.get_template("simple_report.html")
+        template = template_env.get_template("release.html")
+        output_text = template.render(data)
+        with open(os.path.join(self.directory, filename), "w") as file:
+            file.write(output_text)
+
+    @timeit
+    def generate_churn_report(self, project:Project, filename:str)->None:
+        """
+        Generate a report showing the code churn during the project
+
+        Parameters
+        ----------
+        project : Project
+            Project object
+        filename : str
+            Filename (not fullpath) of the report
+        """
+        logging.info('Generate HTML report')
+        filename = os.path.join(self.directory, filename)
+        template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/")
+
+        code_churn_statement = self.session.query(Version.start_date, Version.code_churn_count, Version.code_churn_max, Version.code_churn_avg) \
+                .order_by(Version.end_date.desc()) \
+                .filter(Version.project_id == project.project_id) \
+                .statement
+        df = pd.read_sql(code_churn_statement, self.session.get_bind())
+
+        # # Append the graphs about the last three releases
+        fig = px.line(df, x="start_date", y=df.columns,
+                    hover_data={"start_date": "|%B %d, %Y"},
+                    title='Code churn during the project lifespan')
+        fig.update_xaxes(
+            rangeslider_visible=True,
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1, label="1m", step="month", stepmode="backward"),
+                    dict(count=6, label="6m", step="month", stepmode="backward"),
+                    dict(count=1, label="YTD", step="year", stepmode="todate"),
+                    dict(count=1, label="1y", step="year", stepmode="backward"),
+                    dict(step="all")
+                ])
+            )
+        )
+        fig1_html = fig.to_html(full_html=False, include_plotlyjs=False)
+
+        data = {
+            "project": project,
+            "graph_churn": fig1_html
+        }
+
+        # Render the template and save the output
+        template_loader = jinja2.FileSystemLoader(searchpath=template_path)
+        template_env = jinja2.Environment(loader=template_loader)
+        template = template_env.get_template("churn.html")
         output_text = template.render(data)
         with open(os.path.join(self.directory, filename), "w") as file:
             file.write(output_text)

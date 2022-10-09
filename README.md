@@ -42,7 +42,7 @@ And then use it to predict the number of bugs into the comming release (based on
 
 You can generate an offline HTML report:
 
-    $ python main.py predict 
+    $ python main.py report 
 
 One of the features of the report is to assess the risk of releasing the next version of your project:
 
@@ -52,7 +52,7 @@ See the [list of commands](./docs/commands.md) for other options.
 
 ## Limitations
 
-The tool currently doesn't support repositories with multiple releases in parallel (i.e. a latest version maintained in parallel of a LTS version). You have to [import](./docs/import.md) the version line that you want to examine.
+The tool currently doesn't support repositories with multiple releases in parallel (i.e. a latest version maintained in parallel of a LTS version). You have to [import](./docs/import.md) the branch of versions that you want to examine.
 
 Linking issues and commits to a version is a tedious task. At this stage, the tool roughly estimate that issues and commits are linked to a version if the objects were created between the start and and dates of the version. 
 
@@ -63,10 +63,11 @@ The tool is released under a MIT licence. Contributors are welcomed in many area
 
 ### General
 
- - Lizard : https://github.com/terryyin/lizard
- - CodeMaat : https://github.com/adamtornhill/code-maat
+ - PyDriller: https://github.com/ishepard/pydriller
+ - Lizard: https://github.com/terryyin/lizard
+ - CodeMaat: https://github.com/adamtornhill/code-maat
 
 ### Java
 
- - CK : https://github.com/mauricioaniche/ck
- - JPeek : https://github.com/cqfn/jpeek
+ - CK: https://github.com/mauricioaniche/ck
+ - JPeek: https://github.com/cqfn/jpeek

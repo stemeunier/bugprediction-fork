@@ -12,6 +12,6 @@ lxml~=4.9.1
 Click==7.0
 scikit-learn~=1.1.2
 plotly~=5.10.0
-beautifulsoup4~=4.11.1
 xgboost~=1.6.2
 jinja2~=3.0.1
+dependency-injector~=4.40.0
