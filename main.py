@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 
 from container import Container
 from configuration import Configuration
+from exporters.ml_reports import MlHtmlExporter
 from models.project import Project
 from models.version import Version
 from models.issue import Issue
@@ -80,6 +81,9 @@ def report(ctx, output, report_name):
         exporter.generate_release_report(project, 'release.html')
     elif report_name == "bugvelocity":
         exporter.generate_bugvelocity_report(project, 'bugvelocity.html')
+    elif report_name == "kmeans":
+        exporter = MlHtmlExporter(session, output)
+        exporter.generate_kmeans_release_report(project, 'kmeans.html')
     else:
         click.echo("This report doesn't exist")
     pass
