@@ -2,7 +2,10 @@
 **/*.csv
 **/*.log
 **/*.sqlite3
-**/*.html
+/*.html
+data/*.csv
+data/*.html
+data/*.sqlite3
 **/*.pkl
 **/*.parquet
 
