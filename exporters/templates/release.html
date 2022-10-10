@@ -171,7 +171,33 @@
                     <p>No frequent commit messages found in current release</p>
                 {% endif %}
                 <h2>Code metrics</h2>
-                <p>Coming soon...</p>
+                <p>Mean cyclomatic complexity : {{ metrics.lizard_avg_complexity }}</p>
+
+                <h3>Halstead</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Length</th>
+                            <th scope="col">Vocabulary</th>
+                            <th scope="col">Volume</th>
+                            <th scope="col">Difficulty</th>
+                            <th scope="col">Effort</th>
+                            <th scope="col">Time</th>
+                            <th scope="col">Bugs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ metrics.halstead_length }}</td>
+                            <td>{{ metrics.halstead_vocabulary }}</td>
+                            <td>{{ metrics.halstead_volume }}</td>
+                            <td>{{ metrics.halstead_difficulty }}</td>
+                            <td>{{ metrics.halstead_effort }}</td>
+                            <td>{{ metrics.halstead_time }}</td>
+                            <td>{{ metrics.halstead_bugs }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
