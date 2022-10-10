@@ -215,8 +215,8 @@ def main():
 if __name__ == '__main__':
     load_dotenv()
     configuration = Configuration()
-    container = Container()
-    container.wire(modules=[__name__])
+    # container = Container()
+    # container.wire(modules=[__name__])
 
     logging.basicConfig(level=configuration.log_level)
     logging.info('python: ' + platform.python_version())
