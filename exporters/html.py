@@ -6,6 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import jinja2
 from sqlalchemy.orm import Session
+import numpy as np
 
 from configuration import Configuration
 from models.project import Project
@@ -95,6 +96,12 @@ class HtmlExporter:
                 .filter(Version.project_id == project.project_id) \
                 .filter(Version.name == "Next Release").first()
 
+        versions_with_changes =  self.session.query(Version) \
+                .filter(Version.project_id == project.project_id) \
+                .filter(Version.changes > 0).all()
+
+        changes_median = np.median([row.changes for row in versions_with_changes])
+
         metrics = self.session.query(Metric) \
                 .filter(Metric.version_id == current_release.version_id) \
                 .first()
@@ -130,6 +137,7 @@ class HtmlExporter:
         data = {
             "model_name" : model_name,
             "current_release" : current_release,
+            "changes_median" : changes_median,
             "metrics" : metrics,
             "predicted_bugs" : predicted_bugs,
             "project": project,

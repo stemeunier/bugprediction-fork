@@ -43,7 +43,13 @@
                         <div class="card" style="width: 12rem; height: 11rem;">
                             <div class="card-body text-center align-middle">
                                 <b>Changes</b><br />
-                                {{ current_release.changes }}
+                                {{ current_release.changes }}<br/>
+
+                                {% if current_release.changes > changes_median %}
+                                    <span class="text-danger">&#x25BC; {{ (changes_median - current_release.changes) | int }}</span>
+                                {% else %}
+                                    <span class="text-success">&#x25B2; {{ (changes_median - current_release.changes) | int }}</span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
