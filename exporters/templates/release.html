@@ -28,14 +28,15 @@
                         <div class="card" style="width: 12rem; height: 11rem;">
                             <div class="d-flex card-body text-center align-middle">
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item"><b>Issues</b> (so far): {{ current_release.Version.bugs }}
-                                    
-                                        {% if current_release.Version.bugs > bugs_median and (bugs_median - current_release.Version.bugs) | int != 0 %}
-                                            <span class="text-danger">&#x25B2; {{ (bugs_median - current_release.Version.bugs) | int }}</span>
+                                    <li class="list-group-item">
+                                        <b>Issues</b> (so far): {{ current_release.Version.bugs }}<br />
+
+                                        {% if current_release.Version.bugs > bugs_median | int %}
+                                            <span>&#x25B2; {{ (bugs_median - current_release.Version.bugs) | int }}</span>
                                         {% elif current_release.Version.bugs < bugs_median %}
-                                            <span class="text-success">&#x25BC; {{ (bugs_median - current_release.Version.bugs) | int }}</span>
+                                            <span>&#x25BC; {{ (current_release.Version.bugs - bugs_median) | int }}</span>
                                         {% else %}
-                                            <span class="text-primary">&#x003D; {{ (bugs_median - current_release.Version.bugs) | int }}</span> 
+                                            <span>&#x003D; {{ (bugs_median - current_release.Version.bugs) | int }}</span> 
                                         {% endif %}
                                     </li>
                                     <li class="list-group-item">
@@ -53,14 +54,14 @@
                             <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
                                 <b>Changes</b>
                                 <div>
-                                    {{ current_release.Version.changes }}
+                                    <span style="font-size: larger">{{ current_release.Version.changes | int }}</span><br />
 
-                                    {% if current_release.Version.changes > changes_median and (changes_median - current_release.Version.changes) | int != 0 %}
-                                        <span class="text-danger">&#x25BC; {{ (changes_median - current_release.Version.changes) | int }}</span>
-                                    {% elif current_release.Version.changes < changes_median %}
-                                        <span class="text-success">&#x25B2; {{ (changes_median - current_release.Version.changes) | int }}</span>
+                                    {% if current_release.Version.changes < changes_median | int %}
+                                        <span>&#x25BC; {{ (current_release.Version.changes - changes_median) | int }}</span>
+                                    {% elif current_release.Version.changes > changes_median %}
+                                        <span>&#x25B2; {{ (changes_median - current_release.Version.changes) | int }}</span>
                                     {% else %}
-                                        <span class="text-primary">&#x003D; {{ (changes_median - current_release.Version.changes) | int }}</span>
+                                        <span>&#x003D; {{ (changes_median - current_release.Version.changes) | int }}</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -72,14 +73,14 @@
                             <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
                                 <b>XP of devs</b>
                                 <div>
-                                    {{ current_release.Version.avg_team_xp }}
-
-                                    {% if current_release.Version.avg_team_xp > xp_devs_median and (xp_devs_median - current_release.Version.avg_team_xp) | int != 0 %}
-                                        <span class="text-danger">&#x25BC; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
-                                    {% elif current_release.Version.avg_team_xp < xp_devs_median %}
-                                        <span class="text-success">&#x25B2; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
+                                    <span style="font-size: larger">{{ current_release.Version.avg_team_xp | int }}</span><br />
+                                    
+                                    {% if current_release.Version.avg_team_xp < xp_devs_median | int %}
+                                        <span>&#x25BC; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
+                                    {% elif current_release.Version.avg_team_xp > xp_devs_median %}
+                                        <span>&#x25B2; {{ (current_release.Version.avg_team_xp - xp_devs_median) | int }}</span>
                                     {% else %}
-                                        <span class="text-primary">&#x003D; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
+                                        <span>&#x003D; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -97,14 +98,14 @@
                             <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
                                 <b>Avg Cycl. complexity</b>
                                 <div>
-                                    {{ current_release.Metric.lizard_avg_complexity }}
+                                    <span style="font-size: larger">{{ '%0.2f' % current_release.Metric.lizard_avg_complexity }}</span><br />
 
-                                    {% if current_release.Metric.lizard_avg_complexity > lizard_avg_complexity_median and (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) | int != 0 %}
-                                        <span class="text-danger">&#x25BC; {{ (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) | int }}</span>
+                                    {% if current_release.Metric.lizard_avg_complexity > lizard_avg_complexity_median %}
+                                        <span>&#x25BC; {{ '%0.2f' % (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) }}</span>
                                     {% elif current_release.Metric.lizard_avg_complexity < lizard_avg_complexity_median %}
-                                        <span class="text-success">&#x25B2; {{ (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) | int }}</span>
+                                        <span>&#x25B2; {{ '%0.2f' % (current_release.Metric.lizard_avg_complexity - lizard_avg_complexity_median) }}</span>
                                     {% else %}
-                                        <span class="text-primary">&#x003D; {{ (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) | int }}</span>
+                                        <span>&#x003D; {{ '%0.2f' % (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) }}</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -115,14 +116,14 @@
                             <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
                                 <b>Avg churn</b>
                                 <div>
-                                    {{ current_release.Version.code_churn_avg }}
+                                    <span style="font-size: larger">{{ current_release.Version.code_churn_avg }}</span><br />
 
-                                    {% if current_release.Version.code_churn_avg > code_churn_avg_median and (code_churn_avg_median - current_release.Version.code_churn_avg) | int != 0 %}
-                                        <span class="text-danger">&#x25BC; {{ (code_churn_avg_median - current_release.Version.code_churn_avg) | int }}</span>
+                                    {% if current_release.Version.code_churn_avg > code_churn_avg_median %}
+                                        <span>&#x25BC; {{ '%0.2f' % (code_churn_avg_median - current_release.Version.code_churn_avg) }}</span>
                                     {% elif current_release.Version.code_churn_avg < code_churn_avg_median %}
-                                        <span class="text-success">&#x25B2; {{ (code_churn_avg_median - current_release.Version.code_churn_avg) | int }}</span>
+                                        <span>&#x25B2; {{ '%0.2f' % (current_release.Version.code_churn_avg - code_churn_avg_median) }}</span>
                                     {% else %}
-                                        <span class="text-primary">&#x003D; {{ (code_churn_avg_median - current_release.Version.code_churn_avg) | int }}</span>
+                                        <span>&#x003D; {{ '%0.2f' % (code_churn_avg_median - current_release.Version.code_churn_avg) }}</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -174,7 +175,7 @@
         <div class="row">
             <div class="col">
                 <h2>Code metrics</h2>
-                <p>Mean cyclomatic complexity : {{ current_release.Version.lizard_avg_complexity }}</p>
+                <p>Mean cyclomatic complexity : {{ current_release.Metric.lizard_avg_complexity }}</p>
 
                 <h3>Halstead</h3>
                 <table class="table">
