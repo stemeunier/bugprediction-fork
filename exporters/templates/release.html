@@ -30,10 +30,12 @@
                                 <ul class="list-group list-group-flush">
                                     <li class="list-group-item"><b>Issues</b> (so far): {{ current_release.Version.bugs }}
                                     
-                                        {% if current_release.Version.bugs > bugs_median %}
-                                            <span class="text-danger">&#x25BC; {{ (bugs_median - current_release.Version.bugs) | int }}</span>
+                                        {% if current_release.Version.bugs > bugs_median and (bugs_median - current_release.Version.bugs) | int != 0 %}
+                                            <span class="text-danger">&#x25B2; {{ (bugs_median - current_release.Version.bugs) | int }}</span>
+                                        {% elif current_release.Version.bugs < bugs_median %}
+                                            <span class="text-success">&#x25BC; {{ (bugs_median - current_release.Version.bugs) | int }}</span>
                                         {% else %}
-                                            <span class="text-success">&#x25B2; {{ (bugs_median - current_release.Version.bugs) | int }}</span>
+                                            <span class="text-primary">&#x003D; {{ (bugs_median - current_release.Version.bugs) | int }}</span> 
                                         {% endif %}
                                     </li>
                                     <li class="list-group-item">
@@ -53,10 +55,12 @@
                                 <div>
                                     {{ current_release.Version.changes }}
 
-                                    {% if current_release.Version.changes > changes_median %}
+                                    {% if current_release.Version.changes > changes_median and (changes_median - current_release.Version.changes) | int != 0 %}
                                         <span class="text-danger">&#x25BC; {{ (changes_median - current_release.Version.changes) | int }}</span>
-                                    {% else %}
+                                    {% elif current_release.Version.changes < changes_median %}
                                         <span class="text-success">&#x25B2; {{ (changes_median - current_release.Version.changes) | int }}</span>
+                                    {% else %}
+                                        <span class="text-primary">&#x003D; {{ (changes_median - current_release.Version.changes) | int }}</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -70,10 +74,12 @@
                                 <div>
                                     {{ current_release.Version.avg_team_xp }}
 
-                                    {% if current_release.Version.avg_team_xp > xp_devs_median %}
+                                    {% if current_release.Version.avg_team_xp > xp_devs_median and (xp_devs_median - current_release.Version.avg_team_xp) | int != 0 %}
                                         <span class="text-danger">&#x25BC; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
-                                    {% else %}
+                                    {% elif current_release.Version.avg_team_xp < xp_devs_median %}
                                         <span class="text-success">&#x25B2; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
+                                    {% else %}
+                                        <span class="text-primary">&#x003D; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -93,10 +99,12 @@
                                 <div>
                                     {{ current_release.Metric.lizard_avg_complexity }}
 
-                                    {% if current_release.Metric.lizard_avg_complexity > lizard_avg_complexity_median %}
+                                    {% if current_release.Metric.lizard_avg_complexity > lizard_avg_complexity_median and (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) | int != 0 %}
                                         <span class="text-danger">&#x25BC; {{ (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) | int }}</span>
-                                    {% else %}
+                                    {% elif current_release.Metric.lizard_avg_complexity < lizard_avg_complexity_median %}
                                         <span class="text-success">&#x25B2; {{ (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) | int }}</span>
+                                    {% else %}
+                                        <span class="text-primary">&#x003D; {{ (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) | int }}</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -109,10 +117,12 @@
                                 <div>
                                     {{ current_release.Version.code_churn_avg }}
 
-                                    {% if current_release.Version.code_churn_avg > code_churn_avg_median %}
+                                    {% if current_release.Version.code_churn_avg > code_churn_avg_median and (code_churn_avg_median - current_release.Version.code_churn_avg) | int != 0 %}
                                         <span class="text-danger">&#x25BC; {{ (code_churn_avg_median - current_release.Version.code_churn_avg) | int }}</span>
-                                    {% else %}
+                                    {% elif current_release.Version.code_churn_avg < code_churn_avg_median %}
                                         <span class="text-success">&#x25B2; {{ (code_churn_avg_median - current_release.Version.code_churn_avg) | int }}</span>
+                                    {% else %}
+                                        <span class="text-primary">&#x003D; {{ (code_churn_avg_median - current_release.Version.code_churn_avg) | int }}</span>
                                     {% endif %}
                                 </div>
                             </div>
