@@ -82,6 +82,7 @@ class MlHtmlExporter:
                 .statement
         logging.debug(releases_statement)
         df = pd.read_sql(releases_statement, self.session.get_bind())
+        df['bug_velocity'].round(decimals = 2)
         df_tr = df[['avg_team_xp', 'changes', 'bug_velocity', 'code_churn_avg', 'lizard_avg_complexity']]
 
         scaler = StandardScaler()
@@ -131,26 +132,23 @@ class MlHtmlExporter:
             px.scatter(next_release_trace, x="bug_velocity", y="avg_team_xp", hover_data=['cluster', 'bug_velocity']).update_traces(marker_symbol = 'star', marker_size=20, marker_color="red").data
         )
         fig1_html = fig.to_html(full_html=False, include_plotlyjs=False)
+        fig = px.scatter_matrix(df,
+            dimensions=["avg_team_xp", "changes", "code_churn_avg", "lizard_avg_complexity", "bug_velocity"],
+            color="bug_velocity", symbol="bug_velocity",
+            title="Scatter matrix")
 
-        fig = px.scatter(df, x='bug_velocity', y='changes', color='cluster', 
-                 hover_data=['tag', 'bugs'], template='ggplot2')
-        fig.add_traces(
-            px.scatter(next_release_trace, x="bug_velocity", y="changes", hover_data=['cluster', 'bug_velocity']).update_traces(marker_symbol = 'star', marker_size=20, marker_color="red").data
+        fig.update_traces(diagonal_visible=False)
+        fig.update_layout(
+            width=1200,
+            height=800,
+            font={"size":8}
         )
         fig2_html = fig.to_html(full_html=False, include_plotlyjs=False)
-
-        fig = px.scatter(df, x='bug_velocity', y='code_churn_avg', color='cluster', 
-                 hover_data=['tag', 'bugs'], template='ggplot2')
-        fig.add_traces(
-            px.scatter(next_release_trace, x="bug_velocity", y="code_churn_avg", hover_data=['cluster', 'bug_velocity']).update_traces(marker_symbol = 'star', marker_size=20, marker_color="red").data
-        )
-        fig3_html = fig.to_html(full_html=False, include_plotlyjs=False)
 
         data = {
             "project": project,
             "graph_clusters": fig1_html,
-            "graph_clusters2": fig2_html,
-            "graph_clusters3": fig3_html
+            "graph_matrix": fig2_html
         }
 
         # Render the template and save the output
