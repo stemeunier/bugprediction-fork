@@ -16,7 +16,7 @@
         <div class="row">
             <div class="col">
                 <h1>Project {{ project.name }} ({{ project.language }})</h1>
-                <p>Projected statistics are based on the branch <code>{{ current_release.tag }}</code></p>
+                <p>Projected statistics are based on the branch <code>{{ current_release.Version.tag }}</code></p>
             </div>
         </div>
         
@@ -26,9 +26,16 @@
 
                     <div class="col-4">
                         <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
+                            <div class="d-flex card-body text-center align-middle">
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item"><b>Issues</b> (so far): {{ current_release.bugs }}</li>
+                                    <li class="list-group-item"><b>Issues</b> (so far): {{ current_release.Version.bugs }}
+                                    
+                                        {% if current_release.Version.bugs > bugs_median %}
+                                            <span class="text-danger">&#x25BC; {{ (bugs_median - current_release.Version.bugs) | int }}</span>
+                                        {% else %}
+                                            <span class="text-success">&#x25B2; {{ (bugs_median - current_release.Version.bugs) | int }}</span>
+                                        {% endif %}
+                                    </li>
                                     <li class="list-group-item">
                                         {% if predicted_bugs > -1 %}
                                             Predicted bugs: {{ predicted_bugs }} ({{ model_name }})
@@ -41,24 +48,34 @@
                     
                     <div class="col-4">
                         <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
-                                <b>Changes</b><br />
-                                {{ current_release.changes }}<br/>
+                            <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
+                                <b>Changes</b>
+                                <div>
+                                    {{ current_release.Version.changes }}
 
-                                {% if current_release.changes > changes_median %}
-                                    <span class="text-danger">&#x25BC; {{ (changes_median - current_release.changes) | int }}</span>
-                                {% else %}
-                                    <span class="text-success">&#x25B2; {{ (changes_median - current_release.changes) | int }}</span>
-                                {% endif %}
+                                    {% if current_release.Version.changes > changes_median %}
+                                        <span class="text-danger">&#x25BC; {{ (changes_median - current_release.Version.changes) | int }}</span>
+                                    {% else %}
+                                        <span class="text-success">&#x25B2; {{ (changes_median - current_release.Version.changes) | int }}</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-4">
                         <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
-                                <b>XP of devs</b><br />
-                                {{ current_release.avg_team_xp }}
+                            <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
+                                <b>XP of devs</b>
+                                <div>
+                                    {{ current_release.Version.avg_team_xp }}
+
+                                    {% if current_release.Version.avg_team_xp > xp_devs_median %}
+                                        <span class="text-danger">&#x25BC; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
+                                    {% else %}
+                                        <span class="text-success">&#x25B2; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -71,25 +88,43 @@
                 <div class="row">
                     <div class="col-4">
                         <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
-                                <b>Avg Cycl. complexity</b><br />
-                                {{ metrics.lizard_avg_complexity }}
+                            <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
+                                <b>Avg Cycl. complexity</b>
+                                <div>
+                                    {{ current_release.Metric.lizard_avg_complexity }}
+
+                                    {% if current_release.Metric.lizard_avg_complexity > lizard_avg_complexity_median %}
+                                        <span class="text-danger">&#x25BC; {{ (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) | int }}</span>
+                                    {% else %}
+                                        <span class="text-success">&#x25B2; {{ (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) | int }}</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
-                                <b>Avg churn</b><br />
-                                {{ current_release.code_churn_avg }}
+                            <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
+                                <b>Avg churn</b>
+                                <div>
+                                    {{ current_release.Version.code_churn_avg }}
+
+                                    {% if current_release.Version.code_churn_avg > code_churn_avg_median %}
+                                        <span class="text-danger">&#x25BC; {{ (code_churn_avg_median - current_release.Version.code_churn_avg) | int }}</span>
+                                    {% else %}
+                                        <span class="text-success">&#x25B2; {{ (code_churn_avg_median - current_release.Version.code_churn_avg) | int }}</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
-                                <b>Blocks legacy</b><br />
-                                <i>Coming soon</i>
+                            <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
+                                <b>Blocks legacy</b>
+                                <div>
+                                    <i>Coming soon</i>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -128,56 +163,8 @@
 
         <div class="row">
             <div class="col">
-
-                <h2>Commit message quality</h2>
-
-                <h3>Statistics</h3>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Commits</th>
-                            <th scope="col">Valid messages</th>
-                            <th scope="col">Valid messages ratio</th>
-                            <th scope="col">Empty messages ratio</th>
-                            <th scope="col">One word messages ratio</th>
-                            <th scope="col">Insignificants messages ratio</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>{{ commit_msg_stats.nb_commits }}</td>
-                            <td>{{ commit_msg_stats.valid_commits }}</td>
-                            <td>{{ "%.0f%%" | format(commit_msg_stats.valid_commits_ratio) }}</td>
-                            <td>{{ "%.0f%%" | format(commit_msg_stats.empty_commits_ratio) }}</td>
-                            <td>{{ "%.0f%%" | format(commit_msg_stats.one_word_commits_ratio) }}</td>
-                            <td>{{ "%.0f%%" | format(commit_msg_stats.insignificant_commits_ratio) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <h3>Frequent messages</h3>
-                {% if commit_msg_stats.frequent_messages.empty is false %}
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Message</th>
-                                <th scope="col">Frequency</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                    {% for commit in commit_msg_stats.frequent_messages %}
-                            <tr>
-                                <td>{{ commit.message }}</td>
-                                <td>{{ commit.frequency }}</td>
-                            </tr>
-                    {% endfor %}
-                        </tbody>
-                    </table>
-                {% else %}
-                    <p>No frequent commit messages found in current release</p>
-                {% endif %}
                 <h2>Code metrics</h2>
-                <p>Mean cyclomatic complexity : {{ metrics.lizard_avg_complexity }}</p>
+                <p>Mean cyclomatic complexity : {{ current_release.Version.lizard_avg_complexity }}</p>
 
                 <h3>Halstead</h3>
                 <table class="table">
@@ -194,13 +181,13 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>{{ metrics.halstead_length }}</td>
-                            <td>{{ metrics.halstead_vocabulary }}</td>
-                            <td>{{ metrics.halstead_volume }}</td>
-                            <td>{{ metrics.halstead_difficulty }}</td>
-                            <td>{{ metrics.halstead_effort }}</td>
-                            <td>{{ metrics.halstead_time }}</td>
-                            <td>{{ metrics.halstead_bugs }}</td>
+                            <td>{{ current_release.Metric.halstead_length }}</td>
+                            <td>{{ current_release.Metric.halstead_vocabulary }}</td>
+                            <td>{{ current_release.Metric.halstead_volume }}</td>
+                            <td>{{ current_release.Metric.halstead_difficulty }}</td>
+                            <td>{{ current_release.Metric.halstead_effort }}</td>
+                            <td>{{ current_release.Metric.halstead_time }}</td>
+                            <td>{{ current_release.Metric.halstead_bugs }}</td>
                         </tr>
                     </tbody>
                 </table>
