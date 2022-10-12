@@ -8,6 +8,16 @@
     <script>{% include 'jquery-3.6.1.min.js' %}</script>
     <script>{% include 'plotly-2.14.0.min.js' %}</script>
     <script>{% include 'bootstrap.bundle.min.js' %}</script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            console.log('App started');
+        });
+    </script>
 </head>
 
 <body>
@@ -16,6 +26,7 @@
         <div class="row">
             <div class="col">
                 <h1>Project {{ project.name }} ({{ project.language }})</h1>
+                <p>This report assess the risk of releasing the next version.</p>
                 <p>Projected statistics are based on the branch <code>{{ current_release.Version.tag }}</code></p>
             </div>
         </div>
@@ -50,7 +61,7 @@
                     </div>
                     
                     <div class="col-4">
-                        <div class="card" style="width: 12rem; height: 11rem;">
+                        <div class="card" style="width: 12rem; height: 11rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Estimation of the volume of changes (total number of lines)">
                             <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
                                 <b>Changes</b>
                                 <div>
@@ -69,7 +80,7 @@
                     </div>
 
                     <div class="col-4">
-                        <div class="card" style="width: 12rem; height: 11rem;">
+                        <div class="card" style="width: 12rem; height: 11rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Average experience of developers contributing to the next release (relative to project duration) in days">
                             <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
                                 <b>XP of devs</b>
                                 <div>
@@ -93,8 +104,8 @@
                 </div>
 
                 <div class="row" >
-                    <div class="col-4" title="Cyclomatic complexity is a software metric used to indicate the complexity of a program. It is a quantitative measure of the number of linearly independent paths through a program's source code.">
-                        <div class="card" style="width: 12rem; height: 11rem;">
+                    <div class="col-4">
+                        <div class="card" style="width: 12rem; height: 11rem;" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Cyclomatic complexity is a software metric used to indicate the complexity of a program. It is a quantitative measure of the number of linearly independent paths through a program's source code.">
                             <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
                                 <b>Avg Cycl. complexity</b>
                                 <div>
@@ -111,8 +122,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-4" title="Code churn, or code that is rewritten or deleted shortly after being written, is a normal part of the development process. Engineers often test, rework, and explore various solutions to a problem —especially towards the beginning of a project when the problem doesn’t have a clear solution yet.">
-                        <div class="card" style="width: 12rem; height: 11rem;">
+                    <div class="col-4">
+                        <div class="card" style="width: 12rem; height: 11rem;"  data-bs-toggle="tooltip" data-bs-placement="bottom" title="Code churn, or code that is rewritten or deleted shortly after being written (often test, rework, and explore various solutions to a problem). This metric should decrease during the project lifecycle.">
                             <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
                                 <b>Avg churn</b>
                                 <div>
@@ -130,7 +141,7 @@
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="card" style="width: 12rem; height: 11rem;">
+                        <div class="card" style="width: 12rem; height: 11rem;" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Blocks legacy are files modified in this release, but that were not modified since a long time.">
                             <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
                                 <b>Blocks legacy</b>
                                 <div>
