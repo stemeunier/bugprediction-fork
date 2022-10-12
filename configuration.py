@@ -71,4 +71,6 @@ class Configuration:
             self.insignificant_commits_messages = os.environ["OTTM_COMMIT_BAD_MSG"].split(";")
         else:
             self.insignificant_commits_messages = []
+
+        self.legacy_percent = int(os.environ["LEGACY_PERCENT"])
         

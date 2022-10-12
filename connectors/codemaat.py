@@ -13,7 +13,7 @@ from models.commit import Commit
 from models.file import File
 from models.author import Author
 from models.ownership import Ownership
-from utils.proglang import guess_programing_language
+from utils.database import save_file_if_not_found
 from configuration import Configuration
 
 
@@ -178,15 +178,7 @@ class CodeMaatConnector:
                 self.session.add(author)
                 self.session.commit()
 
-            # Create the file if it doesn't exist => Maybe not the best place here
-            # should be done by lizard or nloc. Anyway, should be wrapped in a util func
-            file = self.session.query(File).filter(File.path == row['entity']).first()
-            if not file:
-                # Guess the programming language
-                lang = guess_programing_language(row['entity'])
-                file = File(path=row['entity'], language=lang)
-                self.session.add(file)
-                self.session.commit()
+            file = save_file_if_not_found(self.session, row['entity'])
 
             # Create the pattern
             pattern = Ownership(

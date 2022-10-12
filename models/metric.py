@@ -82,3 +82,6 @@ class Metric(Base):
     halstead_effort = Column(Float)
     halstead_time = Column(Float)
     halstead_bugs = Column(Float)
+
+    # legacy
+    nb_legacy_files = Column(Integer)

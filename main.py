@@ -27,6 +27,7 @@ from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
 from connectors.gitfactory import GitConnectorFactory
 from connectors.git import GitConnector
+from connectors.legacy import LegacyConnector
 from exporters.html import HtmlExporter
 from exporters import flatfile
 from importers.flatfile import FlatFileImporter
@@ -185,6 +186,12 @@ def populate(ctx, skip_versions):
     git.populate_db(skip_versions)
     # if we use code maat git.setup_aliases(configuration.author_alias)
 
+    legacy = LegacyConnector(
+        session,
+        project.project_id,
+        repo_dir
+    )
+
     # List the versions and checkout each one of them
     versions = session.query(Version).filter(Version.project_id == project.project_id).all()
     for version in versions:
@@ -194,6 +201,10 @@ def populate(ctx, skip_versions):
         logging.info('Executed command line: ' + ' '.join(process.args))
 
         with TmpDirCopyFilteredWithEnv(repo_dir) as tmp_work_dir:
+
+            # FIXME : this execution is dependent from previous version
+            # So if some versions are ignored in config, the result is wrong 
+            legacy.get_legacy_files(version)
 
             # Get statistics from git log with codemaat
             # codemaat = CodeMaatConnector(repo_dir, session, version)
