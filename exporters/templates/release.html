@@ -8,6 +8,16 @@
     <script>{% include 'jquery-3.6.1.min.js' %}</script>
     <script>{% include 'plotly-2.14.0.min.js' %}</script>
     <script>{% include 'bootstrap.bundle.min.js' %}</script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            console.log('App started');
+        });
+    </script>
 </head>
 
 <body>
@@ -16,7 +26,8 @@
         <div class="row">
             <div class="col">
                 <h1>Project {{ project.name }} ({{ project.language }})</h1>
-                <p>Projected statistics are based on the branch <code>{{ current_release.tag }}</code></p>
+                <p>This report assess the risk of releasing the next version.</p>
+                <p>Projected statistics are based on the branch <code>{{ current_release.Version.tag }}</code></p>
             </div>
         </div>
         
@@ -26,9 +37,19 @@
 
                     <div class="col-4">
                         <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
+                            <div class="d-flex card-body text-center align-middle">
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item"><b>Issues</b> (so far): {{ current_release.bugs }}</li>
+                                    <li class="list-group-item">
+                                        <b>Issues</b> (so far): {{ current_release.Version.bugs }}<br />
+
+                                        {% if current_release.Version.bugs > bugs_median | int %}
+                                            <span>&#x25B2; {{ (bugs_median - current_release.Version.bugs) | int }}</span>
+                                        {% elif current_release.Version.bugs < bugs_median %}
+                                            <span>&#x25BC; {{ (current_release.Version.bugs - bugs_median) | int }}</span>
+                                        {% else %}
+                                            <span>&#x003D; {{ (bugs_median - current_release.Version.bugs) | int }}</span> 
+                                        {% endif %}
+                                    </li>
                                     <li class="list-group-item">
                                         {% if predicted_bugs > -1 %}
                                             Predicted bugs: {{ predicted_bugs }} ({{ model_name }})
@@ -40,19 +61,39 @@
                     </div>
                     
                     <div class="col-4">
-                        <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
-                                <b>Changes</b><br />
-                                {{ current_release.changes }}
+                        <div class="card" style="width: 12rem; height: 11rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Estimation of the volume of changes (total number of lines)">
+                            <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
+                                <b>Changes</b>
+                                <div>
+                                    <span style="font-size: larger">{{ current_release.Version.changes | int }}</span><br />
+
+                                    {% if current_release.Version.changes < changes_median | int %}
+                                        <span>&#x25BC; {{ (changes_median - current_release.Version.changes) | int }}</span>
+                                    {% elif current_release.Version.changes > changes_median %}
+                                        <span>&#x25B2; {{ (current_release.Version.changes - changes_median) | int }}</span>
+                                    {% else %}
+                                        <span>&#x003D; {{ (changes_median - current_release.Version.changes) | int }}</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-4">
-                        <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
-                                <b>XP of devs</b><br />
-                                {{ current_release.avg_team_xp }}
+                        <div class="card" style="width: 12rem; height: 11rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Average experience of developers contributing to the next release (relative to project duration) in days">
+                            <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
+                                <b>XP of devs</b>
+                                <div>
+                                    <span style="font-size: larger">{{ current_release.Version.avg_team_xp | int }}</span><br />
+                                    
+                                    {% if current_release.Version.avg_team_xp < xp_devs_median | int %}
+                                        <span>&#x25BC; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
+                                    {% elif current_release.Version.avg_team_xp > xp_devs_median %}
+                                        <span>&#x25B2; {{ (current_release.Version.avg_team_xp - xp_devs_median) | int }}</span>
+                                    {% else %}
+                                        <span>&#x003D; {{ (xp_devs_median - current_release.Version.avg_team_xp) | int }}</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -62,28 +103,51 @@
                     <div class="col-4">&nbsp;</div>
                 </div>
 
-                <div class="row">
+                <div class="row" >
                     <div class="col-4">
-                        <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
-                                <b>Avg Cycl. complexity</b><br />
-                                {{ metrics.lizard_avg_complexity }}
+                        <div class="card" style="width: 12rem; height: 11rem;" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Cyclomatic complexity is a software metric used to indicate the complexity of a program. It is a quantitative measure of the number of linearly independent paths through a program's source code.">
+                            <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
+                                <b>Avg Cycl. complexity</b>
+                                <div>
+                                    <span style="font-size: larger">{{ '%0.2f' % current_release.Metric.lizard_avg_complexity }}</span><br />
+
+                                    {% if current_release.Metric.lizard_avg_complexity > lizard_avg_complexity_median %}
+                                        <span>&#x25BC; {{ '%0.2f' % (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) }}</span>
+                                    {% elif current_release.Metric.lizard_avg_complexity < lizard_avg_complexity_median %}
+                                        <span>&#x25B2; {{ '%0.2f' % (current_release.Metric.lizard_avg_complexity - lizard_avg_complexity_median) }}</span>
+                                    {% else %}
+                                        <span>&#x003D; {{ '%0.2f' % (lizard_avg_complexity_median - current_release.Metric.lizard_avg_complexity) }}</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
-                                <b>Avg churn</b><br />
-                                {{ current_release.code_churn_avg }}
+                        <div class="card" style="width: 12rem; height: 11rem;"  data-bs-toggle="tooltip" data-bs-placement="bottom" title="Code churn, or code that is rewritten or deleted shortly after being written (often test, rework, and explore various solutions to a problem). This metric should decrease during the project lifecycle.">
+                            <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
+                                <b>Avg churn</b>
+                                <div>
+                                    <span style="font-size: larger">{{ current_release.Version.code_churn_avg }}</span><br />
+
+                                    {% if current_release.Version.code_churn_avg > code_churn_avg_median %}
+                                        <span>&#x25BC; {{ '%0.2f' % (code_churn_avg_median - current_release.Version.code_churn_avg) }}</span>
+                                    {% elif current_release.Version.code_churn_avg < code_churn_avg_median %}
+                                        <span>&#x25B2; {{ '%0.2f' % (current_release.Version.code_churn_avg - code_churn_avg_median) }}</span>
+                                    {% else %}
+                                        <span>&#x003D; {{ '%0.2f' % (code_churn_avg_median - current_release.Version.code_churn_avg) }}</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-4">
-                        <div class="card" style="width: 12rem; height: 11rem;">
-                            <div class="card-body text-center align-middle">
-                                <b>Blocks legacy</b><br />
-                                <i>Coming soon</i>
+                        <div class="card" style="width: 12rem; height: 11rem;" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Blocks legacy are files modified in this release, but that were not modified since a long time.">
+                            <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
+                                <b>Blocks legacy</b>
+                                <div>
+                                    <span style="font-size: larger">{{ current_release.Metric.nb_legacy_files | int }}</span><br />
+                                    <br />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -95,7 +159,6 @@
             </div>
 
         </div>
-
         
         <div class="row">
             <h2>Last 3 versions</h2>
@@ -115,63 +178,59 @@
         
         <div class="row">
             <div class="col">
-                <h2>Code block legacy</h2>
-                <p>Coming soon...</p>
-            </div>
-        </div>
+                <h2>Legacy files</h2>
 
-        <div class="row">
-            <div class="col">
-
-                <h2>Commit message quality</h2>
-
-                <h3>Statistics</h3>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Commits</th>
-                            <th scope="col">Valid messages</th>
-                            <th scope="col">Valid messages ratio</th>
-                            <th scope="col">Empty messages ratio</th>
-                            <th scope="col">One word messages ratio</th>
-                            <th scope="col">Insignificants messages ratio</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>{{ commit_msg_stats.nb_commits }}</td>
-                            <td>{{ commit_msg_stats.valid_commits }}</td>
-                            <td>{{ "%.0f%%" | format(commit_msg_stats.valid_commits_ratio) }}</td>
-                            <td>{{ "%.0f%%" | format(commit_msg_stats.empty_commits_ratio) }}</td>
-                            <td>{{ "%.0f%%" | format(commit_msg_stats.one_word_commits_ratio) }}</td>
-                            <td>{{ "%.0f%%" | format(commit_msg_stats.insignificant_commits_ratio) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <h3>Frequent messages</h3>
-                {% if commit_msg_stats.frequent_messages.empty is false %}
-                    <table class="table">
+                {% if legacy_files|length > 0 %}
+                    <table class="table table-bordered table-striped table-hover">
                         <thead>
                             <tr>
-                                <th scope="col">Message</th>
-                                <th scope="col">Frequency</th>
+                                <th scope="col">File path</th>
                             </tr>
                         </thead>
                         <tbody>
-                    {% for commit in commit_msg_stats.frequent_messages %}
+                    {% for legacy_file in legacy_files %}
                             <tr>
-                                <td>{{ commit.message }}</td>
-                                <td>{{ commit.frequency }}</td>
+                                <td>{{ legacy_file.File.path }}</td>
                             </tr>
                     {% endfor %}
                         </tbody>
                     </table>
                 {% else %}
-                    <p>No frequent commit messages found in current release</p>
+                    <p>No legacy files found in current release</p>
                 {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
                 <h2>Code metrics</h2>
-                <p>Coming soon...</p>
+
+                <table class="table table-borderless">
+                    <thead>
+                        <tr>
+                            <th scope="col">Avg complexity</th>
+                            <th scope="col">Length</th>
+                            <th scope="col">Vocabulary</th>
+                            <th scope="col">Volume</th>
+                            <th scope="col">Difficulty</th>
+                            <th scope="col">Effort</th>
+                            <th scope="col">Time</th>
+                            <th scope="col">Bugs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ '%0.2f' % current_release.Metric.lizard_avg_complexity }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_length }}</td>
+                            <td>{{ current_release.Metric.halstead_vocabulary }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_volume }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_difficulty }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_effort }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_time }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_bugs }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
