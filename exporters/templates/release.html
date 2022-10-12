@@ -68,9 +68,9 @@
                                     <span style="font-size: larger">{{ current_release.Version.changes | int }}</span><br />
 
                                     {% if current_release.Version.changes < changes_median | int %}
-                                        <span>&#x25BC; {{ (current_release.Version.changes - changes_median) | int }}</span>
+                                        <span>&#x25BC; {{ (changes_median - current_release.Version.changes) | int }}</span>
                                     {% elif current_release.Version.changes > changes_median %}
-                                        <span>&#x25B2; {{ (changes_median - current_release.Version.changes) | int }}</span>
+                                        <span>&#x25B2; {{ (current_release.Version.changes - changes_median) | int }}</span>
                                     {% else %}
                                         <span>&#x003D; {{ (changes_median - current_release.Version.changes) | int }}</span>
                                     {% endif %}
@@ -145,7 +145,8 @@
                             <div class="d-flex flex-column align-items-center justify-content-center card-body text-center align-middle">
                                 <b>Blocks legacy</b>
                                 <div>
-                                    <i>Coming soon</i>
+                                    <span style="font-size: larger">{{ current_release.Metric.nb_legacy_files | int }}</span><br />
+                                    <br />
                                 </div>
                             </div>
                         </div>
@@ -158,7 +159,6 @@
             </div>
 
         </div>
-
         
         <div class="row">
             <h2>Last 3 versions</h2>
@@ -178,20 +178,37 @@
         
         <div class="row">
             <div class="col">
-                <h2>Code block legacy</h2>
-                <p>Coming soon...</p>
+                <h2>Legacy files</h2>
+
+                {% if legacy_files|length > 0 %}
+                    <table class="table table-bordered table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">File path</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    {% for legacy_file in legacy_files %}
+                            <tr>
+                                <td>{{ legacy_file.File.path }}</td>
+                            </tr>
+                    {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No legacy files found in current release</p>
+                {% endif %}
             </div>
         </div>
 
         <div class="row">
             <div class="col">
                 <h2>Code metrics</h2>
-                <p>Mean cyclomatic complexity : {{ current_release.Metric.lizard_avg_complexity }}</p>
 
-                <h3>Halstead</h3>
-                <table class="table">
+                <table class="table table-borderless">
                     <thead>
                         <tr>
+                            <th scope="col">Avg complexity</th>
                             <th scope="col">Length</th>
                             <th scope="col">Vocabulary</th>
                             <th scope="col">Volume</th>
@@ -203,13 +220,14 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>{{ current_release.Metric.halstead_length }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.lizard_avg_complexity }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_length }}</td>
                             <td>{{ current_release.Metric.halstead_vocabulary }}</td>
-                            <td>{{ current_release.Metric.halstead_volume }}</td>
-                            <td>{{ current_release.Metric.halstead_difficulty }}</td>
-                            <td>{{ current_release.Metric.halstead_effort }}</td>
-                            <td>{{ current_release.Metric.halstead_time }}</td>
-                            <td>{{ current_release.Metric.halstead_bugs }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_volume }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_difficulty }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_effort }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_time }}</td>
+                            <td>{{ '%0.2f' % current_release.Metric.halstead_bugs }}</td>
                         </tr>
                     </tbody>
                 </table>

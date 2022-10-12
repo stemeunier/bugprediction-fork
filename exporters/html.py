@@ -12,6 +12,8 @@ from configuration import Configuration
 from models.project import Project
 from models.metric import Metric
 from models.model import Model
+from models.legacy import Legacy
+from models.file import File
 from models.version import Version
 from utils.timeit import timeit
 from ml.mlfactory import MlFactory
@@ -95,6 +97,11 @@ class HtmlExporter:
                 .filter(Version.project_id == project.project_id) \
                 .filter(Version.name == "Next Release").first()
 
+        legacy_files = self.session.query(Legacy, File) \
+                .join(File, Legacy.file_id == File.file_id) \
+                .filter(Legacy.version_id == current_release.Version.version_id) \
+                .all()
+
         bugs_median = np.median([row.Version.bugs for row in releases][~np.all([row.Version.bugs for row in releases] == 0)])
         changes_median = np.median([row.Version.changes for row in releases][~np.all([row.Version.changes for row in releases] == 0)])
         xp_devs_median = np.median([row.Version.avg_team_xp for row in releases][~np.all([row.Version.avg_team_xp for row in releases] == 0)])
@@ -127,6 +134,7 @@ class HtmlExporter:
         fig_risk_html = fig.to_html(full_html=False, include_plotlyjs=False)
 
         data = {
+            "project": project,
             "model_name" : model_name,
             "current_release" : current_release,
             "bugs_median" : bugs_median,
@@ -135,7 +143,7 @@ class HtmlExporter:
             "code_churn_avg_median" : code_churn_avg_median,
             "lizard_avg_complexity_median" : lizard_avg_complexity_median,
             "predicted_bugs" : predicted_bugs,
-            "project": project,
+            "legacy_files": legacy_files,
             "graph_bugs": fig1_html,
             "graph_changes": fig2_html,
             "graph_xp": fig3_html,
