@@ -6,6 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import jinja2
 from sqlalchemy.orm import Session
+import numpy as np
 
 from configuration import Configuration
 from models.project import Project
@@ -62,23 +63,21 @@ class HtmlExporter:
             Filename (not fullpath) of the report
         """
         logging.info('Generate HTML report')
-        filename = os.path.join(self.directory, filename)
-        # Example of binding with panda dataframe
-        # metrics_statement = self.session.query(Version, Metric).join(Metric, Metric.version_id == Version.version_id).statement
-        # logging.debug(metrics_statement)
-        # df = pd.read_sql(metrics_statement, self.session.get_bind())
+
         # Load HTML template
+        filename = os.path.join(self.directory, filename)
         template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/")
 
-        last_three_releases = self.session.query(Version) \
+        releases = self.session.query(Version, Metric) \
+                .join(Metric, Version.version_id == Metric.version_id) \
                 .order_by(Version.end_date.desc()) \
                 .filter(Version.project_id == project.project_id) \
-                .filter(Version.name != "Next Release").limit(3)
+                .filter(Version.name != "Next Release").all()
 
-        tags = [row.tag for row in last_three_releases]
-        bugs = [row.bugs for row in last_three_releases]
-        changes = [row.changes for row in last_three_releases]
-        avg_team_xp = [row.avg_team_xp for row in last_three_releases]
+        tags = [row.Version.tag for row in releases[0:3]]
+        bugs = [row.Version.bugs for row in releases[0:3]]
+        changes = [row.Version.changes for row in releases[0:3]]
+        avg_team_xp = [row.Version.avg_team_xp for row in releases[0:3]]
 
         # # Append the graphs about the last three releases
         fig = px.bar(x=tags, y=bugs)
@@ -90,14 +89,17 @@ class HtmlExporter:
         fig = px.bar(x=tags, y=avg_team_xp)
         fig3_html = fig.to_html(full_html=False, include_plotlyjs=False)
 
-        current_release = self.session.query(Version) \
+        current_release = self.session.query(Version, Metric) \
+                .join(Metric, Version.version_id == Metric.version_id) \
                 .order_by(Version.end_date.desc()) \
                 .filter(Version.project_id == project.project_id) \
                 .filter(Version.name == "Next Release").first()
 
-        metrics = self.session.query(Metric) \
-                .filter(Metric.version_id == current_release.version_id) \
-                .first()
+        bugs_median = np.median([row.Version.bugs for row in releases][~np.all([row.Version.bugs for row in releases] == 0)])
+        changes_median = np.median([row.Version.changes for row in releases][~np.all([row.Version.changes for row in releases] == 0)])
+        xp_devs_median = np.median([row.Version.avg_team_xp for row in releases][~np.all([row.Version.avg_team_xp for row in releases] == 0)])
+        lizard_avg_complexity_median = np.median([row.Metric.lizard_avg_complexity for row in releases][~np.all([row.Metric.lizard_avg_complexity for row in releases] == 0)])
+        code_churn_avg_median = np.median([row.Version.code_churn_avg for row in releases][~np.all([row.Version.code_churn_avg for row in releases] == 0)])
 
         trained_models = self.session.query(Model.name).filter(Model.project_id == project.project_id).all()
         trained_models = [r for r, in trained_models]
@@ -111,9 +113,6 @@ class HtmlExporter:
             model_name = "codemetrics"
             model = MlFactory.create_ml_model(model_name, self.session, project.project_id)
             predicted_bugs = model.predict()
-
-
-        commit_msg_stats = compute_commit_msg_quality(self.session, current_release)
 
         risk = assess_next_release_risk(self.session, project.project_id)
 
@@ -130,14 +129,17 @@ class HtmlExporter:
         data = {
             "model_name" : model_name,
             "current_release" : current_release,
-            "metrics" : metrics,
+            "bugs_median" : bugs_median,
+            "changes_median" : changes_median,
+            "xp_devs_median" : xp_devs_median,
+            "code_churn_avg_median" : code_churn_avg_median,
+            "lizard_avg_complexity_median" : lizard_avg_complexity_median,
             "predicted_bugs" : predicted_bugs,
             "project": project,
             "graph_bugs": fig1_html,
             "graph_changes": fig2_html,
             "graph_xp": fig3_html,
-            "graph_risk": fig_risk_html,
-            "commit_msg_stats": commit_msg_stats
+            "graph_risk": fig_risk_html
         }
 
         # Render the template and save the output
