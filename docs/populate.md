@@ -33,7 +33,7 @@ OTTM_EXCLUDE_FOLDERS=
 OTTM_INCLUDE_FOLDERS=src/main/java/org/jpeek/
 OTTM_ISSUE_TAG=
 OTTM_LANGUAGE=Java
-
+LEGACY_PERCENT=20
 ```
 
 See the [list of commands](./commands.md) for other options.

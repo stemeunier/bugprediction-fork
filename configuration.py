@@ -72,5 +72,8 @@ class Configuration:
         else:
             self.insignificant_commits_messages = []
 
-        self.legacy_percent = int(os.environ["LEGACY_PERCENT"])
+        if "LEGACY_PERCENT" in os.environ:
+            self.legacy_percent = int(os.environ["LEGACY_PERCENT"])
+        else:
+            self.legacy_percent = 20
         
