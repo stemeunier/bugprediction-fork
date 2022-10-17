@@ -66,7 +66,7 @@ class CkConnector:
             for folder in self.configuration.exclude_folders:
                 exclude_dir += self.directory + folder + " "
 
-            process = subprocess.run(["java", "-jar",
+            process = subprocess.run([self.configuration.java_path, "-jar",
                                       self.configuration.code_ck_path,
                                       self.directory, "True", "0", "True", os.path.join(tmp_dir, ''), exclude_dir])
             logging.info('Executed command line: ' + ' '.join(process.args))

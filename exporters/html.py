@@ -271,5 +271,5 @@ class HtmlExporter:
         template_env = jinja2.Environment(loader=template_loader)
         template = template_env.get_template("bugvelocity.html")
         output_text = template.render(data)
-        with open(os.path.join(self.directory, filename), "w") as file:
+        with open(filename, "w") as file:
             file.write(output_text)

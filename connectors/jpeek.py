@@ -74,7 +74,7 @@ class JPeekConnector:
         """
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Launch the JPeek utility and output values into a temporay directory
-            process = subprocess.run(["java", "-jar",
+            process = subprocess.run([self.configuration.java_path, "-jar",
                                     self.configuration.code_jpeek_path, "-t", tmp_dir,
                                     "-s", self.directory, "--overwrite"])
             logging.info('Executed command line: ' + ' '.join(process.args))
