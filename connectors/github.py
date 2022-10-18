@@ -1,4 +1,7 @@
 import logging
+from time import sleep, time
+import github
+from numpy import sinc
 
 from sqlalchemy import desc
 from unicodedata import name
@@ -23,6 +26,32 @@ class GitHubConnector(GitConnector):
         self.api = Github(self.token)
         self.remote = self.api.get_repo(self.repo)
 
+    def _get_issues(self, since, labels):
+        if not since:
+            since = github.GithubObject.NotSet
+        if not labels:
+            labels = github.GithubObject.NotSet
+
+        try:
+            return self.remote.get_issues(state="all", since=since, labels=labels)
+        except github.GithubException.RateLimitExceededException:
+            sleep(self.configuration.retry_delay)
+            self._get_issues(since, labels)
+    
+    def _get_releases(self, all=None, order_by=None, sort=None):
+        if not all:
+            all = None
+        if not order_by:
+            order_by = None
+        if not sort:
+            sort = None
+
+        try:
+            return self.remote.get_releases()
+        except github.GithubException.RateLimitExceededException:
+            sleep(self.configuration.retry_delay)
+            self._get_releases(all, order_by, sort)
+        
     @timeit
     def create_issues(self):
         """
@@ -35,16 +64,16 @@ class GitHubConnector(GitConnector):
         if last_issue is not None:
             # Update existing database by fetching new issues
             if not self.configuration.issue_tags:
-                git_issues = self.remote.get_issues(state="all", since=last_issue.updated_at + datetime.timedelta(seconds=1))
+                git_issues = self._get_issues(since=last_issue.updated_at + datetime.timedelta(seconds=1))
             else:
-                git_issues = self.remote.get_issues(state="all", since=last_issue.updated_at + datetime.timedelta(seconds=1),
+                git_issues = self._get_issues(since=last_issue.updated_at + datetime.timedelta(seconds=1),
                                             labels=self.configuration.issue_tags)  # e.g. Filter by labels=['bug']
         else:
             # Create a database with all issues
             if not self.configuration.issue_tags:
-                git_issues = self.remote.get_issues(state="all")
+                git_issues = self._get_issues()
             else:
-                git_issues = self.remote.get_issues(state="all", labels=self.configuration.issue_tags)  # e.g. Filter by labels=['bug']
+                git_issues = self._get_issues(labels=self.configuration.issue_tags)  # e.g. Filter by labels=['bug']
 
         # versions = self.session.query(Version).all()
         logging.info('Syncing ' + str(git_issues.totalCount) + ' issue(s) from GitHub')
@@ -76,7 +105,7 @@ class GitHubConnector(GitConnector):
         Create versions into the database from GitHub tags
         """
         logging.info('GitHubConnector: create_versions')
-        releases = self.remote.get_releases()
+        releases = self._get_releases()
         self._clean_project_existing_versions()
 
         versions = []

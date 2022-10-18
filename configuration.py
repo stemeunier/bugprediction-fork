@@ -76,4 +76,9 @@ class Configuration:
             self.legacy_percent = int(os.environ["LEGACY_PERCENT"])
         else:
             self.legacy_percent = 20
-        
+
+
+        if "RETRY_DELAY" in os.environ:
+            self.retry_delay = int(os.environ["OTTM_RETRY_DELAY"])
+        else:
+            self.retry_delay = 3600
