@@ -26,7 +26,7 @@ class GitHubConnector(GitConnector):
         self.api = Github(self.token)
         self.remote = self.api.get_repo(self.repo)
 
-    def _get_issues(self, since, labels):
+    def _get_issues(self, since=None, labels=None):
         if not since:
             since = github.GithubObject.NotSet
         if not labels:
