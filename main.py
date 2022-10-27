@@ -245,11 +245,7 @@ def populate(ctx, skip_versions):
     git.populate_db(skip_versions)
     # if we use code maat git.setup_aliases(configuration.author_alias)
 
-    legacy = LegacyConnector(
-        session,
-        project.project_id,
-        repo_dir
-    )
+    
 
     # List the versions and checkout each one of them
     versions = session.query(Version).filter(Version.project_id == project.project_id).all()
@@ -261,6 +257,12 @@ def populate(ctx, skip_versions):
 
         with TmpDirCopyFilteredWithEnv(repo_dir) as tmp_work_dir:
 
+            legacy = LegacyConnector(
+                session,
+                project.project_id,
+                repo_dir,
+                version
+            )
             # FIXME : this execution is dependent from previous version
             # So if some versions are ignored in config, the result is wrong 
             legacy.get_legacy_files(version)

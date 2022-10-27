@@ -16,8 +16,9 @@ from utils.database import save_file_if_not_found
 
 class LegacyConnector:
 
-    def __init__(self, session, project_id, directory):
+    def __init__(self, session, project_id, directory, version):
         self.session = session
+        self.version = version
         self.project_id = project_id
         self.configuration = Configuration()
 
@@ -33,34 +34,39 @@ class LegacyConnector:
         return project_first_commit.date
 
     def get_legacy_files(self, version: Version):
-        logging.info("Getting modified legacy files for version %s", version.name)
-        modified_legacy_files = {}
+        metric = self.session.query(Metric).filter(Metric.version_id == self.version.version_id).first()
+        if metric:
+            logging.info('Legacy analysis already done for this version')
+        else:
+            
+            logging.info("Getting modified legacy files for version %s", version.name)
+            modified_legacy_files = {}
 
-        commits: List[Commit] = self.session.query(Commit).filter(Commit.project_id == self.project_id) \
-                                        .filter(Commit.date >= version.start_date) \
-                                        .filter(Commit.date <= version.end_date) \
-                                        .order_by(Commit.date.asc()).all()
+            commits: List[Commit] = self.session.query(Commit).filter(Commit.project_id == self.project_id) \
+                                            .filter(Commit.date >= version.start_date) \
+                                            .filter(Commit.date <= version.end_date) \
+                                            .order_by(Commit.date.asc()).all()
 
-        for commit in commits:
-            logging.debug("Commit %s", commit.hash)
+            for commit in commits:
+                logging.debug("Commit %s", commit.hash)
 
-            legacy_time_delta = self.__legacy_time_delta(commit.date)
+                legacy_time_delta = self.__legacy_time_delta(commit.date)
 
-            commit_details = self.pydriler_git_repo.get_commit(commit.hash)
-            new_modified_legacy_files_for_commit = self.get_modified_legacy_files_for_commit(
-                self.files_last_modification, commit_details, legacy_time_delta
-            )
-            modified_legacy_files = self.get_new_modified_legacy_files_for_version(
-                modified_legacy_files, new_modified_legacy_files_for_commit
-            )
-            self.files_last_modification = self.get_new_files_last_modification_for_commit(
-                self.files_last_modification, commit_details
-            )
+                commit_details = self.pydriler_git_repo.get_commit(commit.hash)
+                new_modified_legacy_files_for_commit = self.get_modified_legacy_files_for_commit(
+                    self.files_last_modification, commit_details, legacy_time_delta
+                )
+                modified_legacy_files = self.get_new_modified_legacy_files_for_version(
+                    modified_legacy_files, new_modified_legacy_files_for_commit
+                )
+                self.files_last_modification = self.get_new_files_last_modification_for_commit(
+                    self.files_last_modification, commit_details
+                )
 
-        logging.info(f"Version {version.name} : {len(modified_legacy_files)} legacy files modified")
-        
-        self.__save_legacy_files(modified_legacy_files, version.version_id)
-        self.__save_metric(modified_legacy_files, version.version_id)
+            logging.info(f"Version {version.name} : {len(modified_legacy_files)} legacy files modified")
+            
+            self.__save_legacy_files(modified_legacy_files, version.version_id)
+            self.__save_metric(modified_legacy_files, version.version_id)
 
     def __legacy_time_delta(self, current_commit_date):
         delta_since_first_commit = current_commit_date - self.first_commit_date
