@@ -154,3 +154,11 @@ class GitConnector(ABC):
     @abstractmethod
     def create_versions(self):
         raise NotImplementedError
+
+    @abstractmethod
+    def _get_issues(self, since, labels):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_releases(self, all, order_by, sort):
+        raise NotImplementedError

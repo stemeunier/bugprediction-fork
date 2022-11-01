@@ -15,12 +15,12 @@ class GitConnectorFactory:
                              project_id: str, repo_dir: str) -> GitConnector:
         
         configuration = Configuration()
-        scm = configuration.source_repo_smc
+        scm = configuration.source_repo_scm
 
         if scm == "github":
             logging.info('Using GiHub')
             return GitHubConnector(
-                configuration.smc_token,
+                configuration.scm_token,
                 configuration.source_repo,
                 configuration.current_branch,
                 session,
@@ -30,8 +30,8 @@ class GitConnectorFactory:
         
         elif scm == "gitlab":
             return GitLabConnector(
-                configuration.smc_base_url,
-                configuration.smc_token,
+                configuration.scm_base_url,
+                configuration.scm_token,
                 configuration.source_repo,
                 configuration.current_branch,
                 session,

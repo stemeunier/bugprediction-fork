@@ -17,14 +17,14 @@ The tool needs to target a repository (e.g. GitHub, GitLab) with releases and is
 
 You need to create and ```data/.env``` file (by copying the ```.env-example```) and to fill at least these variables (see the [documentation of populate command](./docs/commands.md) for) :
 
- - ```OTTM_SMC_PATH``` : Path to git executable, leave "git" if it's into system env. path
+ - ```OTTM_SCM_PATH``` : Path to git executable, leave "git" if it's into system env. path
  - ```OTTM_SOURCE_PROJECT``` : Name of the project (e.g. dbeaver)
  - ```OTTM_SOURCE_REPO``` : Repositiory name (e.g. dbeaver/dbeaver)
  - ```OTTM_CURRENT_BRANCH``` :  The branch containing the next release (e.g. devel)
  - ```OTTM_SOURCE_REPO_URL``` : # The full path to repo (e.g. https://github.com/dbeaver/dbeaver)
- - ```OTTM_SOURCE_REPO_SMC``` : Either "github" or "gitlab", other SCM are not yet supported
- - ```OTTM_SMC_BASE_URL``` : SMC base URL - leave empty for public repo
- - ```OTTM_SMC_TOKEN``` Token to access github or gitlab
+ - ```OTTM_SOURCE_REPO_SCM``` : Either "github" or "gitlab", other SCM are not yet supported
+ - ```OTTM_SCM_BASE_URL``` : SMC base URL - leave empty for public repo
+ - ```OTTM_SCM_TOKEN``` Token to access github or gitlab
  - ```OTTM_TARGET_DATABASE``` : The default value will generate a SQLite database into the current folder
  
  The first step (it might take a while) is to populate the database with versions, issues and commits. The repository will be cloned into a temporary folder and we will checkout all versions in order to generate code metrics. You can run this command in many times as it will only amend the database with latest changes.
