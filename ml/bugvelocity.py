@@ -25,9 +25,9 @@ class BugVelocity(ml):
         """Train the model"""
         logging.info("BugVelocity:train")
         releases_statement = self.session.query(Version). \
-            order_by(Version.start_date.asc()). \
-            filter(Version.project_id == self.project_id). \
-            filter(Version.name != "Next Release").statement
+            order_by(Version.start_date.asc()) \
+            .filter(Version.project_id == self.project_id) \
+            .filter(Version.name != "Next Release").statement
         df = pd.read_sql(releases_statement, self.session.get_bind())
         X=df[['bug_velocity']]
         y=df[['bugs']].values.ravel()
@@ -48,9 +48,9 @@ class BugVelocity(ml):
         """Predict the next value"""
         logging.info("BugVelocity::predict")
         self.restore()  # unpickle the model
-        bug_velocity = self.session.query(Version.bug_velocity). \
-            filter(Version.project_id == self.project_id). \
-            filter(Version.name == "Next Release").scalar()
+        bug_velocity = self.session.query(Version.bug_velocity) \
+            .filter(Version.project_id == self.project_id) \
+            .filter(Version.name == "Next Release").scalar()
         d = {'bug_velocity': [bug_velocity]}
         X_test = pd.DataFrame(data=d)
         prediction_df = self.model.predict(X_test)
