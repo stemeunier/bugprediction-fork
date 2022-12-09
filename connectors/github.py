@@ -60,7 +60,9 @@ class GitHubConnector(GitConnector):
         logging.info('GitHubConnector: create_issues')
 
         # Check if a database already exist
-        last_issue = self.session.query(Issue).order_by(desc(models.issue.Issue.updated_at)).get(1)
+        last_issue = self.session.query(Issue) \
+                         .filter(Issue.project_id == self.project_id) \
+                         .order_by(desc(models.issue.Issue.updated_at)).get(1)
         if last_issue is not None:
             # Update existing database by fetching new issues
             if not self.configuration.issue_tags:

@@ -42,10 +42,10 @@ class CodeMetrics(ml):
                                    Metric.ck_usage_fields, Metric.ck_method_invok, Metric.halstead_length,
                                    Metric.halstead_vocabulary, Metric.halstead_volume, Metric.halstead_difficulty,
                                    Metric.halstead_effort, Metric.halstead_time, Metric.halstead_bugs). \
-            order_by(Version.end_date.desc()). \
-            filter(Version.project_id == self.project_id). \
-            filter(Metric.version_id == Version.version_id). \
-            filter(Version.name != "Next Release").statement
+            order_by(Version.end_date.desc()) \
+            .filter(Version.project_id == self.project_id) \
+            .filter(Metric.version_id == Version.version_id) \
+            .filter(Version.name != "Next Release").statement
 
         dataframe = pd.read_sql(versions_metrics_statement, self.session.get_bind())
         dataframe = dataframe.dropna(axis=1, how='any', thresh=None, subset=None)
@@ -95,11 +95,11 @@ class CodeMetrics(ml):
                                    Metric.ck_has_javadoc, Metric.ck_modifiers, Metric.ck_usage_vars,
                                    Metric.ck_usage_fields, Metric.ck_method_invok, Metric.halstead_length,
                                    Metric.halstead_vocabulary, Metric.halstead_volume, Metric.halstead_difficulty,
-                                   Metric.halstead_effort, Metric.halstead_time, Metric.halstead_bugs). \
-            filter(Version.project_id == self.project_id). \
-            filter(Metric.version_id == Version.version_id). \
-            order_by(Version.end_date.asc()). \
-            filter(Version.name == "Next Release").statement
+                                   Metric.halstead_effort, Metric.halstead_time, Metric.halstead_bugs) \
+            .filter(Version.project_id == self.project_id) \
+            .filter(Metric.version_id == Version.version_id) \
+            .order_by(Version.end_date.asc()) \
+            .filter(Version.name == "Next Release").statement
         dataframe = pd.read_sql(versions_metrics_statement, self.session.get_bind())
         dataframe = dataframe.iloc[0]
 
