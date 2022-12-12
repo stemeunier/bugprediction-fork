@@ -36,6 +36,7 @@ from exporters.html import HtmlExporter
 from exporters import flatfile
 from importers.flatfile import FlatFileImporter
 from ml.mlfactory import MlFactory
+from utils.database import get_included_and_current_versions_filter
 from utils.dirs import TmpDirCopyFilteredWithEnv
 
 session = None
@@ -186,7 +187,16 @@ def info(ctx):
     """Provide information about the current configuration
     If these values are not populated, the tool won't work.
     """
-    versions_count = session.query(Version).filter(Version.project_id == project.project_id).count()
+    
+    excluded_versions = configuration.exclude_versions
+    included_and_current_versions = get_included_and_current_versions_filter(session, configuration)
+    filtered_version_count = session.query(Version) \
+                                    .filter(Version.project_id == project.project_id) \
+                                    .filter(Version.include_filter(included_and_current_versions)) \
+                                    .filter(Version.exclude_filter(excluded_versions)) \
+                                    .count()
+    
+    total_versions_count = session.query(Version).filter(Version.project_id == project.project_id).count()
     issues_count = session.query(Issue).filter(Issue.project_id == project.project_id).count()
     metrics_count = session.query(Metric).join(Version).filter(Version.project_id == project.project_id).count()
     trained_models = session.query(Model.name).filter(Model.project_id == project.project_id).all()
@@ -198,7 +208,7 @@ def info(ctx):
     SCM      : {scm} / {repo}
     Release  : {release}
     
-    Versions : {versions}
+    Versions : {versions} ({excluded_versions} filtered)
     Issues   : {issues}
     Metrics  : {metrics}
 
@@ -209,7 +219,8 @@ def info(ctx):
         scm=configuration.source_repo_scm,
         repo=configuration.source_repo_url,
         release=configuration.current_branch,
-        versions=versions_count,
+        versions=filtered_version_count,
+        excluded_versions=total_versions_count-filtered_version_count,
         issues=issues_count,
         metrics=metrics_count,
         models=", ".join(trained_models)

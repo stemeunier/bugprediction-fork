@@ -18,6 +18,7 @@ from models.project import Project
 from models.metric import Metric
 from models.model import Model
 from models.version import Version
+from utils.database import get_included_and_current_versions_filter
 from utils.timeit import timeit
 
 class MlHtmlExporter:
@@ -67,6 +68,9 @@ class MlHtmlExporter:
         filename = os.path.join(self.directory, filename)
         template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/")
 
+        excluded_versions = self.configuration.exclude_versions
+        included_and_current_versions = get_included_and_current_versions_filter(self.session, self.configuration)
+
         releases_statement = self.session.query(
                 Version.tag,
                 Version.name,
@@ -79,6 +83,8 @@ class MlHtmlExporter:
                 .order_by(Version.end_date.desc()) \
                 .join(Metric, Version.version_id == Metric.version_id) \
                 .filter(Version.project_id == project.project_id) \
+                .filter(Version.include_filter(included_and_current_versions)) \
+                .filter(Version.exclude_filter(excluded_versions)) \
                 .statement
         logging.debug(releases_statement)
         df = pd.read_sql(releases_statement, self.session.get_bind())
@@ -123,7 +129,7 @@ class MlHtmlExporter:
         df['cluster'] = kmeans.labels_
 
         # Locate the next release as we will mark it in the graphs
-        next_release_trace = df.loc[df['name'] == "Next Release"]
+        next_release_trace = df.loc[df['name'] == self.configuration.next_version_name]
 
         # Append the scatter plot graph with a focus on the next release
         fig = px.scatter(df, x='bug_velocity', y='avg_team_xp', color='cluster', 
@@ -156,5 +162,5 @@ class MlHtmlExporter:
         template_env = jinja2.Environment(loader=template_loader)
         template = template_env.get_template("kmeans.html")
         output_text = template.render(data)
-        with open(os.path.join(self.directory, filename), "w") as file:
+        with open(filename, "w") as file:
             file.write(output_text)

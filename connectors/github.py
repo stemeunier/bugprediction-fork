@@ -129,7 +129,7 @@ class GitHubConnector(GitConnector):
         versions.append(
             Version(
                 project_id=self.project_id, 
-                name="Next Release",
+                name=self.configuration.next_version_name,
                 tag=self.current, 
                 start_date=previous_release_published_at,
                 end_date=datetime.datetime.now(),

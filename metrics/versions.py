@@ -1,6 +1,7 @@
 import logging
 import math
 from datetime import datetime, timedelta
+from typing import List
 
 import pandas as pd
 from sqlalchemy import desc
@@ -9,11 +10,13 @@ from sklearn import preprocessing
 import pandas as pd
 import numpy as np
 from pydriller.metrics.process.code_churn import CodeChurn
+from configuration import Configuration
 
 from models.version import Version
 from models.metric import Metric
 from models.commit import Commit
 from models.issue import Issue
+from utils.database import get_included_and_current_versions_filter
 from utils.timeit import timeit
 import utils.math as mt
 
@@ -90,8 +93,17 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
         churn_count = 0
         for file_count in files_count.values():
             churn_count += abs(file_count)
-        churn_avg = abs(mt.Math.get_rounded_mean(list(files_avg.values())))
-        churn_max = max(list(files_max.values()))
+
+        if files_avg:
+            churn_avg = abs(mt.Math.get_rounded_mean(list(files_avg.values())))
+        else:
+            churn_avg = 0
+
+        if files_max:
+            churn_max = max(list(files_max.values()))
+        else:
+            churn_max = 0
+
         logging.info('Chrun count: ' + str(churn_count) + ' / Chrun avg: ' + str(churn_avg) + ' / Chrun max: ' + str(churn_max))
         from_commit = version.tag
 
@@ -106,7 +118,7 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
         session.commit()
 
 @timeit
-def assess_next_release_risk(session, project_id:int):
+def assess_next_release_risk(session, configuration: Configuration, project_id:int):
     """
     Assess the risk of deploying the next release by using 
     weighed metrics from version
@@ -120,9 +132,14 @@ def assess_next_release_risk(session, project_id:int):
     """
     logging.info("assess_next_release_risk")
 
+    excluded_versions = configuration.exclude_versions
+    included_and_current_versions = get_included_and_current_versions_filter(session, configuration)
+
     # Get the version metrics and the average cyclomatic complexity
     metrics_statement = session.query(Version, Metric) \
         .filter(Version.project_id == project_id) \
+        .filter(Version.include_filter(included_and_current_versions)) \
+        .filter(Version.exclude_filter(excluded_versions)) \
         .join(Metric, Metric.version_id == Version.version_id) \
         .order_by(Version.start_date.asc()).statement
     logging.debug(metrics_statement)

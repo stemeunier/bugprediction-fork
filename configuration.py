@@ -8,6 +8,8 @@ from exceptions.configurationvalidation import ConfigurationValidationException
 AVAILABLE_SCM = ["github", "gitlab"]
 
 class Configuration:
+    
+    next_version_name = "Next Release"
 
     def __init__(self):
 
@@ -48,7 +50,7 @@ class Configuration:
 
         self.retry_delay = self.__get_retry_delay("OTTM_RETRY_DELAY")
         
-        self.legacy_percent = self.__get_retry_delay("OTTM_LEGACY_PERCENT")
+        self.legacy_percent = self.__get_legacy_percent("OTTM_LEGACY_PERCENT")
 
 
     @staticmethod

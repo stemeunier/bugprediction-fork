@@ -6,6 +6,7 @@ import pandas as pd
 from configuration import Configuration
 from models.metric import Metric
 from models.version import Version
+from utils.database import get_included_and_current_versions_filter
 from utils.timeit import timeit
 
 class FlatFileExporter:
@@ -42,8 +43,14 @@ class FlatFileExporter:
             name of the file with extension - not the fullpath
         """
         logging.info('export_to_csv')
+
+        excluded_versions = self.configuration.exclude_versions
+        included_and_current_versions = get_included_and_current_versions_filter(self.session, self.configuration)
+
         metrics_statement = self.session.query(Version, Metric) \
             .filter(Version.project_id == self.project_id) \
+            .filter(Version.include_filter(included_and_current_versions)) \
+            .filter(Version.exclude_filter(excluded_versions)) \
             .join(Metric, Metric.version_id == Version.version_id).statement
         logging.debug(metrics_statement)
         df = pd.read_sql(metrics_statement, self.session.get_bind())
@@ -60,8 +67,14 @@ class FlatFileExporter:
             name of the file with extension - not the fullpath
         """
         logging.info('export_to_parquet')
+
+        excluded_versions = self.configuration.exclude_versions
+        included_and_current_versions = get_included_and_current_versions_filter(self.session, self.configuration)
+
         metrics_statement = self.session.query(Version, Metric) \
             .filter(Version.project_id == self.project_id) \
+            .filter(Version.include_filter(included_and_current_versions)) \
+            .filter(Version.exclude_filter(excluded_versions)) \
             .join(Metric, Metric.version_id == Version.version_id).statement
         logging.debug(metrics_statement)
         df = pd.read_sql(metrics_statement, self.session.get_bind())

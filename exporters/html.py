@@ -15,6 +15,7 @@ from models.model import Model
 from models.legacy import Legacy
 from models.file import File
 from models.version import Version
+from utils.database import get_included_and_current_versions_filter
 from utils.timeit import timeit
 from ml.mlfactory import MlFactory
 from metrics.commits import compute_commit_msg_quality
@@ -70,11 +71,16 @@ class HtmlExporter:
         filename = os.path.join(self.directory, filename)
         template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/")
 
+        excluded_versions = self.configuration.exclude_versions
+        included_versions = self.configuration.include_versions
+
         releases = self.session.query(Version, Metric) \
                 .join(Metric, Version.version_id == Metric.version_id) \
                 .order_by(Version.end_date.desc()) \
                 .filter(Version.project_id == project.project_id) \
-                .filter(Version.name != "Next Release").all()
+                .filter(Version.name != self.configuration.next_version_name) \
+                .filter(Version.include_filter(included_versions)) \
+                .filter(Version.exclude_filter(excluded_versions)).all()
 
         tags = [row.Version.tag for row in releases[0:3]]
         bugs = [row.Version.bugs for row in releases[0:3]]
@@ -95,7 +101,7 @@ class HtmlExporter:
                 .join(Metric, Version.version_id == Metric.version_id) \
                 .order_by(Version.end_date.desc()) \
                 .filter(Version.project_id == project.project_id) \
-                .filter(Version.name == "Next Release").first()
+                .filter(Version.name == self.configuration.next_version_name).first()
 
         legacy_files = self.session.query(Legacy, File) \
                 .join(File, Legacy.file_id == File.file_id) \
@@ -121,7 +127,7 @@ class HtmlExporter:
             model = MlFactory.create_ml_model(model_name, self.session, project.project_id)
             predicted_bugs = model.predict()
 
-        risk = assess_next_release_risk(self.session, project.project_id)
+        risk = assess_next_release_risk(self.session, self.configuration, project.project_id)
 
         fig = go.Figure(go.Indicator(
             mode = "gauge+number+delta",
@@ -155,7 +161,7 @@ class HtmlExporter:
         template_env = jinja2.Environment(loader=template_loader)
         template = template_env.get_template("release.html")
         output_text = template.render(data)
-        with open(os.path.join(self.directory, filename), "w") as file:
+        with open(filename, "w") as file:
             file.write(output_text)
 
     @timeit
@@ -174,9 +180,14 @@ class HtmlExporter:
         filename = os.path.join(self.directory, filename)
         template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/")
 
+        excluded_versions = self.configuration.exclude_versions
+        included_and_current_versions = get_included_and_current_versions_filter(self.session, self.configuration)
+
         code_churn_statement = self.session.query(Version.start_date, Version.code_churn_count, Version.code_churn_max, Version.code_churn_avg) \
                 .order_by(Version.end_date.desc()) \
                 .filter(Version.project_id == project.project_id) \
+                .filter(Version.include_filter(included_and_current_versions)) \
+                .filter(Version.exclude_filter(excluded_versions)) \
                 .statement
         df = pd.read_sql(code_churn_statement, self.session.get_bind())
 
@@ -208,7 +219,7 @@ class HtmlExporter:
         template_env = jinja2.Environment(loader=template_loader)
         template = template_env.get_template("churn.html")
         output_text = template.render(data)
-        with open(os.path.join(self.directory, filename), "w") as file:
+        with open(filename, "w") as file:
             file.write(output_text)
 
     @timeit
@@ -236,9 +247,14 @@ class HtmlExporter:
         fig2_html = fig.to_html(full_html=False, include_plotlyjs=False)
 
         # Generate a graph about Bug velocity during the project lifespan
+        excluded_versions = self.configuration.exclude_versions
+        included_and_current_versions = get_included_and_current_versions_filter(self.session, self.configuration)
+
         bugvelocity_statement = self.session.query(Version.start_date, Version.bug_velocity) \
                 .order_by(Version.end_date.desc()) \
                 .filter(Version.project_id == project.project_id) \
+                .filter(Version.include_filter(included_and_current_versions)) \
+                .filter(Version.exclude_filter(excluded_versions)) \
                 .statement
         df = pd.read_sql(bugvelocity_statement, self.session.get_bind())
 
