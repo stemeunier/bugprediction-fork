@@ -117,7 +117,8 @@ class GitConnector(ABC):
         """
         Clean the metrics assosciated to the current branch so as to compute them again
         """
-        next_release = self.session.query(Version).filter(Commit.project_id == self.project_id).filter(Version.name == "Next Release").first()
+        next_release = self.session.query(Version).filter(Commit.project_id == self.project_id) \
+                                                  .filter(Version.name == self.configuration.next_version_name).first()
         if next_release is None:
             logging.info("No Metrics to clean up")
         else:

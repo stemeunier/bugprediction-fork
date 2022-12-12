@@ -1,5 +1,7 @@
+import logging
 from sqlalchemy import Column, Integer, String, ForeignKey, Table, DateTime, Float
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.ext.hybrid import hybrid_method
 from models.database import Base
 
 class Version(Base):
@@ -31,3 +33,15 @@ class Version(Base):
     code_churn_max = Column(Integer)
     # Average code churn per file
     code_churn_avg = Column(Float)
+
+    @hybrid_method
+    def include_filter(self, included_versions):
+        if not included_versions:
+            return True
+        logging.info("Filtering versions with values: %s", included_versions)
+        return Version.tag.in_(included_versions)
+
+    @hybrid_method
+    def exclude_filter(self, excluded_versions):
+        logging.info("Excluding versions: %s", excluded_versions)
+        return Version.tag.not_in(excluded_versions)

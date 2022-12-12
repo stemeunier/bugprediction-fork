@@ -1,6 +1,9 @@
 import os
+from typing import List
+from configuration import Configuration
 
 from models.file import File
+from models.version import Version
 from utils.proglang import guess_programing_language
 
 def save_file_if_not_found(session, file_path):
@@ -13,3 +16,14 @@ def save_file_if_not_found(session, file_path):
         session.add(file)
         session.commit()
     return file
+
+def get_included_and_current_versions_filter(session, configuration: Configuration) -> List[str]:
+    
+    if not configuration.include_versions:
+        return []
+
+    current_version: Version = session.query(Version) \
+                                      .filter(Version.name == configuration.next_version_name) \
+                                      .first()
+
+    return configuration.include_versions + [current_version.tag]

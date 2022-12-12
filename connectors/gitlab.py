@@ -37,7 +37,7 @@ class GitLabConnector(GitConnector):
 
         self.remote = self.api.projects.get(self.repo)
 
-    def _get_issues(self, since, labels):
+    def _get_issues(self, since=None, labels=None):
         if not since:
             since = None
         if not labels:
@@ -77,16 +77,16 @@ class GitLabConnector(GitConnector):
         if last_issue is not None:
             # Update existing database by fetching new issues
             if not self.configuration.issue_tags:
-                git_issues = self._get_issues(created_after=last_issue.updated_at + timedelta(seconds=1))
+                git_issues = self._get_issues(since=last_issue.updated_at + timedelta(seconds=1))
             else:
-                git_issues = self._get_issues(created_after=last_issue.updated_at + timedelta(seconds=1),
+                git_issues = self._get_issues(since=last_issue.updated_at + timedelta(seconds=1),
                                                     with_labels_details=self.configuration.issue_tags)  # e.g. Filter by labels=['bug']
         else:
             # Create a database with all issues
             if not self.configuration.issue_tags:
                 git_issues = self._get_issues()
             else:
-                git_issues = self._get_issues(with_labels_details=self.configuration.issue_tags)    # e.g. Filter by labels=['bug']
+                git_issues = self._get_issues(labels=self.configuration.issue_tags)    # e.g. Filter by labels=['bug']
         
         # versions = self.session.query(Version).all
         logging.info('Syncing ' + str(len(git_issues)) + ' issue(s) from GitLab')
@@ -141,7 +141,7 @@ class GitLabConnector(GitConnector):
         versions.append(
             Version(
                 project_id=self.project_id,
-                name="Next Release",
+                name=self.configuration.next_version_name,
                 tag=self.current,
                 start_date=previous_release_published_at,
                 end_date=datetime.now(),

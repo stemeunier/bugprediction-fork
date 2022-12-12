@@ -7,6 +7,7 @@ import pandas as pd
 from ml.ml import ml
 from models.metric import Metric
 from models.version import Version
+from utils.database import get_included_and_current_versions_filter
 from utils.timeit import timeit
 
 
@@ -24,10 +25,16 @@ class BugVelocity(ml):
     def train(self):
         """Train the model"""
         logging.info("BugVelocity:train")
+
+        included_versions = self.configuration.include_versions
+        excluded_versions = self.configuration.exclude_versions
+
         releases_statement = self.session.query(Version). \
             order_by(Version.start_date.asc()) \
             .filter(Version.project_id == self.project_id) \
-            .filter(Version.name != "Next Release").statement
+            .filter(Version.include_filter(included_versions)) \
+            .filter(Version.exclude_filter(excluded_versions)) \
+            .filter(Version.name != self.configuration.next_version_name).statement
         df = pd.read_sql(releases_statement, self.session.get_bind())
         X=df[['bug_velocity']]
         y=df[['bugs']].values.ravel()
@@ -48,9 +55,9 @@ class BugVelocity(ml):
         """Predict the next value"""
         logging.info("BugVelocity::predict")
         self.restore()  # unpickle the model
-        bug_velocity = self.session.query(Version.bug_velocity) \
-            .filter(Version.project_id == self.project_id) \
-            .filter(Version.name == "Next Release").scalar()
+        bug_velocity = self.session.query(Version.bug_velocity). \
+            filter(Version.project_id == self.project_id). \
+            filter(Version.name == self.configuration.next_version_name).scalar()
         d = {'bug_velocity': [bug_velocity]}
         X_test = pd.DataFrame(data=d)
         prediction_df = self.model.predict(X_test)
