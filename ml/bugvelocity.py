@@ -17,8 +17,8 @@ class BugVelocity(ml):
     bug velocity values. It demonstrate how you can integrate your own model into the tool.
     """
     
-    def __init__(self, session, project_id):
-        ml.__init__(self, session, project_id)
+    def __init__(self, project_id, session, config):
+        ml.__init__(self, project_id, session, config)
         self.name = "bugvelocity"
 
     @timeit

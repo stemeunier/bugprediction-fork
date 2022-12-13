@@ -1,6 +1,5 @@
 import copy
 import datetime
-import os
 import logging
 from typing import Dict, List
 
@@ -11,16 +10,15 @@ from models.commit import Commit
 from models.legacy import Legacy
 from models.metric import Metric
 from models.version import Version
-from configuration import Configuration
 from utils.database import save_file_if_not_found
 
 class LegacyConnector:
 
-    def __init__(self, session, project_id, directory, version):
+    def __init__(self, project_id, directory, version, session, config):
         self.session = session
         self.version = version
         self.project_id = project_id
-        self.configuration = Configuration()
+        self.configuration = config
 
         self.pydriler_git_repo = pydriller.Git(directory)
         self.files_last_modification = {}
@@ -35,7 +33,7 @@ class LegacyConnector:
 
     def get_legacy_files(self, version: Version):
         metric = self.session.query(Metric).filter(Metric.version_id == self.version.version_id).first()
-        if metric:
+        if metric.nb_legacy_files:
             logging.info('Legacy analysis already done for this version')
         else:
             

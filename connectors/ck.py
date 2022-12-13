@@ -2,11 +2,8 @@ import logging
 import os
 import subprocess
 import tempfile
-from asyncio import sleep
 from os.path import exists
 import pandas as pd
-
-from configuration import Configuration
 from models.metric import Metric
 from utils.math import Math
 from utils.timeit import timeit
@@ -23,12 +20,11 @@ class CkConnector:
         - session     Connection to a database managed by sqlalchemy
         - version     Sqlalchemy object representing a Version
     """
-
-    def __init__(self, directory, session, version):
+    def __init__(self, directory, version, session, config):
         self.directory = directory
         self.session = session
         self.version = version
-        self.configuration = Configuration()
+        self.configuration = config
 
     def analyze_source_code(self):
         """
@@ -37,10 +33,12 @@ class CkConnector:
         logging.info('CK::analyze_repo')
         # Test if metrics have been already generated for this version
         metric = self.session.query(Metric).filter(Metric.version_id == self.version.version_id).first()
+        if not metric:
+            metric = Metric()
         if self.configuration.language != "Java":
             logging.info('CK is only used for Java language')
-        elif not metric:
-            self.compute_metrics()
+        elif not metric.ck_wmc:
+            self.compute_metrics(metric)
         else:
             logging.info('CK analysis already done for this version')
 
@@ -51,7 +49,7 @@ class CkConnector:
         return Math.get_rounded_mean(tmp)
 
     @timeit
-    def compute_metrics(self):
+    def compute_metrics(self, metric):
         """
         Compute CK metrics. As the metrics were computed at the file or function level,
         we need to compute the average for the repository.
@@ -76,7 +74,6 @@ class CkConnector:
                     os.path.join(tmp_dir, "field.csv")) and exists(os.path.join(tmp_dir, "variable.csv")):
                 try:
                     logging.info('CK files generated correctly')
-                    metric = Metric()
                     metric.version_id = self.version.version_id
 
                     # Read csv files

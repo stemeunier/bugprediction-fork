@@ -3,7 +3,6 @@ import logging
 import os
 import pandas as pd
 
-from configuration import Configuration
 from models.metric import Metric
 from models.version import Version
 from utils.database import get_included_and_current_versions_filter
@@ -14,7 +13,7 @@ class FlatFileExporter:
     Export the database to a flat file
     """
 
-    def __init__(self, session, project_id, directory):
+    def __init__(self, project_id, directory, session, config):
         """
         Constructor
 
@@ -30,7 +29,7 @@ class FlatFileExporter:
         self.directory = directory
         self.session = session
         self.project_id = project_id
-        self.configuration = Configuration()
+        self.configuration = config
 
     @timeit
     def export_to_csv(self, filename):

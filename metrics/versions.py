@@ -83,39 +83,42 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
         seniority_avg = seniority_total / max(len(team_members), 1)
 
         # Compute the count, average, and max code churn on the version
-        logging.info("Counting churn between " + from_commit + " and " + version.tag)
-        metric = CodeChurn(path_to_repo=repo_dir,
-                        from_commit=from_commit,
-                        to_commit=version.tag)
-        files_count = metric.count()
-        files_avg = metric.avg()
-        files_max = metric.max()
-        churn_count = 0
-        for file_count in files_count.values():
-            churn_count += abs(file_count)
+        if version.code_churn_count:
+            logging.info("Chrun already done for this version")
+        else :
+            logging.info("Counting churn between " + from_commit + " and " + version.tag)
+            metric = CodeChurn(path_to_repo=repo_dir,
+                            from_commit=from_commit,
+                            to_commit=version.tag)
+            files_count = metric.count()
+            files_avg = metric.avg()
+            files_max = metric.max()
+            churn_count = 0
+            for file_count in files_count.values():
+                churn_count += abs(file_count)
 
-        if files_avg:
-            churn_avg = abs(mt.Math.get_rounded_mean(list(files_avg.values())))
-        else:
-            churn_avg = 0
+            if files_avg:
+                churn_avg = abs(mt.Math.get_rounded_mean(list(files_avg.values())))
+            else:
+                churn_avg = 0
 
-        if files_max:
-            churn_max = max(list(files_max.values()))
-        else:
-            churn_max = 0
+            if files_max:
+                churn_max = max(list(files_max.values()))
+            else:
+                churn_max = 0
 
-        logging.info('Chrun count: ' + str(churn_count) + ' / Chrun avg: ' + str(churn_avg) + ' / Chrun max: ' + str(churn_max))
-        from_commit = version.tag
+            logging.info('Chrun count: ' + str(churn_count) + ' / Chrun avg: ' + str(churn_avg) + ' / Chrun max: ' + str(churn_max))
+            from_commit = version.tag
 
-        # Modify the version into the database
-        version.code_churn_count = churn_count
-        version.code_churn_avg = churn_avg
-        version.code_churn_max = churn_max
-        version.bugs=bugs_count
-        version.changes=rough_changes
-        version.avg_team_xp=seniority_avg
-        version.bug_velocity=bug_velo_release
-        session.commit()
+            # Modify the version into the database
+            version.code_churn_count = churn_count
+            version.code_churn_avg = churn_avg
+            version.code_churn_max = churn_max
+            version.bugs=bugs_count
+            version.changes=rough_changes
+            version.avg_team_xp=seniority_avg
+            version.bug_velocity=bug_velo_release
+            session.commit()
 
 @timeit
 def assess_next_release_risk(session, configuration: Configuration, project_id:int):
@@ -193,7 +196,7 @@ def assess_next_release_risk(session, configuration: Configuration, project_id:i
     # Return risk assessment along with median and max risk scores for all versions
     median_risk = scaled_df["risk_assessment"].median()
     max_risk = scaled_df["risk_assessment"].max()
-    risk_score = scaled_df.loc[(scaled_df["name"] == "Next Release")]
+    risk_score = scaled_df.loc[(scaled_df["name"] == configuration.next_version_name)]
     return {
         "median": math.ceil(median_risk),
         "max": math.ceil(max_risk),
