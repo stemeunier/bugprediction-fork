@@ -9,39 +9,25 @@ from xmlrpc.client import boolean
 
 import click
 import sqlalchemy as db
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import ArgumentError
 from dependency_injector.wiring import Provide, inject
 from dotenv import load_dotenv
+from sqlalchemy.orm import sessionmaker
+from dependency_injector import providers
 
-from container import Container
-from configuration import Configuration
+from utils.container import Container
 from exceptions.configurationvalidation import ConfigurationValidationException
-from exporters.ml_reports import MlHtmlExporter
 from models.project import Project
 from models.version import Version
 from models.issue import Issue
 from models.metric import Metric
 from models.model import Model
 from models.database import setup_database
-from connectors.ck import CkConnector
-from connectors.jpeek import JPeekConnector
-from connectors.codemaat import CodeMaatConnector
-from connectors.fileanalyzer import FileAnalyzer
-from connectors.gitfactory import GitConnectorFactory
 from connectors.git import GitConnector
-from connectors.legacy import LegacyConnector
-from exporters.html import HtmlExporter
-from exporters import flatfile
-from importers.flatfile import FlatFileImporter
-from ml.mlfactory import MlFactory
+from utils.mlfactory import MlFactory
 from utils.database import get_included_and_current_versions_filter
 from utils.dirs import TmpDirCopyFilteredWithEnv
-
-session = None
-project = None
-configuration = None
+from utils.gitfactory import GitConnectorFactory
 
 def lint_aliases(raw_aliases) -> boolean:
     try:
@@ -58,14 +44,14 @@ def lint_aliases(raw_aliases) -> boolean:
 
     return True
 
-def check_branch_exists(repo_dir, branch_name):
+def check_branch_exists(configuration, repo_dir, branch_name):
     process = subprocess.run([configuration.scm_path, "branch", "-a"],
                              cwd=repo_dir, capture_output=True)
 
     if not f"remotes/origin/{branch_name}" in process.stdout.decode():
         raise ConfigurationValidationException(f"Branch {branch_name} doesn't exists in this repository")
 
-def instanciate_git_connector(tmp_dir, repo_dir) -> GitConnector:
+def instanciate_git_connector(configuration, git_factory_provider, tmp_dir, repo_dir) -> GitConnector:
     """
         Instanciates a git connector and performs first checks
     """
@@ -84,16 +70,16 @@ def instanciate_git_connector(tmp_dir, repo_dir) -> GitConnector:
             f"Project {configuration.source_project} doesn't exist in current repository")
 
     try:
-        git: GitConnector = GitConnectorFactory.create_git_connector(
-            session,
+        git: GitConnector = git_factory_provider(
             project.project_id,
             repo_dir
         )
+
     except Exception as e:
         raise ConfigurationValidationException(
-            f"Error connecting to project {configuration.source_repo} using source code mananager: {str(e)}.")
+            f"Error connecting to project {configuration.source_repo} using source code manager: {str(e)}.")
 
-    check_branch_exists(repo_dir, configuration.current_branch)
+    check_branch_exists(configuration, repo_dir, configuration.current_branch)
 
     if not lint_aliases(configuration.author_alias):
         raise ConfigurationValidationException(f"Value error for aliases: {configuration.author_alias}")
@@ -102,6 +88,7 @@ def instanciate_git_connector(tmp_dir, repo_dir) -> GitConnector:
 
 @click.group()
 @click.pass_context
+@inject
 def cli(ctx):
     """Datamining on git repository to predict the risk of releasing next version"""
     pass
@@ -110,7 +97,9 @@ def cli(ctx):
 @click.option('--output', default='.', help='Destination folder', envvar="OTTM_OUTPUT_FOLDER")
 @click.option('--format', default='csv', help='Output format (csv,parquet)', envvar="OTTM_OUTPUT_FORMAT")
 @click.pass_context
-def export(ctx, output, format):
+@inject
+def export(ctx, output, format, 
+           flat_file_exporter_provider = Provide[Container.flat_file_exporter_provider.provider]):
     """Export the database to a flat format"""
     logging.info("export")
     if output is None:
@@ -125,7 +114,7 @@ def export(ctx, output, format):
             logging.error("Unsupported output format")
             sys.exit('Unsupported output format')
     os.makedirs(output, exist_ok=True)
-    exporter = flatfile.FlatFileExporter(session, project.project_id, output)
+    exporter = flat_file_exporter_provider(project.project_id, output)
     if format == 'csv':
         exporter.export_to_csv("metrics.csv")
     elif format == 'parquet':
@@ -136,9 +125,13 @@ def export(ctx, output, format):
 @click.option('--output', default='.', help='Destination folder', envvar="OTTM_OUTPUT_FOLDER")
 @click.option('--report-name', default='release', help='Name of the report (release, churn, bugvelocity)')
 @click.pass_context
-def report(ctx, output, report_name):
+@inject
+def report(ctx, output, report_name,
+           html_exporter_provider = Provide[Container.html_exporter_provider.provider],
+           ml_html_exporter_provider = Provide[Container.ml_html_exporter_provider.provider]):
     """Create a basic HTML report"""
-    exporter = HtmlExporter(session, output)
+    MlFactory.create_predicting_ml_model(project.project_id)
+    exporter = html_exporter_provider(output)
     os.makedirs(output, exist_ok=True)
     if report_name == "churn":
         exporter.generate_churn_report(project, 'churn.html')
@@ -147,7 +140,7 @@ def report(ctx, output, report_name):
     elif report_name == "bugvelocity":
         exporter.generate_bugvelocity_report(project, 'bugvelocity.html')
     elif report_name == "kmeans":
-        exporter = MlHtmlExporter(session, output)
+        exporter = ml_html_exporter_provider(output)
         exporter.generate_kmeans_release_report(project, 'kmeans.html')
     else:
         click.echo("This report doesn't exist")
@@ -158,32 +151,39 @@ def report(ctx, output, report_name):
 @click.option('--file-path', is_flag=True, help='Path of file')
 @click.option('--overwrite', is_flag=True, default=False, help='Overwrite database table')
 @click.pass_context
-def import_file(ctx, target_table, file_path, overwrite):
+@inject
+def import_file(ctx, target_table, file_path, overwrite,
+                flat_file_importer_provider = Provide[Container.flat_file_importer_provider.provider]):
     """Import file into tables"""
-    importer = FlatFileImporter(session, file_path, target_table, overwrite)
+    importer = flat_file_importer_provider(file_path, target_table, overwrite)
     importer.import_from_csv()
 
 @cli.command()
 @click.option('--model-name', default='bugvelocity', help='Name of the model')
 @click.pass_context
-def train(ctx, model_name):
+@inject
+def train(ctx, model_name, ml_factory_provider = Provide[Container.ml_factory_provider.provider]):
     """Train a model"""
-    model = MlFactory.create_ml_model(model_name, session, project.project_id)
+    MlFactory.create_training_ml_model(model_name)
+    model = ml_factory_provider(project.project_id)
     model.train()
     click.echo("Model was trained")
 
 @cli.command()
 @click.option('--model-name', default='bugvelocity', help='Name of the model')
 @click.pass_context
-def predict(ctx, model_name):
+@inject
+def predict(ctx, model_name, ml_factory_provider = Provide[Container.ml_factory_provider.provider]):
     """Predict next value with a trained model"""
-    model = MlFactory.create_ml_model(model_name, session, project.project_id)
+    MlFactory.create_training_ml_model(model_name)
+    model = ml_factory_provider(project.project_id)
     value = model.predict()
     click.echo("Predicted value : " + str(value))
 
 @cli.command()
 @click.pass_context
-def info(ctx):
+@inject
+def info(ctx, configuration = Provide[Container.configuration], session = Provide[Container.session]):
     """Provide information about the current configuration
     If these values are not populated, the tool won't work.
     """
@@ -229,20 +229,31 @@ def info(ctx):
 
 @cli.command()
 @click.pass_context
-def check(ctx):
+@inject
+def check(ctx, configuration = Provide[Container.configuration],
+          git_factory_provider = Provide[Container.git_factory_provider.provider]):
     """Check the consistency of the configuration and perform basic tests"""
     tmp_dir = tempfile.mkdtemp()
     logging.info('created temporary directory: ' + tmp_dir)
     repo_dir = os.path.join(tmp_dir, configuration.source_project)
 
-    instanciate_git_connector(tmp_dir, repo_dir)
+    instanciate_git_connector(configuration, git_factory_provider, tmp_dir, repo_dir)
 
     logging.info("Check OK")
 
 @cli.command()
 @click.option('--skip-versions', is_flag=True, default=False, help="Skip the step <populate Version table>")
 @click.pass_context
-def populate(ctx, skip_versions):
+@inject
+def populate(ctx, skip_versions, 
+             session = Provide[Container.session],
+             configuration = Provide[Container.configuration],
+             git_factory_provider = Provide[Container.git_factory_provider.provider],
+             ck_connector_provider = Provide[Container.ck_connector_provider.provider],
+             file_analyzer_provider = Provide[Container.file_analyzer_provider.provider],
+             jpeek_connector_provider = Provide[Container.jpeek_connector_provider.provider],
+             legacy_connector_provider = Provide[Container.legacy_connector_provider.provider],
+             codemaat_connector_provider = Provide[Container.codemaat_connector_provider.provider]):
     """Populate the database with the provided configuration"""
 
     # Checkout, execute the tool and inject CSV result into the database
@@ -251,12 +262,10 @@ def populate(ctx, skip_versions):
     logging.info('created temporary directory: ' + tmp_dir)
     repo_dir = os.path.join(tmp_dir, configuration.source_project)
 
-    git = instanciate_git_connector(tmp_dir, repo_dir)
+    git = instanciate_git_connector(configuration, git_factory_provider, tmp_dir, repo_dir)
 
     git.populate_db(skip_versions)
     # if we use code maat git.setup_aliases(configuration.author_alias)
-
-    
 
     # List the versions and checkout each one of them
     versions = session.query(Version).filter(Version.project_id == project.project_id).all()
@@ -266,70 +275,89 @@ def populate(ctx, skip_versions):
                                  cwd=repo_dir)
         logging.info('Executed command line: ' + ' '.join(process.args))
 
-        with TmpDirCopyFilteredWithEnv(repo_dir) as tmp_work_dir:
+        with TmpDirCopyFilteredWithEnv(repo_dir, configuration.include_folders, 
+                                       configuration.exclude_folders) as tmp_work_dir:
 
-            legacy = LegacyConnector(
-                session,
-                project.project_id,
-                repo_dir,
-                version
-            )
+            
             # FIXME : this execution is dependent from previous version
             # So if some versions are ignored in config, the result is wrong 
+            legacy = legacy_connector_provider(project.project_id, repo_dir, version)
             legacy.get_legacy_files(version)
 
             # Get statistics from git log with codemaat
-            # codemaat = CodeMaatConnector(repo_dir, session, version)
+            # codemaat = codemaat_connector_provider(repo_dir, version)
             # codemaat.analyze_git_log()
 
             # Get metrics with CK
-            ck = CkConnector(directory=tmp_work_dir, session=session, version=version)
+            ck = ck_connector_provider(directory=tmp_work_dir, version=version)
             ck.analyze_source_code()
 
             # Get statistics with lizard
-            lizard = FileAnalyzer(directory=tmp_work_dir, session=session, version=version)
+            lizard = file_analyzer_provider(directory=tmp_work_dir, version=version)
             lizard.analyze_source_code()
 
             # Get metrics with JPeek
-            # jp = JPeekConnector(directory=tmp_work_dir, session=session, version=version)
-            # jp.analyze_source_code()
+            jp = jpeek_connector_provider(directory=tmp_work_dir, version=version)
+            jp.analyze_source_code()
 
 @click.command()
 @inject
 def main():
     pass
 
+@inject
+def configure_logging(config = Provide[Container.configuration]) -> None:
+    logging.basicConfig(level=config.log_level)
+
+@inject
+def configure_session(container: Container, config = Provide[Container.configuration]) -> None:
+    try:
+        engine = db.create_engine(config.target_database)
+    except ArgumentError as e:
+        raise ConfigurationValidationException(f"Error from sqlalchemy : {str(e)}")
+    
+    Session = sessionmaker()
+    Session.configure(bind=engine)
+    setup_database(engine)
+
+    container.session.override(
+        providers.Singleton(Session)
+    )
+
+@inject
+def instanciate_project(config = Provide[Container.configuration],
+                        session = Provide[Container.session]) -> Project:
+    project = session.query(Project).filter(Project.name == config.source_project).first()
+    if not project:
+        project = Project(name=config.source_project,
+                        repo=config.source_repo,
+                        language=config.language)
+        session.add(project)
+        session.commit()
+    return project
+
+
 if __name__ == '__main__':
     try:
         load_dotenv()
-        configuration = Configuration()
-        # container = Container()
-        # container.wire(modules=[__name__])
 
-        logging.basicConfig(level=configuration.log_level)
+        container = Container()
+        container.init_resources()
+        container.wire(modules=[
+            __name__,
+            "utils.gitfactory",
+            "utils.mlfactory",
+        ])
+
+        configure_logging()
+        configure_session(container)
+        project = instanciate_project()
+        GitConnectorFactory.create_git_connector()
+
         logging.info('python: ' + platform.python_version())
         logging.info('system: ' + platform.system())
         logging.info('machine: ' + platform.machine())
-
-        # Setup database
-        try:
-            engine = db.create_engine(configuration.target_database)
-        except ArgumentError as e:
-            raise ConfigurationValidationException(f"Error from sqlalchemy : {str(e)}")
-
-        Session = sessionmaker()
-        Session.configure(bind=engine)
-        session = Session()
-        setup_database(engine)
-
-        project = session.query(Project).filter(Project.name == configuration.source_project).first()
-        if not project:
-            project = Project(name=configuration.source_project,
-                            repo=configuration.source_repo,
-                            language=configuration.language)
-            session.add(project)
-            session.commit()
-
+        
         # Setup command line options
         cli(obj={})
     except ConfigurationValidationException as e:

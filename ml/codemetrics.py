@@ -15,8 +15,8 @@ from xgboost import XGBRegressor
 
 
 class CodeMetrics(ml):
-    def __init__(self, session, project_id):
-        ml.__init__(self, session, project_id)
+    def __init__(self, project_id, session, config):
+        ml.__init__(self, project_id, session, config)
         self.name = "codemetrics"
 
     @timeit

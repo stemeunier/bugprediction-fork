@@ -4,13 +4,9 @@ import datetime
 import json
 
 from pydriller import Repository
-from sqlalchemy.sql import func
-from sqlalchemy import desc
 
-from configuration import Configuration
 from models.version import Version
 from models.commit import Commit
-from models.issue import Issue
 from models.metric import Metric
 from models.author import Author
 from models.alias import Alias
@@ -29,15 +25,15 @@ class GitConnector(ABC):
      - project_id   Identifier of the project
      - directory    Folder (temporary) where the project is cloned
     """
-
-    def __init__(self, token, repo, current, session, project_id, directory):
+    
+    def __init__(self, project_id, directory, token, repo, current, session, config):
         self.token = token
         self.repo = repo
         self.current = current
         self.session = session
         self.project_id = project_id
         self.directory = directory
-        self.configuration = Configuration()
+        self.configuration = config
 
     @timeit
     def setup_aliases(self, aliases):
@@ -117,7 +113,7 @@ class GitConnector(ABC):
         """
         Clean the metrics assosciated to the current branch so as to compute them again
         """
-        next_release = self.session.query(Version).filter(Commit.project_id == self.project_id) \
+        next_release = self.session.query(Version).filter(Version.project_id == self.project_id) \
                                                   .filter(Version.name == self.configuration.next_version_name).first()
         if next_release is None:
             logging.info("No Metrics to clean up")
@@ -140,7 +136,8 @@ class GitConnector(ABC):
         self.compute_version_metrics()
 
     def _clean_project_existing_versions(self):
-        self.session.query(Version).filter(Version.project_id == self.project_id).delete()
+        if self.session.query(Version).filter(Version.project_id == self.project_id):
+            self.session.query(Version).filter(Version.project_id == self.project_id).delete()
         self.session.commit()
 
     def _get_first_commit_date(self):

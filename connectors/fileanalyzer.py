@@ -25,7 +25,7 @@ class FileAnalyzer:
      - project_id   Identifier of the project
     """
 
-    def __init__(self, directory, session, version):
+    def __init__(self, directory, version, session):
         self.directory = directory
         self.session = session
         self.version = version

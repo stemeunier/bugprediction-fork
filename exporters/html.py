@@ -11,13 +11,11 @@ import numpy as np
 from configuration import Configuration
 from models.project import Project
 from models.metric import Metric
-from models.model import Model
 from models.legacy import Legacy
 from models.file import File
 from models.version import Version
 from utils.database import get_included_and_current_versions_filter
 from utils.timeit import timeit
-from ml.mlfactory import MlFactory
 from metrics.commits import compute_commit_msg_quality
 from metrics.versions import assess_next_release_risk
 from metrics.versions import compute_bugvelocity_last_30_days
@@ -36,7 +34,7 @@ class HtmlExporter:
             Application configuration
     """
 
-    def __init__(self, session:Session, directory:str):
+    def __init__(self, directory:str, session:Session, configuration: Configuration, model):
         """
         HtmlExporter constructor
 
@@ -49,7 +47,8 @@ class HtmlExporter:
         """
         self.directory = directory
         self.session = session
-        self.configuration = Configuration()
+        self.configuration = configuration
+        self.__model = model
 
     @timeit
     def generate_release_report(self, project:Project, filename:str)->None:
@@ -114,18 +113,8 @@ class HtmlExporter:
         lizard_avg_complexity_median = np.median([row.Metric.lizard_avg_complexity for row in releases][~np.all([row.Metric.lizard_avg_complexity for row in releases] == 0)])
         code_churn_avg_median = np.median([row.Version.code_churn_avg for row in releases][~np.all([row.Version.code_churn_avg for row in releases] == 0)])
 
-        trained_models = self.session.query(Model.name).filter(Model.project_id == project.project_id).all()
-        trained_models = [r for r, in trained_models]
         predicted_bugs = -1
-        model_name = ""
-        if 'bugvelocity' in trained_models:
-            model_name = "bugvelocity"
-            model = MlFactory.create_ml_model(model_name, self.session, project.project_id)
-            predicted_bugs = model.predict()
-        elif 'codemetrics' in trained_models:
-            model_name = "codemetrics"
-            model = MlFactory.create_ml_model(model_name, self.session, project.project_id)
-            predicted_bugs = model.predict()
+        predicted_bugs = self.__model.predict()
 
         risk = assess_next_release_risk(self.session, self.configuration, project.project_id)
 
@@ -141,7 +130,7 @@ class HtmlExporter:
 
         data = {
             "project": project,
-            "model_name" : model_name,
+            "model_name" : self.__model.name,
             "current_release" : current_release,
             "bugs_median" : bugs_median,
             "changes_median" : changes_median,

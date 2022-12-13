@@ -2,20 +2,13 @@ import logging
 import subprocess
 import os
 import tempfile
-from datetime import datetime
 
 from sqlalchemy.sql import func
 import pandas as pd
 
-from models.issue import Issue
-from models.version import Version
-from models.commit import Commit
-from models.file import File
 from models.author import Author
 from models.ownership import Ownership
 from utils.database import save_file_if_not_found
-from configuration import Configuration
-
 
 class CodeMaatConnector:
     """
@@ -28,11 +21,12 @@ class CodeMaatConnector:
         - session     Connection to a database managed by sqlalchemy
         - version     Sqlalchemy object representing a Version
     """
-    def __init__(self, directory, session, version):
+
+    def __init__(self, directory, version, session, config):
         self.directory = directory
         self.session = session
         self.version = version
-        self.configuration = Configuration()
+        self.configuration = config
 
     def analyze_git_log(self):
         """Populate the database from the GitHub API"""

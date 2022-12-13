@@ -19,8 +19,8 @@ class GitLabConnector(GitConnector):
     -----------
      - base_url     URL to GitLab, empty if gitlab.com
     """
-    def __init__(self, base_url, token, repo, current, session, project_id, directory):
-        GitConnector.__init__(self, token, repo, current, session, project_id, directory)
+    def __init__(self, project_id, directory, base_url, token, repo, current, session, config):
+        GitConnector.__init__(self, project_id, directory, token, repo, current, session, config)
         if not base_url and not self.token:
             logging.info("anonymous read-only access for public resources (GitLab.com)")
             self.api = Gitlab()
@@ -73,7 +73,7 @@ class GitLabConnector(GitConnector):
         # Check if a database already exist
         last_issue = self.session.query(Issue) \
                          .filter(Issue.project_id == self.project_id) \
-                         .order_by(desc(Issue.updated_at)).get(1)
+                         .order_by(desc(Issue.updated_at)).first()
         if last_issue is not None:
             # Update existing database by fetching new issues
             if not self.configuration.issue_tags:

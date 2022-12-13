@@ -4,7 +4,6 @@ import pandas as pd
 import os
 import tempfile
 
-from configuration import Configuration
 from models.metric import Metric
 from utils.timeit import timeit
 
@@ -20,11 +19,11 @@ class JPeekConnector:
         - version     Sqlalchemy object representing a Version
     """
 
-    def __init__(self, directory, session, version) -> None:
+    def __init__(self, directory,  version, session, config) -> None:
         self.directory = directory
         self.session = session
         self.version = version
-        self.configuration = Configuration()
+        self.configuration = config
 
     def analyze_source_code(self):
         """

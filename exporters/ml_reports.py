@@ -35,7 +35,7 @@ class MlHtmlExporter:
             Application configuration
     """
 
-    def __init__(self, session:Session, directory:str):
+    def __init__(self, directory:str, session:Session, config):
         """
         HtmlExporter constructor
 
@@ -48,7 +48,7 @@ class MlHtmlExporter:
         """
         self.directory = directory
         self.session = session
-        self.configuration = Configuration()
+        self.configuration = config
 
     @timeit
     def generate_kmeans_release_report(self, project:Project, filename:str)->None:
