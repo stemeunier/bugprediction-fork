@@ -8,6 +8,7 @@ data/*.html
 data/*.sqlite3
 **/*.pkl
 **/*.parquet
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

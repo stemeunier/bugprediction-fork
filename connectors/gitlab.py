@@ -44,7 +44,7 @@ class GitLabConnector(GitConnector):
             labels = None
 
         try:
-            return self.remote.issues.list(state="all", created_after=since, with_labels_details=labels)
+            return self.remote.issues.list(state="all", since=since, with_labels_details=labels, get_all=True)
         except gitlab.GitlabJobRetryError:
             sleep(self.configuration.retry_delay)
             self._get_issues(since, labels)
@@ -77,14 +77,14 @@ class GitLabConnector(GitConnector):
         if last_issue is not None:
             # Update existing database by fetching new issues
             if not self.configuration.issue_tags:
-                git_issues = self._get_issues(since=last_issue.updated_at + timedelta(seconds=1))
+                git_issues = self._get_issues(since=last_issue.updated_at + timedelta(seconds=1), labels=None)
             else:
                 git_issues = self._get_issues(since=last_issue.updated_at + timedelta(seconds=1),
-                                                    with_labels_details=self.configuration.issue_tags)  # e.g. Filter by labels=['bug']
+                                                    labels=self.configuration.issue_tags)  # e.g. Filter by labels=['bug']
         else:
             # Create a database with all issues
             if not self.configuration.issue_tags:
-                git_issues = self._get_issues()
+                git_issues = self._get_issues(since=None, labels=None)
             else:
                 git_issues = self._get_issues(labels=self.configuration.issue_tags)    # e.g. Filter by labels=['bug']
         
