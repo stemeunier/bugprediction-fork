@@ -60,13 +60,10 @@ class CkConnector:
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Launch the CK utility and output values into a temporary directory
             logging.info('CK::generate_ck_files')
-            exclude_dir = ""
-            for folder in self.configuration.exclude_folders:
-                exclude_dir += self.directory + folder + " "
 
             process = subprocess.run([self.configuration.java_path, "-jar",
                                       self.configuration.code_ck_path,
-                                      self.directory, "True", "0", "True", os.path.join(tmp_dir, ''), exclude_dir])
+                                      self.directory, "True", "0", "True", os.path.join(tmp_dir, "")])
             logging.info('Executed command line: ' + ' '.join(process.args))
             logging.info('Command return code ' + str(process.returncode))
 
@@ -129,7 +126,6 @@ class CkConnector:
                     logging.info("CK metrics added to database for version " + self.version.tag)
                 except pd.errors.EmptyDataError:
                     logging.error("No columns to parse from CK report / version " + self.version.tag)
-                except:
+                except Exception as e:
                     logging.error("An error occurred while reading CK report for version " + self.version.tag)
-                else:
-                    logging.error("An error occurred while generating CK report for version " + self.version.tag)
+                    logging.error(str(e))

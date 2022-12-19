@@ -282,9 +282,6 @@ def populate(ctx, skip_versions,
         with TmpDirCopyFilteredWithEnv(repo_dir, configuration.include_folders, 
                                        configuration.exclude_folders) as tmp_work_dir:
 
-            
-            # FIXME : this execution is dependent from previous version
-            # So if some versions are ignored in config, the result is wrong 
             legacy = legacy_connector_provider(project.project_id, repo_dir, version)
             legacy.get_legacy_files(version)
 
@@ -301,8 +298,8 @@ def populate(ctx, skip_versions,
             lizard.analyze_source_code()
 
             # Get metrics with JPeek
-            jp = jpeek_connector_provider(directory=tmp_work_dir, version=version)
-            jp.analyze_source_code()
+            # jp = jpeek_connector_provider(directory=tmp_work_dir, version=version)
+            # jp.analyze_source_code()
 
 @click.command()
 @inject
