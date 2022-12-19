@@ -1,7 +1,10 @@
 import logging
 import math
+import subprocess
 from datetime import datetime, timedelta
 from typing import List
+
+from git import BadName
 
 import pandas as pd
 from sqlalchemy import desc

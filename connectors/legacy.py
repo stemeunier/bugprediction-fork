@@ -33,7 +33,7 @@ class LegacyConnector:
 
     def get_legacy_files(self, version: Version):
         metric = self.session.query(Metric).filter(Metric.version_id == self.version.version_id).first()
-        if metric.nb_legacy_files:
+        if metric and metric.nb_legacy_files:
             logging.info('Legacy analysis already done for this version')
         else:
             
