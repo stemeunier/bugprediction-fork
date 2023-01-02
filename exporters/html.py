@@ -107,11 +107,11 @@ class HtmlExporter:
                 .filter(Legacy.version_id == current_release.Version.version_id) \
                 .all()
 
-        bugs_median = np.median([row.Version.bugs for row in releases][~np.all([row.Version.bugs for row in releases] == 0)])
-        changes_median = np.median([row.Version.changes for row in releases][~np.all([row.Version.changes for row in releases] == 0)])
-        xp_devs_median = np.median([row.Version.avg_team_xp for row in releases][~np.all([row.Version.avg_team_xp for row in releases] == 0)])
-        lizard_avg_complexity_median = np.median([row.Metric.lizard_avg_complexity for row in releases][~np.all([row.Metric.lizard_avg_complexity for row in releases] == 0)])
-        code_churn_avg_median = np.median([row.Version.code_churn_avg for row in releases][~np.all([row.Version.code_churn_avg for row in releases] == 0)])
+        bugs_median = np.median([row.Version.bugs for row in releases])
+        changes_median = np.median([row.Version.changes for row in releases])
+        xp_devs_median = np.median([row.Version.avg_team_xp for row in releases])
+        lizard_avg_complexity_median = np.median([row.Metric.lizard_avg_complexity for row in releases])
+        code_churn_avg_median = np.median([row.Version.code_churn_avg for row in releases])
 
         predicted_bugs = -1
         predicted_bugs = self.__model.predict()
