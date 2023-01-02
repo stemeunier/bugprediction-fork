@@ -49,7 +49,7 @@ class MlFactory:
         
         trained_models = session.query(Model.name).filter(Model.project_id == project_id).all()
         trained_models = [r for r, in trained_models]
-        
+
         if 'bugvelocity' in trained_models:
             logging.info("Using BugVelocity Model")
             ml_factory_provider.override(
@@ -70,3 +70,5 @@ class MlFactory:
                     project_id=project_id
                 )
             )
+        else:
+            raise Exception("No trained model found.")
