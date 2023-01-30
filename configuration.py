@@ -29,8 +29,16 @@ class Configuration:
         self.source_repo     = self.__get_required_value("OTTM_SOURCE_REPO")
         self.current_branch  = self.__get_required_value("OTTM_CURRENT_BRANCH")
         self.source_repo_url = self.__get_required_value("OTTM_SOURCE_REPO_URL")
+
+        self.source_bugs     =  self.__get_str_list("OTTM_SOURCE_BUGS")
+
         self.scm_base_url    = os.getenv("OTTM_SCM_BASE_URL", "")
         self.scm_token       = os.getenv("OTTM_SCM_TOKEN", "")
+        
+        self.jira_base_url   = os.getenv("OTTM_JIRA_BASE_URL", "")
+        self.jira_project    = os.getenv("OTTM_JIRA_PROJECT", "")
+        self.jira_email      = os.getenv("OTTM_JIRA_EMAIL", "")
+        self.jira_token      = os.getenv("OTTM_JIRA_TOKEN", "")
 
         self.issue_tags = self.__get_str_list("OTTM_ISSUE_TAGS")
         self.exclude_issuers = self.__get_str_list("OTTM_EXCLUDE_ISSSUERS")

@@ -6,6 +6,7 @@ from sqlalchemy import desc
 
 from models.issue import Issue
 from models.version import Version
+from utils.date import date_iso_8601_to_datetime
 from utils.timeit import timeit
 from connectors.git import GitConnector
 from gitlab import Gitlab
@@ -73,6 +74,7 @@ class GitLabConnector(GitConnector):
         # Check if a database already exist
         last_issue = self.session.query(Issue) \
                          .filter(Issue.project_id == self.project_id) \
+                         .filter(Issue.source == 'git') \
                          .order_by(desc(Issue.updated_at)).first()
         if last_issue is not None:
             # Update existing database by fetching new issues
@@ -94,7 +96,7 @@ class GitLabConnector(GitConnector):
         bugs = []
         # for version in versions:
         for issue in git_issues:
-            # Check if the issue is linked to a selected version (included or not excluded)
+            # Check if the issue is linked to a selected version (included or not +IN?.§ .?NBVCXd)
             # if version.end_date > issue.created_at > version.start_date:
             if issue.author['username'] not in self.configuration.exclude_issuers:
                 bugs.append(
@@ -102,8 +104,9 @@ class GitLabConnector(GitConnector):
                         project_id=self.project_id,
                         title=issue.title,
                         number=issue.iid,
-                        created_at=datetime.strptime(issue.created_at, '%Y-%m-%dT%H:%M:%S.%f%z'),
-                        updated_at=datetime.strptime(issue.updated_at, '%Y-%m-%dT%H:%M:%S.%f%z')
+                        source="git",
+                        created_at=date_iso_8601_to_datetime(issue.created_at),
+                        updated_at=date_iso_8601_to_datetime(issue.updated_at)
                     )
                 )
 
@@ -125,7 +128,7 @@ class GitLabConnector(GitConnector):
         previous_release_published_at = self._get_first_commit_date()
 
         for release in releases:
-            release_published_at = datetime.strptime(release.released_at, '%Y-%m-%dT%H:%M:%S.%f%z')
+            release_published_at = date_iso_8601_to_datetime(release.released_at)
             versions.append(
                 Version(
                     project_id=self.project_id,

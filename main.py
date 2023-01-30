@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import json
 import logging
@@ -12,6 +13,7 @@ import sqlalchemy as db
 from sqlalchemy.exc import ArgumentError
 from dependency_injector.wiring import Provide, inject
 from dotenv import load_dotenv
+from connectors.jira import JiraConnector
 from sqlalchemy.orm import sessionmaker
 from dependency_injector import providers
 
@@ -89,6 +91,10 @@ def instanciate_git_connector(configuration, git_factory_provider, tmp_dir, repo
         raise ConfigurationValidationException(f"Value error for aliases: {configuration.author_alias}")
 
     return git
+
+def source_bugs_check(configuration) -> None:
+    if len(configuration.source_bugs) == 0:
+        raise ConfigurationValidationException("No synchro because parameter 'OTTM_SOURCE_BUGS' no defined")
 
 @click.group()
 @click.pass_context
@@ -241,6 +247,7 @@ def check(ctx, configuration = Provide[Container.configuration],
     logging.info('created temporary directory: ' + tmp_dir)
     repo_dir = os.path.join(tmp_dir, configuration.source_project)
 
+    source_bugs_check(configuration)
     instanciate_git_connector(configuration, git_factory_provider, tmp_dir, repo_dir)
 
     logging.info("Check OK")
@@ -249,10 +256,11 @@ def check(ctx, configuration = Provide[Container.configuration],
 @click.option('--skip-versions', is_flag=True, default=False, help="Skip the step <populate Version table>")
 @click.pass_context
 @inject
-def populate(ctx, skip_versions, 
+def populate(ctx, skip_versions,
              session = Provide[Container.session],
              configuration = Provide[Container.configuration],
              git_factory_provider = Provide[Container.git_factory_provider.provider],
+             jira_connector_provider = Provide[Container.jira_connector_provider.provider],
              ck_connector_provider = Provide[Container.ck_connector_provider.provider],
              file_analyzer_provider = Provide[Container.file_analyzer_provider.provider],
              jpeek_connector_provider = Provide[Container.jpeek_connector_provider.provider],
@@ -268,15 +276,23 @@ def populate(ctx, skip_versions,
 
     git = instanciate_git_connector(configuration, git_factory_provider, tmp_dir, repo_dir)
 
+    for source_bugs in configuration.source_bugs:
+        if source_bugs.strip() == 'jira':
+            # Populate issue table in database with Jira issues
+            jira: JiraConnector = jira_connector_provider(project.project_id)
+            jira.create_issues()
+        elif source_bugs.strip() == 'git':
+            git.create_issues()
+            # if we use code maat git.setup_aliases(configuration.author_alias)
+    
     git.populate_db(skip_versions)
-    # if we use code maat git.setup_aliases(configuration.author_alias)
 
     # List the versions and checkout each one of them
     versions = session.query(Version).filter(Version.project_id == project.project_id).all()
     for version in versions:
         process = subprocess.run([configuration.scm_path, "checkout", version.tag],
-                                 stdout=subprocess.PIPE,
-                                 cwd=repo_dir)
+                                stdout=subprocess.PIPE,
+                                cwd=repo_dir)
         logging.info('Executed command line: ' + ' '.join(process.args))
 
         with TmpDirCopyFilteredWithEnv(repo_dir, configuration.include_folders, 
@@ -300,6 +316,8 @@ def populate(ctx, skip_versions,
             # Get metrics with JPeek
             # jp = jpeek_connector_provider(directory=tmp_work_dir, version=version)
             # jp.analyze_source_code()
+
+    
 
 @click.command()
 @inject

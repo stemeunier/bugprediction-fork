@@ -132,7 +132,6 @@ class GitConnector(ABC):
         # Preserve the sequence below
         self.clean_next_release_metrics()
         self.create_commits_from_repo()
-        self.create_issues()
         self.compute_version_metrics()
 
     def _clean_project_existing_versions(self):

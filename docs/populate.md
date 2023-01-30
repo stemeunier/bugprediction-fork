@@ -23,17 +23,21 @@ OTTM_CURRENT_BRANCH=master
 OTTM_SOURCE_REPO_URL=https://github.com/cqfn/jpeek
 OTTM_SOURCE_REPO_SCM=github
 OTTM_SCM_BASE_URL=
-OTTM_SOURCE_REPO_SCM=   <<<Put your own token>>>
-OTTM_TARGET_DATABASE=sqlite:///${OTTM_SOURCE_PROJECT}.sqlite3
-OTTM_ISSUE_TAGS=
-OTTM_EXCLUDE_ISSSUERS=bot,dependabot[bot],synk,gitter-badger
+OTTM_SOURCE_BUGS=
+OTTM_SCM_TOKEN=     <<<Put your own token>>>
+OTTM_JIRA_BASE_URL= <<<Put your own Jira base URL>>>
+OTTM_JIRA_PROJECT=
+OTTM_JIRA_EMAIL=    <<<Put your own email>>>
+OTTM_JIRA_TOKEN=    <<<Put your own token>>>
+OTTM_TARGET_DATABASE=sqlite:///data/${OTTM_SOURCE_PROJECT}.sqlite3
+OTTM_EXCLUDE_ISSUERS=bot,dependabot[bot],synk,gitter-badger
 OTTM_EXCLUDE_VERSIONS=
 OTTM_INCLUDE_VERSIONS=
 OTTM_EXCLUDE_FOLDERS=
 OTTM_INCLUDE_FOLDERS=src/main/java/org/jpeek/
-OTTM_ISSUE_TAG=
+OTTM_ISSUE_TAGS=
 OTTM_LANGUAGE=Java
-LEGACY_PERCENT=20
+OTTM_LEGACY_PERCENT=20
 ```
 
 See the [list of commands](./commands.md) for other options.
