@@ -2,7 +2,7 @@ import logging
 from time import sleep, time
 import github
 
-from sqlalchemy import desc
+from sqlalchemy import desc, update
 
 import models
 from models.issue import Issue
@@ -77,26 +77,36 @@ class GitHubConnector(GitConnector):
         # versions = self.session.query(Version).all()
         logging.info('Syncing ' + str(git_issues.totalCount) + ' issue(s) from GitHub')
 
-        bugs = []
+        new_bugs = []
         # for version in versions:
         for issue in git_issues:
             # Check if the issue is linked to a selected version (included or not excluded)
             # if version.end_date > issue.created_at > version.start_date:
             if issue.user.login not in self.configuration.exclude_issuers:
-                bugs.append(
-                    Issue(
-                        project_id=self.project_id,
-                        title=issue.title,
-                        number=issue.number,
-                        source="git",
-                        created_at=issue.created_at,
-                        updated_at=issue.updated_at
+                
+                existing_issue_id = self._get_existing_issue_id(issue.number)
+                
+                if existing_issue_id:
+                    logging.info("Issue %s already exists, updating it", existing_issue_id)
+                    self.session.execute(
+                        update(Issue).where(Issue.issue_id == existing_issue_id) \
+                                     .values(title=issue.title, updated_at=issue.updated_at)
                     )
-                )
+                else:
+                    new_bugs.append(
+                        Issue(
+                            project_id=self.project_id,
+                            title=issue.title,
+                            number=issue.number,
+                            source="git",
+                            created_at=issue.created_at,
+                            updated_at=issue.updated_at
+                        )
+                    )
         
         # Remove potential duplicated values
         # list(dict.fromkeys(bugs))
-        self.session.add_all(bugs)
+        self.session.add_all(new_bugs)
         self.session.commit()
 
     @timeit
