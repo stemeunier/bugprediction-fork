@@ -11,6 +11,7 @@ from connectors.legacy import LegacyConnector
 from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
 from connectors.git import GitConnector
+from connectors.jira import JiraConnector
 from importers.flatfile import FlatFileImporter
 from exporters.html import HtmlExporter
 from exporters.flatfile import FlatFileExporter
@@ -55,6 +56,12 @@ class Container(containers.DeclarativeContainer):
     flat_file_importer_provider = providers.Singleton(
         FlatFileImporter,
         session = session,
+        config = configuration
+    )
+    
+    jira_connector_provider = providers.Factory(
+        JiraConnector,
+        session = session,  
         config = configuration
     )
 

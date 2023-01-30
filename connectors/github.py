@@ -58,6 +58,7 @@ class GitHubConnector(GitConnector):
         # Check if a database already exist
         last_issue = self.session.query(Issue) \
                          .filter(Issue.project_id == self.project_id) \
+                         .filter(Issue.source == 'git') \
                          .order_by(desc(models.issue.Issue.updated_at)).first()
         if last_issue is not None:
             # Update existing database by fetching new issues
@@ -87,6 +88,7 @@ class GitHubConnector(GitConnector):
                         project_id=self.project_id,
                         title=issue.title,
                         number=issue.number,
+                        source="git",
                         created_at=issue.created_at,
                         updated_at=issue.updated_at
                     )

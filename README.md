@@ -22,10 +22,15 @@ You need to create and ```data/.env``` file (by copying the ```.env-example```) 
  - ```OTTM_SOURCE_REPO``` : Repositiory name (e.g. dbeaver/dbeaver)
  - ```OTTM_CURRENT_BRANCH``` :  The branch containing the next release (e.g. devel)
  - ```OTTM_SOURCE_REPO_URL``` : # The full path to repo (e.g. https://github.com/dbeaver/dbeaver)
+ - ```OTTM_SOURCE_BUGS``` : Source where we get issues (e.g. git)
  - ```OTTM_SOURCE_REPO_SCM``` : Either "github" or "gitlab", other SCM are not yet supported
  - ```OTTM_SCM_BASE_URL``` : SMC base URL - leave empty for public repo
- - ```OTTM_SCM_TOKEN``` Token to access github or gitlab
+ - ```OTTM_SCM_TOKEN``` : Token to access github or gitlab
  - ```OTTM_TARGET_DATABASE``` : The default value will generate a SQLite database into the current folder
+ - ```OTTM_JIRA_BASE_URL``` : The full path to jira project (e.g. https://jira.atlassian.com)
+ - ```OTTM_JIRA_PROJECT``` :  Jira project name
+ - ```OTTM_JIRA_EMAIL``` : Jira user email address
+ - ```OTTM_JIRA_TOKEN``` : Token to access jira
  
  The first step (it might take a while) is to populate the database with versions, issues and commits. The repository will be cloned into a temporary folder and we will checkout all versions in order to generate code metrics. You can run this command in many times as it will only amend the database with latest changes.
 
