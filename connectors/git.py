@@ -5,6 +5,7 @@ import json
 
 from pydriller import Repository
 
+from models.issue import Issue
 from models.version import Version
 from models.commit import Commit
 from models.metric import Metric
@@ -143,6 +144,21 @@ class GitConnector(ABC):
         commits_iterator = Repository(self.directory).traverse_commits()
         first_commit = next(commits_iterator)
         return first_commit.committer_date
+
+    def _get_existing_issue_id(self, issue_number) -> int:
+        
+        existing_issue_id = None
+        
+        existing_issue = self.session.query(Issue) \
+                    .filter(Issue.project_id == self.project_id) \
+                    .filter(Issue.number == issue_number) \
+                    .filter(Issue.source == "git") \
+                    .first() 
+        
+        if existing_issue: 
+            existing_issue_id = existing_issue.issue_id
+
+        return existing_issue_id
 
     @abstractmethod
     def create_issues(self):

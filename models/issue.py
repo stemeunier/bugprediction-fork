@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, UniqueConstraint
 from models.database import Base
 
 class Issue(Base):
@@ -11,3 +11,6 @@ class Issue(Base):
     source = Column(String)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
+    __table_args__ = (
+        UniqueConstraint("project_id", "number", "source"),
+    )

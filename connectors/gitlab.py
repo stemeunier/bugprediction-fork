@@ -2,7 +2,7 @@ import logging
 from time import sleep
 import gitlab
 
-from sqlalchemy import desc
+from sqlalchemy import desc, update
 
 from models.issue import Issue
 from models.version import Version
@@ -93,26 +93,35 @@ class GitLabConnector(GitConnector):
         # versions = self.session.query(Version).all
         logging.info('Syncing ' + str(len(git_issues)) + ' issue(s) from GitLab')
 
-        bugs = []
+        new_bugs = []
         # for version in versions:
         for issue in git_issues:
             # Check if the issue is linked to a selected version (included or not +IN?.§ .?NBVCXd)
             # if version.end_date > issue.created_at > version.start_date:
             if issue.author['username'] not in self.configuration.exclude_issuers:
-                bugs.append(
-                    Issue(
-                        project_id=self.project_id,
-                        title=issue.title,
-                        number=issue.iid,
-                        source="git",
-                        created_at=date_iso_8601_to_datetime(issue.created_at),
-                        updated_at=date_iso_8601_to_datetime(issue.updated_at)
-                    )
-                )
+                
+                updated_issue_date = date_iso_8601_to_datetime(issue.updated_at)
+                existing_issue_id = self._get_existing_issue_id(issue.iid)
 
-        # Remove potential duplicated values
-        # list(dict.fromkeys(bugs))
-        self.session.add_all(bugs)
+                if existing_issue_id:
+                    logging.info("Issue %s already exists, updating it", existing_issue_id)
+                    self.session.execute(
+                        update(Issue).where(Issue.issue_id == existing_issue_id) \
+                                     .values(title=issue.title, updated_at=updated_issue_date)
+                    )
+                else:
+                    new_bugs.append(
+                        Issue(
+                            project_id=self.project_id,
+                            title=issue.title,
+                            number=issue.iid,
+                            source="git",
+                            created_at=date_iso_8601_to_datetime(issue.created_at),
+                            updated_at=updated_issue_date,
+                        )
+                    )
+
+        self.session.add_all(new_bugs)
         self.session.commit()
     
     @timeit
