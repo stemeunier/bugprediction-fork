@@ -31,7 +31,7 @@ class JiraConnector:
 
         last_issue_date = self.__get_last_sinced_date()
 
-        jira_issues = self._get_issues(updated_after=last_issue_date, labels=self.config.issue_tags)
+        jira_issues = self._get_issues(updated_after=last_issue_date)
         
         logging.info('Syncing ' + str(len(jira_issues)) + ' issue(s) from Jira')
 
@@ -52,21 +52,25 @@ class JiraConnector:
 
         return last_issue_date
 
-    def _get_issues(self, updated_after: datetime = None, labels: List[str] = None):
+    def _get_issues(self, updated_after: datetime = None):
 
-        jql_query = self.__get_builded_jql_query(updated_after, labels)
+        jql_query = self.__get_builded_jql_query(updated_after)
 
         logging.info("Performing JQL query to get Jira issues : %s", jql_query)
 
         return self.__client.search_issues(jql_query)
     
-    def __get_builded_jql_query(self, updated_after: datetime, labels: List[str]) -> str:
+    def __get_builded_jql_query(self, updated_after: datetime) -> str:
 
         jql_query = f'project={self.config.jira_project}'
 
-        if labels:
-            labels_as_string = ",".join(labels)
+        if self.config.issue_tags:
+            labels_as_string = ",".join(self.config.issue_tags)
             jql_query += f' AND labels IN ({labels_as_string})'
+
+        if self.config.jira_issue_type:
+            issue_types_as_string = ",".join(self.config.jira_issue_type)
+            jql_query += f' AND issuetype IN ({issue_types_as_string})'
 
         if updated_after:
             updated_after_formated = datetime_to_date_hours_minuts(updated_after)

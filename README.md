@@ -27,10 +27,12 @@ You need to create and ```data/.env``` file (by copying the ```.env-example```) 
  - ```OTTM_SCM_BASE_URL``` : SMC base URL - leave empty for public repo
  - ```OTTM_SCM_TOKEN``` : Token to access github or gitlab
  - ```OTTM_TARGET_DATABASE``` : The default value will generate a SQLite database into the current folder
+ - ```OTTM_ISSUE_TAGS``` : On bug reporting tools, you can filter issues by tags. You can specify multiples tags, comma separated.
  - ```OTTM_JIRA_BASE_URL``` : The full path to jira project (e.g. https://jira.atlassian.com)
- - ```OTTM_JIRA_PROJECT``` :  Jira project name
- - ```OTTM_JIRA_EMAIL``` : Jira user email address
+ - ```OTTM_JIRA_PROJECT``` :  Jira project identifier
+ - ```OTTM_JIRA_EMAIL``` : Jira user email address. To access Jira API, you need to provide your access tokend AND your email adress
  - ```OTTM_JIRA_TOKEN``` : Token to access jira
+ - ```OTTM_JIRA_ISSUE_TYPE```: When Jira is used as the bug reporting tool, you can filter issues by their issue type. You can specify several filters, comma separeted. Usually, bugs are repported on "Bug" issue type.
  
  The first step (it might take a while) is to populate the database with versions, issues and commits. The repository will be cloned into a temporary folder and we will checkout all versions in order to generate code metrics. You can run this command in many times as it will only amend the database with latest changes.
 
