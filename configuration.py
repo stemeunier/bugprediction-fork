@@ -39,6 +39,7 @@ class Configuration:
         self.jira_project    = os.getenv("OTTM_JIRA_PROJECT", "")
         self.jira_email      = os.getenv("OTTM_JIRA_EMAIL", "")
         self.jira_token      = os.getenv("OTTM_JIRA_TOKEN", "")
+        self.jira_issue_type = self.__get_str_list("OTTM_JIRA_ISSUE_TYPE")
 
         self.issue_tags = self.__get_str_list("OTTM_ISSUE_TAGS")
         self.exclude_issuers = self.__get_str_list("OTTM_EXCLUDE_ISSSUERS")
