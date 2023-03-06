@@ -15,7 +15,12 @@ For each release the tool will:
 
 The tool needs to target a repository (e.g. GitHub, GitLab) with releases and issues. If you use another tool, you'd need to import releases and issues into the database.
 
-You need to create and ```data/.env``` file (by copying the ```.env-example```) and to fill at least these variables (see the [documentation of populate command](./docs/commands.md) for) :
+You need to run this commnand to install all the dependencies :
+    
+    pip install -r requirements.txt
+
+
+You need to create a file in the project directory called ```env```, you should copy the ```env-example``` file and fill it with at least these variables (see the [documentation of populate command](./docs/commands.md) for) :
 
  - ```OTTM_SCM_PATH``` : Path to git executable, leave "git" if it's into system env. path
  - ```OTTM_SOURCE_PROJECT``` : Name of the project (e.g. dbeaver)
@@ -26,8 +31,11 @@ You need to create and ```data/.env``` file (by copying the ```.env-example```) 
  - ```OTTM_SOURCE_REPO_SCM``` : Either "github" or "gitlab", other SCM are not yet supported
  - ```OTTM_SCM_BASE_URL``` : SMC base URL - leave empty for public repo
  - ```OTTM_SCM_TOKEN``` : Token to access github or gitlab
- - ```OTTM_TARGET_DATABASE``` : The default value will generate a SQLite database into the current folder
- - ```OTTM_ISSUE_TAGS``` : On bug reporting tools, you can filter issues by tags. You can specify multiples tags, comma separated.
+ -  ```OTTM_TARGET_DATABASE``` : The default value will generate a SQLite database into the current folder: sqlite:///data/${OTTM_SOURCE_PROJECT}.sqlite3
+ - ```OTTM_ISSUE_TAGS``` : On bug reporting tools, you can filter issues by tags. You can specify multiples tags, comma separated. - you can leave it empty
+
+if you use jira, you can fill the next variables, otherwise leave them by default
+
  - ```OTTM_JIRA_BASE_URL``` : The full path to jira project (e.g. https://jira.atlassian.com)
  - ```OTTM_JIRA_PROJECT``` :  Jira project identifier
  - ```OTTM_JIRA_EMAIL``` : Jira user email address. To access Jira API, you need to provide your access tokend AND your email adress
@@ -38,19 +46,25 @@ You need to create and ```data/.env``` file (by copying the ```.env-example```) 
 
     python main.py populate
 
-The tool is shipped with two simple bug prediction models. You need to train each model before you can use it:
+The tool is shipped with two simple bug prediction models. You can train the model that you want.
 
+BugVelocity is a simple Machine Learning model (a bit naive) based on the history of bug velocity values. It demonstrate how you can integrate your own model into the tool.
     python main.py train --model-name bugvelocity
-
+CodeMetrics
+    python main.py train --model-name codemetrics
+    
 And then use it to predict the number of bugs into the comming release (based on the metrics extracted from ```OTTM_CURRENT_BRANCH```):
 
     $ python main.py predict --model-name bugvelocity
+    Predicted value : 31
+or :
+    $ python main.py predict --model-name codemetrics
     Predicted value : 31
 
 You can generate an offline HTML report:
 
     $ python main.py report 
-
+The report will be placed in the './data/export' folder.
 One of the features of the report is to assess the risk of releasing the next version of your project:
 
 ![risk assessment gauge](https://raw.githubusercontent.com/optittm/bugprediction/main/docs/images/gauge_risk.png)

@@ -54,7 +54,7 @@ class CodeMetrics(ml):
             filter(Version.name != self.configuration.next_version_name).statement
 
         dataframe = pd.read_sql(versions_metrics_statement, self.session.get_bind())
-        dataframe = dataframe.dropna(axis=1, how='any', thresh=None, subset=None)
+        dataframe = dataframe.dropna(axis=1, how='any')
         X = dataframe.drop('bugs', axis=1)
         y = dataframe[['bugs']].values.ravel()
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
