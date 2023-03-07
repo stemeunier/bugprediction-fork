@@ -21,12 +21,13 @@ You need to run this commnand to install all the dependencies :
 
 
 You need to create a file in the project directory called ```env```, you should copy the ```env-example``` file and fill it with at least these variables (see the [documentation of populate command](./docs/commands.md) for) :
+the debeaver project is a big project and the fx2048 project is smaller so it takes less time to load. 
 
  - ```OTTM_SCM_PATH``` : Path to git executable, leave "git" if it's into system env. path
- - ```OTTM_SOURCE_PROJECT``` : Name of the project (e.g. dbeaver)
- - ```OTTM_SOURCE_REPO``` : Repositiory name (e.g. dbeaver/dbeaver)
- - ```OTTM_CURRENT_BRANCH``` :  The branch containing the next release (e.g. devel)
- - ```OTTM_SOURCE_REPO_URL``` : # The full path to repo (e.g. https://github.com/dbeaver/dbeaver)
+ - ```OTTM_SOURCE_PROJECT``` : Name of the project (e.g. dbeaver or fx2048)
+ - ```OTTM_SOURCE_REPO``` : Repositiory name (e.g. dbeaver/dbeaveror brunoborges/fx2048)
+ - ```OTTM_CURRENT_BRANCH``` :  The branch containing the next release (e.g. devel or master for fx2048)
+ - ```OTTM_SOURCE_REPO_URL``` : # The full path to repo (e.g. https://github.com/dbeaver/dbeaver or https://github.com/brunoborges/fx2048)
  - ```OTTM_SOURCE_BUGS``` : Source where we get issues (e.g. git)
  - ```OTTM_SOURCE_REPO_SCM``` : Either "github" or "gitlab", other SCM are not yet supported
  - ```OTTM_SCM_BASE_URL``` : SMC base URL - leave empty for public repo
