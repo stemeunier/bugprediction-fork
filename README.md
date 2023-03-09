@@ -20,7 +20,7 @@ You need to run this commnand to install all the dependencies :
     pip install -r requirements.txt
 
 
-You need to create a file in the project directory called ```env```, you should copy the ```env-example``` file and fill it with at least these variables (see the [documentation of populate command](./docs/commands.md) for) :
+You need to create a file in the project directory called ```.env```, you should copy the ```.env-example``` file and fill it with at least these variables (see the [documentation of populate command](./docs/commands.md) for) :
 the debeaver project is a big project and the fx2048 project is smaller so it takes less time to load. 
 
  - ```OTTM_SCM_PATH``` : Path to git executable, leave "git" if it's into system env. path
