@@ -1,6 +1,6 @@
 # report command
 
-The tool can genrate an offline report (doesn't need any external Internet access):
+The tool can generate an offline report (doesn't need any external Internet access):
 
     python main.py report --output .
 

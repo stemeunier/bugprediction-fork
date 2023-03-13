@@ -1,6 +1,6 @@
 # info command
 
-The command info provides basic information about the project configured into the ```.env``` file.
+The info command provides basic information about the project configured into the ```.env``` file.
 
     $ python main.py info
      -- OTTM Bug Predictor --

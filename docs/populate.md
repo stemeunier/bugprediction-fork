@@ -1,6 +1,6 @@
 # populate command
 
-The first step (it might take a while) is to populate the database with versions, issues and commits. The repository will be cloned into a temporary folder and we will checkout all versions in order to generate code metrics. You can run this command in many times as it will only amend the database with latest changes.
+The first step (it might take a while) is to populate the database with versions, issues and commits. The repository will be cloned into a temporary folder and it will check all versions out in order to generate code metrics. You can run this command multiple times later on as it will only amend the database with latest changes.
 
     python main.py populate
 
