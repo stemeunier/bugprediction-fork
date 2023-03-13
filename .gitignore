@@ -6,6 +6,7 @@
 data/*.csv
 data/*.html
 data/*.sqlite3
+data/**/*.html
 **/*.pkl
 **/*.parquet
 .vscode/
