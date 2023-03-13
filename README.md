@@ -86,7 +86,7 @@ Go into your account's settings -> Developer settings -> Personal access tokens 
 Generate a new token (classic):
 - Name it however you wish
 - Set the expiration depending on your use case
-- Select all scopes TODO check necessary scopes
+- Don't select any scope
 - Generate
 Copy the token and paste it next to ```OTTM_SCM_TOKEN``` in the .env file.
 
@@ -95,12 +95,15 @@ Go into Edit profile/User settings -> Access Tokens
 Add a new token:
 - Name it however you wish
 - Set the expiration depending on your use case
-- Select all scopes TODO check necessary scopes
+- Don't select any scope
 - Create
 Copy the token and paste it next to ```OTTM_SCM_TOKEN``` in the .env file.
 
 ### Jira
-TODO Explain how to get the Jira token
+Go to your profile's settings page
+- Click on "Generate new API token" in the "API token" section.
+- Give your token a name and click on "Create".
+Copy the token and paste it next to ```OTTM_JIRA_TOKEN``` in the .env file.
 
 ## Limitations
 
