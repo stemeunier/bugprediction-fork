@@ -27,7 +27,7 @@ class JPeekConnector:
 
     def analyze_source_code(self):
         """
-        Analyze the repository by using CK analysis tool
+        Analyze the repository by using JPeek analysis tool
         """
         logging.info('JPeek::analyze_repo')
         # Test if metrics have been already generated for this version
