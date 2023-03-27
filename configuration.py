@@ -41,8 +41,15 @@ class Configuration:
         self.jira_token      = os.getenv("OTTM_JIRA_TOKEN", "")
         self.jira_issue_type = self.__get_str_list("OTTM_JIRA_ISSUE_TYPE")
 
+        self.glpi_categories = self.__get_str_list("OTTM_GLPI_CATEGORIES")
+        self.glpi_base_url   = os.getenv("OTTM_GLPI_BASE_URL", "")
+        self.glpi_app_token  = os.getenv("OTTM_GLPI_APP_TOKEN", "")
+        self.glpi_user_token = os.getenv("OTTM_GLPI_USER_TOKEN", "")
+        self.glpi_username   = os.getenv("OTTM_GLPI_USERNAME", "")
+        self.glpi_password   = os.getenv("OTTM_GLPI_PASSWORD", "")
+
         self.issue_tags = self.__get_str_list("OTTM_ISSUE_TAGS")
-        self.exclude_issuers = self.__get_str_list("OTTM_EXCLUDE_ISSSUERS")
+        self.exclude_issuers = self.__get_str_list("OTTM_EXCLUDE_ISSUERS")
 
         self.include_folders = self.__get_path_list("OTTM_INCLUDE_FOLDERS")
         self.exclude_folders = self.__get_path_list("OTTM_EXCLUDE_FOLDERS")

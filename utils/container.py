@@ -12,6 +12,7 @@ from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
 from connectors.git import GitConnector
 from connectors.jira import JiraConnector
+from connectors.glpi import GlpiConnector
 from importers.flatfile import FlatFileImporter
 from exporters.html import HtmlExporter
 from exporters.flatfile import FlatFileExporter
@@ -62,6 +63,12 @@ class Container(containers.DeclarativeContainer):
     jira_connector_provider = providers.Factory(
         JiraConnector,
         session = session,  
+        config = configuration
+    )
+
+    glpi_connector_provider = providers.Factory(
+        GlpiConnector,
+        session = session,
         config = configuration
     )
 
