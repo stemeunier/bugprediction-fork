@@ -29,7 +29,7 @@ class Version(Base):
     bug_velocity = Column(Float)
     # Code churn, or code that is rewritten or deleted shortly after being written
     code_churn_count = Column(Integer)
-    # Maximun code chrun on a file
+    # Maximun code churn on a file
     code_churn_max = Column(Integer)
     # Average code churn per file
     code_churn_avg = Column(Float)

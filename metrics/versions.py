@@ -87,7 +87,7 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
 
         # Compute the count, average, and max code churn on the version
         if version.code_churn_count:
-            logging.info("Chrun already done for this version")
+            logging.info("Churn already done for this version")
         else :
             logging.info("Counting churn between " + from_commit + " and " + version.tag)
             metric = CodeChurn(path_to_repo=repo_dir,
@@ -110,7 +110,7 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
             else:
                 churn_max = 0
 
-            logging.info('Chrun count: ' + str(churn_count) + ' / Chrun avg: ' + str(churn_avg) + ' / Chrun max: ' + str(churn_max))
+            logging.info('Churn count: ' + str(churn_count) + ' / Churn avg: ' + str(churn_avg) + ' / Churn max: ' + str(churn_max))
             from_commit = version.tag
 
             # Modify the version into the database
