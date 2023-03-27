@@ -85,3 +85,19 @@ class Metric(Base):
 
     # legacy
     nb_legacy_files = Column(Integer)
+
+    # PDepend metrics
+    pdepend_cbo = Column(Float)
+    pdepend_fan_out = Column(Float)
+    pdepend_dit = Column(Float)
+    pdepend_nof = Column(Float)
+    pdepend_noc = Column(Float)
+    pdepend_nom = Column(Float)
+    pdepend_nopm = Column(Float)
+    pdepend_vars = Column(Float)
+    pdepend_wmc = Column(Float)
+    pdepend_calls = Column(Float)
+    pdepend_nocc = Column(Float)
+    pdepend_noom = Column(Float)
+    pdepend_noi = Column(Float)
+    pdepend_nop = Column(Float)
