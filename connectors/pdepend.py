@@ -38,8 +38,12 @@ class PDependConnector:
             metric = Metric()
         if self.configuration.language != "PHP":
             logging.info('PDepend is only used for PHP language')
+        # If the WMC PDepend metric is not present, we assume the analysis hasn't been done for this version, so we do it
         elif not metric.pdepend_wmc:
-            self.compute_metrics(metric)
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                report_path = self.generate_report(tmp_dir)
+                metric = self.compute_metrics(metric, report_path)
+            self.save_metrics_to_db(metric)
         else:
             logging.info('PDepend analysis already done for this version')
 
@@ -58,64 +62,81 @@ class PDependConnector:
         )
     
     @timeit
-    def compute_metrics(self, metric):
+    def generate_report(self, output_dir) -> str:
         """
-        Compute PDepend metrics. As the metrics were computed at the file or function level,
+        Generates the XML report using pdepend.phar
+        Returns the path to the XML file in a temporary directory
+        """
+        
+        # Launch the PDepend utility and output values into a temporary directory
+        logging.info('PDepend::generate_pdepend_xml_file')
+
+        process = subprocess.run([self.configuration.php_path,
+                                    # Prevents deprecation warnings within PDepend from showing on console
+                                    "-d error_reporting='E_ALL & ~E_DEPRECATED'",
+                                    self.configuration.code_pdepend_path,
+                                    f"--summary-xml={os.path.join(output_dir, 'summary.xml')}",
+                                    self.directory])
+        logging.info('Executed command line: ' + ' '.join(process.args))
+        logging.info('Command return code ' + str(process.returncode))
+
+        return os.path.join(output_dir, 'summary.xml')
+    
+    @timeit
+    def compute_metrics(self, metric, report_path):
+        """
+        Compute PDepend metrics. As the metrics were computed at the class or function level,
         we need to compute the average for the repository.
         """
         logging.info('PDepend::compute_metrics')
-        # Read xml files
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            # Launch the PDepend utility and output values into a temporary directory
-            logging.info('PDepend::generate_pdepend_xml_file')
+        if exists(report_path):
+            try:
+                logging.info('PDepend file generated correctly')
+                metric.version_id = self.version.version_id
 
-            process = subprocess.run([self.configuration.php_path,
-                                      # Prevents deprecation warnings within PDepend from showing on console
-                                      "-d error_reporting='E_ALL & ~E_DEPRECATED'",
-                                      self.configuration.code_pdepend_path,
-                                      f"--summary-xml={os.path.join(tmp_dir, 'summary.xml')}",
-                                      self.directory])
-            logging.info('Executed command line: ' + ' '.join(process.args))
-            logging.info('Command return code ' + str(process.returncode))
+                # Read xml file
+                xml_tree = ET.parse(report_path)
+                xml_root = xml_tree.getroot()
 
-            if exists(os.path.join(tmp_dir, "summary.xml")):
-                try:
-                    logging.info('PDepend file generated correctly')
-                    metric.version_id = self.version.version_id
+                # Intermediate values to calculate means
+                total_nb_classes = int(xml_root.attrib["noc"])
+                total_nb_methods = int(xml_root.attrib["nom"])
 
-                    # Read xml file
-                    xml_tree = ET.parse(os.path.join(tmp_dir, "summary.xml"))
-                    xml_root = xml_tree.getroot()
+                # Calculate mean PDepend values
+                metric.pdepend_cbo = self.__compute_mean(xml_root, "cbo", "class")
+                                                                                            # Checking if nb_classes is 0 to avoid null division
+                metric.pdepend_fan_out = Math.get_rounded_divide(int(xml_root.attrib["fanout"]), (total_nb_classes if total_nb_classes else 1))
+                metric.pdepend_dit = self.__compute_mean(xml_root, "dit", "class")
+                metric.pdepend_nof = self.__compute_mean(xml_root, "nof", "package")
+                metric.pdepend_noc = self.__compute_mean(xml_root, "noc", "package")
+                metric.pdepend_nom = self.__compute_mean(xml_root, "nom", "class")
+                metric.pdepend_nopm = self.__compute_mean(xml_root, "npm", "class")
+                metric.pdepend_vars = self.__compute_mean(xml_root, "vars", "class")
+                metric.pdepend_wmc = self.__compute_mean(xml_root, "wmc", "class")
+                                                                                        # Checking if nb_methods is 0 to avoid null division
+                metric.pdepend_calls = Math.get_rounded_divide(int(xml_root.attrib["calls"]), (total_nb_methods if total_nb_methods else 1))
+                metric.pdepend_nocc = self.__compute_mean(xml_root, "nocc", "class")
+                metric.pdepend_noom = self.__compute_mean(xml_root, "noom", "class")
+                metric.pdepend_noi = self.__compute_mean(xml_root, "noi", "package")
+                metric.pdepend_nop = int(xml_root.attrib["nop"])
 
-                    # Intermediate values to calculate means
-                    total_nb_classes = int(xml_root.attrib["noc"])
-                    total_nb_methods = int(xml_root.attrib["nom"])
-
-                    # Calculate mean PDepend values
-                    metric.pdepend_cbo = self.__compute_mean(xml_root, "cbo", "class")
-                                                                                                # Checking if nb_classes is 0 to avoid null division
-                    metric.pdepend_fan_out = Math.get_rounded_divide(int(xml_root.attrib["fanout"]), (total_nb_classes if total_nb_classes else 1))
-                    metric.pdepend_dit = self.__compute_mean(xml_root, "dit", "class")
-                    metric.pdepend_nof = self.__compute_mean(xml_root, "nof", "package")
-                    metric.pdepend_noc = self.__compute_mean(xml_root, "noc", "package")
-                    metric.pdepend_nom = self.__compute_mean(xml_root, "nom", "class")
-                    metric.pdepend_nopm = self.__compute_mean(xml_root, "npm", "class")
-                    metric.pdepend_vars = self.__compute_mean(xml_root, "vars", "class")
-                    metric.pdepend_wmc = self.__compute_mean(xml_root, "wmc", "class")
-                                                                                            # Checking if nb_methods is 0 to avoid null division
-                    metric.pdepend_calls = Math.get_rounded_divide(int(xml_root.attrib["calls"]), (total_nb_methods if total_nb_methods else 1))
-                    metric.pdepend_nocc = self.__compute_mean(xml_root, "nocc", "class")
-                    metric.pdepend_noom = self.__compute_mean(xml_root, "noom", "class")
-                    metric.pdepend_noi = self.__compute_mean(xml_root, "noi", "package")
-                    metric.pdepend_nop = int(xml_root.attrib["nop"])
-
-                    # Save metrics values into the database
-                    self.session.add(metric)
-                    self.session.commit()
-                    logging.info("PDepend metrics added to database for version " + self.version.tag)
-                except ET.ParseError:
-                    logging.error("Unable to parse PDepend XML report / version " + self.version.tag)
-                except Exception as e:
-                    logging.error("An error occurred while reading PDepend report for version " + self.version.tag)
-                    logging.error(str(e))
+            except ET.ParseError:
+                logging.error("Unable to parse PDepend XML report / version " + self.version.tag)
+            except Exception as e:
+                logging.error("An error occurred while reading PDepend report for version " + self.version.tag)
+                logging.error(str(e))
+        else:
+            logging.error(f"PDepend XML report not found at {report_path}")
+        
+        return metric
+    
+    def save_metrics_to_db(self, metric):
+        try:
+            # Save metrics values into the database
+            self.session.add(metric)
+            self.session.commit()
+            logging.info("PDepend metrics added to database for version " + self.version.tag)
+        except Exception as e:
+            logging.error("An error occurred while saving PDepend metrics for version " + self.version.tag)
+            logging.error(str(e))
