@@ -30,8 +30,8 @@ You need to run this commnand to install all the dependencies :
     pip install -r requirements.txt
 
 
-For testing, you can use either the DBeaver project or the much lighter (less time to load) fx2048 project.
-Or you can look for any opensource Java or PHP project with releases and issues.
+For testing, you can use either the DBeaver project or the much lighter (less time to load) fx2048 project.  
+Or you can look for any opensource Java or PHP project with releases and issues.  
 Examples are:
 - https://github.com/dbeaver/dbeaver (heavy Java project)
 - https://github.com/brunoborges/fx2048 (lighter Java project)
