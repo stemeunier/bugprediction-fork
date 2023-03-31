@@ -267,7 +267,8 @@ def populate(ctx, skip_versions,
              file_analyzer_provider = Provide[Container.file_analyzer_provider.provider],
              jpeek_connector_provider = Provide[Container.jpeek_connector_provider.provider],
              legacy_connector_provider = Provide[Container.legacy_connector_provider.provider],
-             codemaat_connector_provider = Provide[Container.codemaat_connector_provider.provider]):
+             codemaat_connector_provider = Provide[Container.codemaat_connector_provider.provider],
+             radon_connector_provider = Provide[Container.radon_connector_provider.provider]):
     """Populate the database with the provided configuration"""
 
     # Checkout, execute the tool and inject CSV result into the database
@@ -311,17 +312,24 @@ def populate(ctx, skip_versions,
             # codemaat = codemaat_connector_provider(repo_dir, version)
             # codemaat.analyze_git_log()
 
-            # Get metrics with CK
-            ck = ck_connector_provider(directory=tmp_work_dir, version=version)
-            ck.analyze_source_code()
-
             # Get statistics with lizard
             lizard = file_analyzer_provider(directory=tmp_work_dir, version=version)
             lizard.analyze_source_code()
 
-            # Get metrics with JPeek
-            # jp = jpeek_connector_provider(directory=tmp_work_dir, version=version)
-            # jp.analyze_source_code()
+            if (configuration.language.lower() == "java"):
+                # Get metrics with CK
+                ck = ck_connector_provider(directory=tmp_work_dir, version=version)
+                ck.analyze_source_code()
+
+                # Get metrics with JPeek
+                # jp = jpeek_connector_provider(directory=tmp_work_dir, version=version)
+                # jp.analyze_source_code()
+            
+            elif (configuration.language.lower() == "python"):
+                
+                # Get metrics with Radon
+                radon = radon_connector_provider(directory = tmp_work_dir, version = version)
+                radon.analyze_source_code()
 
     
 

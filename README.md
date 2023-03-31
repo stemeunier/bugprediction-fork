@@ -26,16 +26,17 @@ Or you can look for any opensource Java project with releases and issues.
 You need to create a file in the project directory called ```.env```, you should copy the ```.env-example``` file and fill it with at least these variables (see the [documentation of populate command](./docs/commands.md) for) :
 
  - ```OTTM_SCM_PATH``` : Path to git executable, leave "git" if it's into system env. path
- - ```OTTM_SOURCE_PROJECT``` : Name of the project (e.g. dbeaver or fx2048)
- - ```OTTM_SOURCE_REPO``` : Repositiory name (e.g. dbeaver/dbeaveror or brunoborges/fx2048)
- - ```OTTM_CURRENT_BRANCH``` :  The branch containing the next release (e.g. devel for dbeaver or master for fx2048)
- - ```OTTM_SOURCE_REPO_URL``` : # The full path to repo (e.g. https://github.com/dbeaver/dbeaver or https://github.com/brunoborges/fx2048)
+ - ```OTTM_SOURCE_PROJECT``` : Name of the project (e.g. dbeaver or fx2048 or python-fire)
+ - ```OTTM_SOURCE_REPO``` : Repositiory name (e.g. dbeaver/dbeaver or brunoborges/fx2048 or google/python-fire)
+ - ```OTTM_CURRENT_BRANCH``` :  The branch containing the next release (e.g. devel for dbeaver or master for fx2048 and python-fire)
+ - ```OTTM_SOURCE_REPO_URL``` : # The full path to repo (e.g. https://github.com/dbeaver/dbeaver or https://github.com/brunoborges/fx2048 or https://github.com/google/python-fire)
  - ```OTTM_SOURCE_BUGS``` : Source where we get issues (e.g. git, jira or glpi)
  - ```OTTM_SOURCE_REPO_SCM``` : Either "github" or "gitlab", other SCM are not yet supported
  - ```OTTM_SCM_BASE_URL``` : SCM base URL - leave empty for public repo
  - ```OTTM_SCM_TOKEN``` : Token to access github or gitlab (see the "How to get your tokens" section)
- -  ```OTTM_TARGET_DATABASE``` : The default value will generate a SQLite database into the current folder: sqlite:///data/${OTTM_SOURCE_PROJECT}.sqlite3
+ - ```OTTM_TARGET_DATABASE``` : The default value will generate a SQLite database into the current folder: sqlite:///data/${OTTM_SOURCE_PROJECT}.sqlite3
  - ```OTTM_ISSUE_TAGS``` : On bug reporting tools, you can filter issues by tags. You can specify multiples tags, comma separated. - you can leave it empty
+  - ```OTTM_LANGUAGE```: The language of the source repo ("Java" for dbeaver or fx2048, "Python" for python-fire)
 
 If you use Jira, you can fill the next variables, otherwise leave them by default :
 
@@ -44,6 +45,9 @@ If you use Jira, you can fill the next variables, otherwise leave them by defaul
  - ```OTTM_JIRA_EMAIL``` : Jira user email address. To access Jira API, you need to provide your access tokend AND your email adress
  - ```OTTM_JIRA_TOKEN``` : Token to access Jira (see the "How to get your tokens" section)
  - ```OTTM_JIRA_ISSUE_TYPE```: When Jira is used as the bug reporting tool, you can filter issues by their issue type. You can specify several filters, comma separeted. Usually, bugs are repported on "Bug" issue type.
+
+If you use GLPI, you can fill the next variables, otherwise leave them by default :
+
  - ```OTTM_GLPI_CATEGORIES``` : Categories of Glpi tickets. Only the child categories has to be precised.
  - ```OTTM_GLPI_BASE_URL``` : The full path to glpi API (e.g. http://localhost/apirest.php/)
  - ```OTTM_GLPI_APP_TOKEN``` : Glpi app token
@@ -132,3 +136,6 @@ The tool is released under a MIT licence. Contributors are welcomed in many area
 
  - CK: https://github.com/mauricioaniche/ck
  - JPeek: https://github.com/cqfn/jpeek
+
+ ### Python
+ - Radon: [https://pypi.org/project/radon/](https://pypi.org/project/radon/)

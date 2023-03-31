@@ -49,3 +49,16 @@ def guess_programing_language(file_extension):
                 lambda i: i, file_args[1].get("extensions", []))) else None, guess_programing_language.language_map.items()))
     language_results = list(filter(None, language_results))
     return language_results[0] if len(language_results) > 0 else None
+
+def is_python_file(file_name) -> bool:
+    """
+    Checks if a given file name corresponds to a Python file.
+
+    Args:
+        file_name (str): The name of the file to check.
+
+    Returns:
+        bool: `True` if the file name corresponds to a Python file, `False` otherwise.
+    """
+    extension = file_name.split('.')[-1].lower()
+    return extension == 'py'
