@@ -2,6 +2,7 @@ from dependency_injector import containers, providers
 from configuration import Configuration
 from dotenv import load_dotenv
 from sqlalchemy.orm import sessionmaker
+from connectors.radon import RadonConnector
 from exporters.ml_reports import MlHtmlExporter
 
 from ml.ml import ml
@@ -46,6 +47,12 @@ class Container(containers.DeclarativeContainer):
     
     jpeek_connector_provider = providers.Factory(
         JPeekConnector,
+        session = session,
+        config = configuration
+    )
+    
+    radon_connector_provider = providers.Factory(
+        RadonConnector,
         session = session,
         config = configuration
     )
