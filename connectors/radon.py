@@ -106,7 +106,8 @@ class RadonConnector:
         
         logging.info('RADON self.config.language = ' + self.config.language)
         if (self.config.language.lower() != "python"):
-            logging.info('RADON is only used for Python language')
+            logging.error('Radon is only used for Python language')
+            raise Exception("Radon can only analyze Python code")
         else:
             if (not metric.radon_cc_total):
                 self.compute_metrics()

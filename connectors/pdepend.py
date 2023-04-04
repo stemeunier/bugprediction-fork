@@ -36,8 +36,9 @@ class PDependConnector:
         metric = self.session.query(Metric).filter(Metric.version_id == self.version.version_id).first()
         if not metric:
             metric = Metric()
-        if self.configuration.language != "PHP":
-            logging.info('PDepend is only used for PHP language')
+        if self.configuration.language.lower() != "php":
+            logging.error('PDepend is only used for PHP language')
+            raise Exception("PDepend can only analyze PHP code")
         # If the WMC PDepend metric is not present, we assume the analysis hasn't been done for this version, so we do it
         elif not metric.pdepend_wmc:
             with tempfile.TemporaryDirectory() as tmp_dir:
