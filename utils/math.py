@@ -25,7 +25,7 @@ class Math():
             return quotient
             
     @classmethod
-    def get_mean_safe(cls, value):
-        if (len(value) > 0):
-            return round(mean(value), cls.nb_decimal_numbers)
+    def get_rounded_mean_safe(cls, values):
+        if (len(values) > 0):
+            return round(mean(values), cls.nb_decimal_numbers)
         return 0
