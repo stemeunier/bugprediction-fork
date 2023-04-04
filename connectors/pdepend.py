@@ -3,6 +3,7 @@ import os
 import subprocess
 import tempfile
 from os.path import exists
+from typing import List, Union
 import xml.etree.ElementTree as ET
 
 from models.metric import Metric
@@ -55,11 +56,15 @@ class PDependConnector:
     def _list_str_to_int(self, list_):
         return list(map(int, list_))
     
-    def __compute_mean(self, xml_root, metric, mean_divide):
+    def __compute_mean(self, xml_root, metric, mean_divides: Union[str, List[str]]):
+        if type(mean_divides) is not list:
+            # If it is just a single string, the for loop will iterate over each character, which we don't want
+            mean_divides = [mean_divides]
+        values = []
+        for mean_divide in mean_divides:
+            values.extend(self._xml_get_nodes_atribute(xml_root, mean_divide, metric))
         return Math.get_rounded_mean_safe(
-            self._list_str_to_int(
-                self._xml_get_nodes_atribute(xml_root, mean_divide, metric)
-            )
+            self._list_str_to_int(values)
         )
     
     @timeit
@@ -105,16 +110,16 @@ class PDependConnector:
                 total_nb_methods = int(xml_root.attrib["nom"])
 
                 # Calculate mean PDepend values
-                metric.pdepend_cbo = self.__compute_mean(xml_root, "cbo", "class")
+                metric.pdepend_cbo = self.__compute_mean(xml_root, "cbo", ["class", "trait"])
                                                                                             # Checking if nb_classes is 0 to avoid null division
                 metric.pdepend_fan_out = Math.get_rounded_divide(int(xml_root.attrib["fanout"]), (total_nb_classes if total_nb_classes else 1))
                 metric.pdepend_dit = self.__compute_mean(xml_root, "dit", "class")
                 metric.pdepend_nof = self.__compute_mean(xml_root, "nof", "package")
                 metric.pdepend_noc = self.__compute_mean(xml_root, "noc", "package")
                 metric.pdepend_nom = self.__compute_mean(xml_root, "nom", "class")
-                metric.pdepend_nopm = self.__compute_mean(xml_root, "npm", "class")
-                metric.pdepend_vars = self.__compute_mean(xml_root, "vars", "class")
-                metric.pdepend_wmc = self.__compute_mean(xml_root, "wmc", "class")
+                metric.pdepend_nopm = self.__compute_mean(xml_root, "npm", ["class", "trait"])
+                metric.pdepend_vars = self.__compute_mean(xml_root, "vars", ["class", "trait"])
+                metric.pdepend_wmc = self.__compute_mean(xml_root, "wmc", ["class", "trait"])
                                                                                         # Checking if nb_methods is 0 to avoid null division
                 metric.pdepend_calls = Math.get_rounded_divide(int(xml_root.attrib["calls"]), (total_nb_methods if total_nb_methods else 1))
                 metric.pdepend_nocc = self.__compute_mean(xml_root, "nocc", "class")
