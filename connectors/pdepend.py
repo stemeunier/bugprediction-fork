@@ -56,7 +56,7 @@ class PDependConnector:
         return list(map(int, list_))
     
     def __compute_mean(self, xml_root, metric, mean_divide):
-        return Math.get_rounded_mean(
+        return Math.get_rounded_mean_safe(
             self._list_str_to_int(
                 self._xml_get_nodes_atribute(xml_root, mean_divide, metric)
             )
