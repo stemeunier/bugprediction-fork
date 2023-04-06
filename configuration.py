@@ -18,9 +18,11 @@ class Configuration:
         self.code_maat_path  = self.__get_external_tool("OTTM_CODE_MAAT_PATH")
         self.code_ck_path    = self.__get_external_tool("OTTM_CODE_CK_PATH")
         self.code_jpeek_path = self.__get_external_tool("OTTM_CODE_JPEEK_PATH")
+        self.code_pdepend_path = self.__get_external_tool("OTTM_CODE_PDEPEND_PATH")
         
         self.scm_path  = self.__get_executable("OTTM_SCM_PATH")
         self.java_path = self.__get_executable("OTTM_JAVA_PATH")
+        self.php_path = self.__get_executable("OTTM_PHP_PATH")
         
         self.target_database = self.__get_required_value("OTTM_TARGET_DATABASE")
 

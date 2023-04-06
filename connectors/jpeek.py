@@ -27,9 +27,12 @@ class JPeekConnector:
 
     def analyze_source_code(self):
         """
-        Analyze the repository by using CK analysis tool
+        Analyze the repository by using JPeek analysis tool
         """
         logging.info('JPeek::analyze_repo')
+        if self.configuration.language.lower() != "java":
+            logging.error('JPeek is only used for Java language')
+            raise Exception("JPeek can only analyze Java code")
         # Test if metrics have been already generated for this version
         metric = self.session.query(Metric).filter(Metric.version_id == self.version.version_id).first()
         if not metric:

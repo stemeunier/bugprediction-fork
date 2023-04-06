@@ -50,9 +50,9 @@ class FileAnalyzer:
 
     def analyze_source_code(self):
         """
-        Analyze the repository by using CK analysis tool
+        Analyze the repository by using Lizard analysis tool
         """
-        logging.info('CK::analyze_repo')
+        logging.info('Lizard::analyze_repo')
         # Test if metrics have been already generated for this version
         metric = self.session.query(Metric).filter(Metric.version_id == self.version.version_id).first()
         if not metric:

@@ -17,6 +17,7 @@ from connectors.glpi import GlpiConnector
 from importers.flatfile import FlatFileImporter
 from exporters.html import HtmlExporter
 from exporters.flatfile import FlatFileExporter
+from connectors.pdepend import PDependConnector
 
 class Container(containers.DeclarativeContainer):
     load_dotenv()
@@ -102,6 +103,12 @@ class Container(containers.DeclarativeContainer):
 
     flat_file_exporter_provider = providers.Singleton(
         FlatFileExporter,
+        session = session,
+        config = configuration
+    )
+
+    pdepend_connector_provider = providers.Factory(
+        PDependConnector,
         session = session,
         config = configuration
     )

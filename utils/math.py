@@ -1,4 +1,5 @@
 from statistics import mean
+import logging
 
 class Math():
     nb_decimal_numbers = 2
@@ -14,7 +15,17 @@ class Math():
         return round(rate, cls.nb_decimal_numbers)
     
     @classmethod
-    def get_mean_safe(cls, value):
-        if (len(value) > 0):
-            return round(mean(value), cls.nb_decimal_numbers)
+    def get_rounded_divide(cls, dividend, divisor):
+        try:
+            quotient = round(dividend / divisor, cls.nb_decimal_numbers)
+        except ZeroDivisionError:
+            logging.exception("Math:Cannot divide by zero")
+            return None
+        else:
+            return quotient
+            
+    @classmethod
+    def get_rounded_mean_safe(cls, values):
+        if (len(values) > 0):
+            return round(mean(values), cls.nb_decimal_numbers)
         return 0

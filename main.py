@@ -268,6 +268,7 @@ def populate(ctx, skip_versions,
              jpeek_connector_provider = Provide[Container.jpeek_connector_provider.provider],
              legacy_connector_provider = Provide[Container.legacy_connector_provider.provider],
              codemaat_connector_provider = Provide[Container.codemaat_connector_provider.provider],
+             pdepend_connector_provider = Provide[Container.pdepend_connector_provider.provider],
              radon_connector_provider = Provide[Container.radon_connector_provider.provider]):
     """Populate the database with the provided configuration"""
 
@@ -316,7 +317,7 @@ def populate(ctx, skip_versions,
             lizard = file_analyzer_provider(directory=tmp_work_dir, version=version)
             lizard.analyze_source_code()
 
-            if (configuration.language.lower() == "java"):
+            if configuration.language.lower() == "java":
                 # Get metrics with CK
                 ck = ck_connector_provider(directory=tmp_work_dir, version=version)
                 ck.analyze_source_code()
@@ -324,13 +325,20 @@ def populate(ctx, skip_versions,
                 # Get metrics with JPeek
                 # jp = jpeek_connector_provider(directory=tmp_work_dir, version=version)
                 # jp.analyze_source_code()
+                
+            elif configuration.language.lower() == "php":
+                # Get metrics with PDepend
+                pdepend = pdepend_connector_provider(directory=tmp_work_dir, version=version)
+                pdepend.analyze_source_code()
             
-            elif (configuration.language.lower() == "python"):
+            elif configuration.language.lower() == "python":
                 
                 # Get metrics with Radon
                 radon = radon_connector_provider(directory = tmp_work_dir, version = version)
                 radon.analyze_source_code()
-
+                
+            else:
+                raise Exception(f"Unsupported language: {configuration.language}")
     
 
 @click.command()
