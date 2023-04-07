@@ -44,7 +44,7 @@ class TestRadonConnector(unittest.TestCase):
 
     def test_compute_raw_metrics_with_supported_metrics(self):
         raw_metrics = Mock(loc=10, lloc=20, sloc=30, comments=40, multi=50, blank=60, single_comments=70)
-        self.radon_connector._RadonConnector__compute_raw_metrics(raw_metrics)
+        self.radon_connector._RadonConnector__get_raw_metrics(raw_metrics)
         self.assertEqual(self.radon_connector.loc, [10])
         self.assertEqual(self.radon_connector.lloc, [20])
         self.assertEqual(self.radon_connector.sloc, [30])
@@ -56,7 +56,7 @@ class TestRadonConnector(unittest.TestCase):
     def test_compute_raw_metrics_with_unsupported_metrics(self):
         raw_metrics = {}
         with self.assertRaises(TypeError):
-            self.radon_connector._RadonConnector__compute_raw_metrics(raw_metrics)
+            self.radon_connector._RadonConnector__get_raw_metrics(raw_metrics)
 
     def test_is_python_file_true(self):
         result = is_python_file("example.py")
