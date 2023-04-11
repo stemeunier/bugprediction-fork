@@ -101,7 +101,7 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
                 churn_count += abs(file_count)
 
             if files_avg:
-                churn_avg = abs(mt.Math.get_rounded_mean(list(files_avg.values())))
+                churn_avg = abs(mt.Math.get_rounded_mean_safe(list(files_avg.values())))
             else:
                 churn_avg = 0
 

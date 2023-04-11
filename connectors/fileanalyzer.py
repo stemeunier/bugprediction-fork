@@ -191,17 +191,17 @@ class FileAnalyzer:
         # lizard
         total_nloc = sum(self.__nb_loc_values)
         new_metric.lizard_total_nloc = total_nloc
-        new_metric.lizard_avg_nloc = Math.get_rounded_mean(self.__nb_loc_values)
+        new_metric.lizard_avg_nloc = Math.get_rounded_mean_safe(self.__nb_loc_values)
         new_metric.lizard_nloc_rt = Math.get_rounded_rate(total_nloc, total_lines)
        
-        new_metric.lizard_avg_token = Math.get_rounded_mean(self.__nb_tokens_values)
+        new_metric.lizard_avg_token = Math.get_rounded_mean_safe(self.__nb_tokens_values)
         
         total_nb_functions = sum(self.__nb_functions_values)
         new_metric.lizard_fun_count = total_nb_functions
         new_metric.lizard_fun_rt = Math.get_rounded_rate(total_nb_functions, total_lines)
 
         new_metric.lizard_total_complexity = sum(self.__total_complexities_values)
-        new_metric.lizard_avg_complexity = Math.get_rounded_mean(self.__average_complexities_values)
+        new_metric.lizard_avg_complexity = Math.get_rounded_mean_safe(self.__average_complexities_values)
 
         # operators /operands        
         new_metric.lizard_total_operands_count = sum(self.__nb_operands_values)
