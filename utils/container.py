@@ -9,6 +9,7 @@ from ml.ml import ml
 from connectors.ck import CkConnector
 from connectors.jpeek import JPeekConnector
 from connectors.legacy import LegacyConnector
+from connectors.pylint.pylint import PylintConnector
 from connectors.codemaat import CodeMaatConnector
 from connectors.fileanalyzer import FileAnalyzer
 from connectors.git import GitConnector
@@ -53,6 +54,12 @@ class Container(containers.DeclarativeContainer):
     
     radon_connector_provider = providers.Factory(
         RadonConnector,
+        session = session,
+        config = configuration
+    )
+
+    pylint_connector_provider = providers.Factory(
+        PylintConnector,
         session = session,
         config = configuration
     )

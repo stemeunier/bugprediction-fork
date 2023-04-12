@@ -264,6 +264,7 @@ def populate(ctx, skip_versions,
              jira_connector_provider = Provide[Container.jira_connector_provider.provider],
              glpi_connector_provider = Provide[Container.glpi_connector_provider.provider],
              ck_connector_provider = Provide[Container.ck_connector_provider.provider],
+             pylint_connector_provider = Provide[Container.pylint_connector_provider.provider],
              file_analyzer_provider = Provide[Container.file_analyzer_provider.provider],
              jpeek_connector_provider = Provide[Container.jpeek_connector_provider.provider],
              legacy_connector_provider = Provide[Container.legacy_connector_provider.provider],
@@ -325,7 +326,7 @@ def populate(ctx, skip_versions,
                 # Get metrics with JPeek
                 # jp = jpeek_connector_provider(directory=tmp_work_dir, version=version)
                 # jp.analyze_source_code()
-                
+                            
             elif configuration.language.lower() == "php":
                 # Get metrics with PDepend
                 pdepend = pdepend_connector_provider(directory=tmp_work_dir, version=version)
@@ -336,9 +337,16 @@ def populate(ctx, skip_versions,
                 # Get metrics with Radon
                 radon = radon_connector_provider(directory = tmp_work_dir, version = version)
                 radon.analyze_source_code()
+
+                # Get metrics with Pylint
+                pylint = pylint_connector_provider(directory = tmp_work_dir, version = version)
+                pylint.analyze_source_code()
                 
             else:
                 raise Exception(f"Unsupported language: {configuration.language}")
+
+
+
     
 
 @click.command()

@@ -19,3 +19,4 @@ kneed~=0.8.1
 glpi-api~=0.3.5
 jira~=3.4.1
 radon~=5.1.0
+pylint~=2.17.0
