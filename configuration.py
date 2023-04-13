@@ -20,9 +20,13 @@ class Configuration:
         self.code_jpeek_path = self.__get_external_tool("OTTM_CODE_JPEEK_PATH")
         self.code_pdepend_path = self.__get_external_tool("OTTM_CODE_PDEPEND_PATH")
         
+        self.language = os.getenv("OTTM_LANGUAGE", "")
+
         self.scm_path  = self.__get_executable("OTTM_SCM_PATH")
-        self.java_path = self.__get_executable("OTTM_JAVA_PATH")
-        self.php_path = self.__get_executable("OTTM_PHP_PATH")
+        if self.language.lower() == "java":
+            self.java_path = self.__get_executable("OTTM_JAVA_PATH")
+        elif self.language.lower() == "php":
+            self.php_path = self.__get_executable("OTTM_PHP_PATH")
         
         self.target_database = self.__get_required_value("OTTM_TARGET_DATABASE")
 
@@ -55,8 +59,6 @@ class Configuration:
 
         self.include_folders = self.__get_path_list("OTTM_INCLUDE_FOLDERS")
         self.exclude_folders = self.__get_path_list("OTTM_EXCLUDE_FOLDERS")
-
-        self.language = os.getenv("OTTM_LANGUAGE", "")
 
         self.exclude_versions = self.__get_str_list("OTTM_EXCLUDE_VERSIONS")
         self.include_versions = self.__get_str_list("OTTM_INCLUDE_VERSIONS")
