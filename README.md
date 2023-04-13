@@ -19,7 +19,8 @@ For each release the tool will:
 - Source code on GitHub or GitLab
 - Project releases and issues on GitHub, GitLab, Jira or other
 - To analyse a Java project, have Java >= 8 installed
-- To analyse a PHP project, have PHP >= 5.3.7 installed
+- To analyse a PHP project, have PHP >= 5.3.7 installed  
+    * On Linux: have both packages php-cli and php-xml
 
 ### Setup and use
 
