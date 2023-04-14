@@ -1,5 +1,4 @@
 import logging
-import sys
 
 from dependency_injector import providers
 from dependency_injector.wiring import Provide, inject
@@ -38,7 +37,7 @@ class MlFactory:
             )
         else:
             logging.error(f"Unknown ml model: {model_name}")
-            sys.exit('Unknown ml model')
+            raise Exception('Unknown ml model')
 
     @staticmethod
     @inject

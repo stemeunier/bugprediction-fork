@@ -396,6 +396,7 @@ if __name__ == '__main__':
             __name__,
             "utils.gitfactory",
             "utils.mlfactory",
+            "utils.metricfactory"
         ])
 
         configure_logging()
