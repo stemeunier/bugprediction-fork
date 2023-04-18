@@ -81,6 +81,20 @@ class GitConnector(ABC):
         commits = []
         for git_commit in git_commits:
             if git_commit.committer.name not in self.configuration.exclude_authors:
+
+                # Fix issue #35 https://github.com/optittm/bugprediction/issues/35
+                try:
+                    dmm_unit_size = git_commit.dmm_unit_size
+                    dmm_unit_complexity = git_commit.dmm_unit_complexity
+                    dmm_unit_interfacing = git_commit.dmm_unit_interfacing
+                except ValueError:
+                    logging.warning(
+                        f"Cannot compute DMM metrics for commit {git_commit.hash}, skipping. Issue is probably from a submodule commit"
+                    )
+                    dmm_unit_size = None
+                    dmm_unit_complexity = None
+                    dmm_unit_interfacing = None
+                
                 commits.append(
                     Commit(
                         project_id=self.project_id,
@@ -92,9 +106,9 @@ class GitConnector(ABC):
                         deletions=git_commit.deletions,
                         lines=git_commit.lines,
                         files=git_commit.files,
-                        dmm_unit_size=git_commit.dmm_unit_size,
-                        dmm_unit_complexity=git_commit.dmm_unit_complexity,
-                        dmm_unit_interfacing=git_commit.dmm_unit_interfacing
+                        dmm_unit_size=dmm_unit_size,
+                        dmm_unit_complexity=dmm_unit_complexity,
+                        dmm_unit_interfacing=dmm_unit_interfacing
                     )
                 )
             

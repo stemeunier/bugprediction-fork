@@ -82,24 +82,29 @@ class LegacyConnector:
 
         modified_legacy_files = []
 
-        for modified_file in commit_details.modified_files:
+        try:
+            for modified_file in commit_details.modified_files:
 
-            if modified_file.old_path is None or modified_file.old_path not in files_last_modification:
-                continue
+                if modified_file.old_path is None or modified_file.old_path not in files_last_modification:
+                    continue
 
-            last_modification_date = files_last_modification[modified_file.old_path]
+                last_modification_date = files_last_modification[modified_file.old_path]
 
-            if commit_details.committer_date - last_modification_date < legacy_time_delta:
-                continue
+                if commit_details.committer_date - last_modification_date < legacy_time_delta:
+                    continue
 
-            if modified_file.new_path is None:
-                continue
+                if modified_file.new_path is None:
+                    continue
 
-            modified_legacy_files.append({
-                "old_path": modified_file.old_path,
-                "new_path": modified_file.new_path,
-                "filename": modified_file.filename,
-            })
+                modified_legacy_files.append({
+                    "old_path": modified_file.old_path,
+                    "new_path": modified_file.new_path,
+                    "filename": modified_file.filename,
+                })
+        except ValueError:
+            logging.warning(
+                f"Cannot retrieve modified legacy files for commit {commit_details.hash}, skipping. Issue is probably from a submodule commit"
+            )
 
         return modified_legacy_files
 
@@ -122,10 +127,15 @@ class LegacyConnector:
         
         new_files_last_modification = copy.deepcopy(files_last_modification)
 
-        for modified_file in commit_details.modified_files:
-            new_files_last_modification.pop(modified_file.old_path, None)
-            new_files_last_modification[modified_file.new_path] = commit_details.committer_date
-
+        try:
+            for modified_file in commit_details.modified_files:
+                new_files_last_modification.pop(modified_file.old_path, None)
+                new_files_last_modification[modified_file.new_path] = commit_details.committer_date
+        except ValueError:
+            logging.warning(
+                f"Cannot retrieve modified legacy files for commit {commit_details.hash}, skipping. Issue is probably from a submodule commit"
+            )
+        
         return new_files_last_modification
 
     def __save_legacy_files(self, legacy_files: List[str], version_id: int):

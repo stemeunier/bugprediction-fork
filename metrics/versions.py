@@ -90,24 +90,32 @@ def compute_version_metrics(session, repo_dir:str, project_id:int):
             logging.info("Churn already done for this version")
         else :
             logging.info("Counting churn between " + from_commit + " and " + version.tag)
-            metric = CodeChurn(path_to_repo=repo_dir,
-                            from_commit=from_commit,
-                            to_commit=version.tag)
-            files_count = metric.count()
-            files_avg = metric.avg()
-            files_max = metric.max()
-            churn_count = 0
-            for file_count in files_count.values():
-                churn_count += abs(file_count)
+            try:
+                metric = CodeChurn(path_to_repo=repo_dir,
+                                from_commit=from_commit,
+                                to_commit=version.tag)
+                files_count = metric.count()
+                files_avg = metric.avg()
+                files_max = metric.max()
+                churn_count = 0
+                for file_count in files_count.values():
+                    churn_count += abs(file_count)
 
-            if files_avg:
-                churn_avg = abs(mt.Math.get_rounded_mean_safe(list(files_avg.values())))
-            else:
+                if files_avg:
+                    churn_avg = abs(mt.Math.get_rounded_mean(list(files_avg.values())))
+                else:
+                    churn_avg = 0
+
+                if files_max:
+                    churn_max = max(list(files_max.values()))
+                else:
+                    churn_max = 0
+            except ValueError:
+                logging.warning(
+                    f"Cannot compute churn for version {version.tag}, skipping. Issue is probably from a submodule commit"
+                )
+                churn_count = 0
                 churn_avg = 0
-
-            if files_max:
-                churn_max = max(list(files_max.values()))
-            else:
                 churn_max = 0
 
             logging.info('Churn count: ' + str(churn_count) + ' / Churn avg: ' + str(churn_avg) + ' / Churn max: ' + str(churn_max))

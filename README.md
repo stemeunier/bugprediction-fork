@@ -135,6 +135,8 @@ Copy the token and paste it next to ```OTTM_JIRA_TOKEN``` in the .env file.
 
 The tool currently doesn't support repositories with multiple releases in parallel (i.e. a latest version maintained in parallel of a LTS version). You have to [import](./docs/import.md) the branch of versions that you want to examine.
 
+Git's submodules cause issues within PyDriller when traversing commits and calculating metrics. Therefore BugPrediction is just skipping them. If you use submodules, BugPrediction's analysis may be erroneous.
+
 Linking issues and commits to a version is a tedious task. At this stage, the tool roughly estimate that issues and commits are linked to a version if the objects were created between the start and end dates of the version. 
 
 ## Contribute
