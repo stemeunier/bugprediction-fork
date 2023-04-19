@@ -37,7 +37,8 @@ class CustomAstChecker(BaseChecker):
     def __init__(self, linter: "CustomLinter" = None) -> None:
         super().__init__(linter)
         self.data = linter.metrics
-    
+
+
     # Method call on class def visit
     def visit_classdef(self, node : astroid.ClassDef) -> None:
         """
@@ -56,7 +57,7 @@ class CustomAstChecker(BaseChecker):
         self.count_docstring(node)
 
         self.data.noc += 1
-
+        
         # Check if this node is a inner class
         context = node.frame()
         if not isinstance(context.parent, astroid.Module):
@@ -375,7 +376,7 @@ class CustomAstChecker(BaseChecker):
         Returns:
         None
         """
-        if node.doc_node:
+        if node.doc:
             self.data.num_docstring += 1
 
     # Compute the DIT for a simple class

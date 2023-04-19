@@ -65,6 +65,26 @@ class TestRadonConnector(unittest.TestCase):
     def test_is_python_file_false(self):
         result = is_python_file("example.txt")
         self.assertFalse(result)
+    
+    
+    def test_calcule_wmc_metric_with_class_metrics(self):
+        cc_metrics = [Class('class_name', 1, 0, 11, [Function('function_name', 1, 1, 10, True, "class_name", [], 5)], [], 6)]
+        self.radon_connector._RadonConnector__calcule_wmc_metric(cc_metrics)
+        self.assertEqual(self.radon_connector.wmc, [5])
 
+    def test_calcule_wmc_metric_with_multiple_classes(self):
+        cc_metrics = [
+            Class('class_name1', 1, 0, 11, [Function('function_name1', 1, 1, 10, True, "class_name1", [], 5)], [], 6),
+            Class('class_name2', 1, 0, 11, [Function('function_name2', 1, 1, 10, True, "class_name2", [], 10),
+                                            Function('function_name3', 1, 1, 10, True, "class_name2", [], 5)], [], 6)
+        ]
+        self.radon_connector._RadonConnector__calcule_wmc_metric(cc_metrics)
+        self.assertEqual(self.radon_connector.wmc, [5, 7.5])
+
+    def test_calcule_wmc_metric_with_no_methods(self):
+        cc_metrics = [Class('class_name', 1, 0, 11, [], [], 6)]
+        self.radon_connector._RadonConnector__calcule_wmc_metric(cc_metrics)
+        self.assertEqual(self.radon_connector.wmc, [0])
+            
 if __name__ == '__main__':
     unittest.main()

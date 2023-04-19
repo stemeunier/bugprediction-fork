@@ -132,6 +132,8 @@ class Metric(Base):
     radon_method_loc_avg = Column(Float)
     radon_func_loc_total = Column(Integer)
     radon_func_loc_avg = Column(Float)
+    radon_wmc_total = Column(Integer)
+    radon_wmc_avg = Column(Float)
 
     # pylint
     pylint_cbo = Column(Float)
