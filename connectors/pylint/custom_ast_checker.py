@@ -1,6 +1,7 @@
 import astroid
 from astroid.exceptions import InferenceError
 from pylint.checkers import BaseChecker
+from pylint import interfaces
 from connectors.pylint.custom_linter import CustomLinter
 from utils.math import Math
 
@@ -21,6 +22,9 @@ class CustomAstChecker(BaseChecker):
         class_method_calls (dict): A dictionary containing the call information of each method in a class.
     """
 
+    # In python 3.8 implements the astroidChecker interface
+    __implements__ = interfaces.IAstroidChecker
+
     # These properties have to be defined
     # or the linter fink is a malformed checker
     name = 'class-visitor'
@@ -37,7 +41,6 @@ class CustomAstChecker(BaseChecker):
     def __init__(self, linter: "CustomLinter" = None) -> None:
         super().__init__(linter)
         self.data = linter.metrics
-
 
     # Method call on class def visit
     def visit_classdef(self, node : astroid.ClassDef) -> None:

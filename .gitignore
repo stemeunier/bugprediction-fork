@@ -27,3 +27,4 @@ coverage.xml
 
 # virtual env
 venv
+.venv
