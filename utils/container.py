@@ -19,6 +19,7 @@ from importers.flatfile import FlatFileImporter
 from exporters.html import HtmlExporter
 from exporters.flatfile import FlatFileExporter
 from connectors.pdepend import PDependConnector
+from metrics.metric_common import MetricCommon
 
 class Container(containers.DeclarativeContainer):
     load_dotenv()
@@ -93,6 +94,10 @@ class Container(containers.DeclarativeContainer):
 
     ml_factory_provider = providers.AbstractFactory(
         ml
+    )
+
+    metric_factory_provider = providers.AbstractFactory(
+        MetricCommon
     )
 
     html_exporter_provider = providers.Singleton(

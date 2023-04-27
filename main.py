@@ -27,6 +27,7 @@ from models.model import Model
 from models.database import setup_database
 from connectors.git import GitConnector
 from connectors.glpi import GlpiConnector
+from utils.metricfactory import MetricFactory
 from utils.mlfactory import MlFactory
 from utils.database import get_included_and_current_versions_filter
 from utils.dirs import TmpDirCopyFilteredWithEnv
@@ -142,6 +143,7 @@ def report(ctx, output, report_name,
            ml_html_exporter_provider = Provide[Container.ml_html_exporter_provider.provider]):
     """Create a basic HTML report"""
     MlFactory.create_predicting_ml_model(project.project_id)
+    MetricFactory.create_metrics()
     exporter = html_exporter_provider(output)
     os.makedirs(output, exist_ok=True)
     if report_name == "churn":
@@ -176,6 +178,7 @@ def import_file(ctx, target_table, file_path, overwrite,
 def train(ctx, model_name, ml_factory_provider = Provide[Container.ml_factory_provider.provider]):
     """Train a model"""
     MlFactory.create_training_ml_model(model_name)
+    MetricFactory.create_metrics()
     model = ml_factory_provider(project.project_id)
     model.train()
     click.echo("Model was trained")
@@ -187,6 +190,7 @@ def train(ctx, model_name, ml_factory_provider = Provide[Container.ml_factory_pr
 def predict(ctx, model_name, ml_factory_provider = Provide[Container.ml_factory_provider.provider]):
     """Predict next value with a trained model"""
     MlFactory.create_training_ml_model(model_name)
+    MetricFactory.create_metrics()
     model = ml_factory_provider(project.project_id)
     value = model.predict()
     click.echo("Predicted value : " + str(value))

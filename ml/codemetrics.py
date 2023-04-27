@@ -6,12 +6,12 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sqlalchemy.orm import defer
+from dependency_injector.wiring import Provide, inject
 
 from ml.ml import ml
 from utils.timeit import timeit
 from xgboost import XGBRegressor
-
-from utils.metricfactory import MetricFactory
+from utils.container import Container
 
 
 class CodeMetrics(ml):
@@ -20,12 +20,13 @@ class CodeMetrics(ml):
         self.name = "codemetrics"
 
     @timeit
-    def train(self):
+    @inject
+    def train(self, metrics = Provide[Container.metric_factory_provider]):
         """Train the model"""
 
-        versions_metrics_statement = MetricFactory.get_metrics_query(self.project_id, "train").statement
+        metrics = metrics.get_train_metrics(self.project_id)
 
-        dataframe = pd.read_sql(versions_metrics_statement, self.session.get_bind())
+        dataframe = metrics.metrics_df
         dataframe = dataframe.dropna(axis=1, how='any')
         X = dataframe.drop('bugs', axis=1)
         y = dataframe[['bugs']].values.ravel()
@@ -50,13 +51,13 @@ class CodeMetrics(ml):
         self.store()
 
     @timeit
-    def predict(self) -> int:
+    def predict(self, metrics = Provide[Container.metric_factory_provider]) -> int:
         """Predict the next value"""
         logging.info("CodeMetrics::predict")
         self.restore()  # unpickle the model
-        versions_metrics_statement = MetricFactory.get_metrics_query(self.project_id, "predict").statement
+        metrics = metrics.get_predict_metrics(self.project_id)
 
-        dataframe = pd.read_sql(versions_metrics_statement, self.session.get_bind())
+        dataframe = metrics.metrics_df
         dataframe = dataframe.iloc[0]
 
         prediction_dataframe = self.model.predict(dataframe)
