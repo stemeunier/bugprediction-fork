@@ -41,17 +41,26 @@
                                 <ul class="list-group list-group-flush">
                                     <li class="list-group-item">
                                         <b>Issues</b> (so far): {{ current_release.Version.bugs }}<br />
-
-                                        {% if current_release.Version.bugs > bugs_median | int %}
-                                            <span>&#x25B2; {{ (bugs_median - current_release.Version.bugs) | int }}</span>
-                                        {% elif current_release.Version.bugs < bugs_median %}
-                                            <span>&#x25BC; {{ (current_release.Version.bugs - bugs_median) | int }}</span>
+                                        {% if not model_train %}
+                                            <span> No Model trained </span>
                                         {% else %}
-                                            <span>&#x003D; {{ (bugs_median - current_release.Version.bugs) | int }}</span> 
+                                            {% if current_release.Version.bugs > bugs_median | int %}
+                                                <span>&#x25B2; Median sup: {{ (bugs_median - current_release.Version.bugs) | int }}</span>
+                                            {% elif current_release.Version.bugs < bugs_median %}
+                                                <span>&#x25BC; Median inf: {{ (current_release.Version.bugs - bugs_median) | int }}</span>
+                                            {% else %}
+                                                <span>&#x003D; median egale:{{ (bugs_median - current_release.Version.bugs) | int }}</span> 
+                                            {% endif %}
                                         {% endif %}
                                     </li>
                                     <li class="list-group-item">
-                                        {% if predicted_bugs > -1 %}
+                                        {% if predicted_bugs == None %}
+                                            Predicted bugs: 
+                                            <span style="color: red;">
+                                                <strong>NO TRAINED MODEL</strong>
+                                            </span>
+                                        
+                                        {% elif predicted_bugs > -1 %}
                                             Predicted bugs: {{ predicted_bugs }} ({{ model_name }})
                                         {% endif %}
                                     </li>
@@ -154,7 +163,12 @@
                 </div>
             </div>
 
-            <div class="col-6">
+            <div class="col-6 text-center">
+                {% if predicted_bugs == None %}
+                    <span style="color: red;">
+                        <strong>NO TRAINED MODEL : predicted bugs are not taken into account in the risk rating </strong>
+                    </span>
+                {% endif %}
                 <div>{{ graph_risk | safe }}</div>
             </div>
 
@@ -164,6 +178,9 @@
             <h2>Last 3 versions</h2>
             <div class="col-4">
                 <h4>Number of Bugs</h4>
+                {% if model_train == False %}
+                    <h4> No Model trained </h4>
+                {% endif %}
                 {{ graph_bugs | safe }}
             </div>
             <div class="col-4">

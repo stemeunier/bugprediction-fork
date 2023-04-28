@@ -60,6 +60,10 @@ class BugVelocity(ml):
             filter(Version.name == self.configuration.next_version_name).scalar()
         d = {'bug_velocity': [bug_velocity]}
         X_test = pd.DataFrame(data=d)
-        prediction_df = self.model.predict(X_test)
-        value = round(prediction_df[0])
-        return value
+        if self.model is None :
+            logging.warning("No trained model found for the given project.")
+            return None
+        else : 
+            prediction_df = self.model.predict(X_test)
+            value = round(prediction_df[0])
+            return value
