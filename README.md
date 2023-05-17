@@ -104,6 +104,14 @@ One of the features of the report is to assess the risk of releasing the next ve
 
 See the [list of commands](./docs/commands.md) for other options.
 
+## Connecting with Survey
+
+BugPrediction can be connected with our [Survey tool](https://github.com/optittm/survey-back-api) to retrieve user feedback and add it to the database. To do so, you need to start the Survey API server and add the following environment variables to the .env file:    
+```SURVEY_BACK_API_URL```  
+```SURVEY_PROJECT_NAME```  
+
+Make sure to replace with the URL of the Survey server and with the name of the Survey project, if you want to get the user reviews of all the projects then leave the project name empty.
+
 ## How to get your tokens
 
 These tokens allow Bugprediction to call the apps' APIs and retrieve necessary data. Here's how to get each one of them.

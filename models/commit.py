@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
-from sqlalchemy.orm import relationship, backref
 from models.database import Base
 
 
@@ -44,9 +43,11 @@ class Commit(Base):
     date = Column(DateTime)
     message = Column(String)
     insertions = Column(Integer)
+    
     deletions = Column(Integer)
     lines = Column(Integer)
     files = Column(Integer)
     dmm_unit_size = Column(Float)
     dmm_unit_complexity = Column(Float)
     dmm_unit_interfacing = Column(Float)
+    

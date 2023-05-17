@@ -274,8 +274,11 @@ def populate(ctx, skip_versions,
              legacy_connector_provider = Provide[Container.legacy_connector_provider.provider],
              codemaat_connector_provider = Provide[Container.codemaat_connector_provider.provider],
              pdepend_connector_provider = Provide[Container.pdepend_connector_provider.provider],
-             radon_connector_provider = Provide[Container.radon_connector_provider.provider]):
+             radon_connector_provider = Provide[Container.radon_connector_provider.provider],
+             survey_connector_provider = Provide[Container.survey_connector_provider.provider]):
     """Populate the database with the provided configuration"""
+
+    
 
     # Checkout, execute the tool and inject CSV result into the database
     # with tempfile.TemporaryDirectory() as tmp_dir:
@@ -299,6 +302,8 @@ def populate(ctx, skip_versions,
             # if we use code maat git.setup_aliases(configuration.author_alias)
     
     git.populate_db(skip_versions)
+    survey = survey_connector_provider()
+    survey.populate_comments()
 
     # List the versions and checkout each one of them
     versions = session.query(Version).filter(Version.project_id == project.project_id).all()
