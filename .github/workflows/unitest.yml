@@ -10,4 +10,4 @@ on:
       - devel
 jobs:
   call-workflow:
-    uses: optittm/common/.github/workflows/unitest.yml@main
+    uses: optittm/common-ci/.github/workflows/unitest.yml@main
