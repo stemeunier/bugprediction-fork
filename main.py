@@ -312,6 +312,7 @@ def populate(ctx, skip_versions,
 
     # List the versions and checkout each one of them
     versions = session.query(Version).filter(Version.project_id == project.project_id).all()
+    legacy = legacy_connector_provider(project.project_id, repo_dir)
     for version in versions:
         process = subprocess.run([configuration.scm_path, "checkout", version.tag],
                                 stdout=subprocess.PIPE,
@@ -321,7 +322,6 @@ def populate(ctx, skip_versions,
         with TmpDirCopyFilteredWithEnv(repo_dir, configuration.include_folders, 
                                        configuration.exclude_folders) as tmp_work_dir:
 
-            legacy = legacy_connector_provider(project.project_id, repo_dir, version)
             legacy.get_legacy_files(version)
 
             # Get statistics from git log with codemaat

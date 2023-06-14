@@ -14,9 +14,8 @@ from utils.database import save_file_if_not_found
 
 class LegacyConnector:
 
-    def __init__(self, project_id, directory, version, session, config):
+    def __init__(self, project_id, directory, session, config):
         self.session = session
-        self.version = version
         self.project_id = project_id
         self.configuration = config
 
@@ -32,12 +31,12 @@ class LegacyConnector:
         return project_first_commit.date
 
     def get_legacy_files(self, version: Version):
-        metric = self.session.query(Metric).filter(Metric.version_id == self.version.version_id).first()
+        metric = self.session.query(Metric).filter(Metric.version_id == version.version_id).first()
         if metric and metric.nb_legacy_files:
             logging.info('Legacy analysis already done for this version')
         else:
             
-            logging.info("Getting modified legacy files for version %s", version.name)
+            logging.info("Getting modified legacy files for version '%s'", version.name)
             modified_legacy_files = {}
 
             commits: List[Commit] = self.session.query(Commit).filter(Commit.project_id == self.project_id) \
