@@ -1,0 +1,41 @@
+name: Generate report
+on: workflow_dispatch
+jobs:
+  container-test-job:
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.10-slim
+    steps:	
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |			
+          apt-get -y update
+          apt-get install -y git openjdk-17-jre php-cli php-xml
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi  
+      - name: Copy env file
+        run: |
+          cp ./data/.env_jpeek ./.env
+      - name: Generate report and export
+        env:
+          OTTM_SCM_TOKEN: ${{ secrets.TOKENSECRET }}
+        run: |
+          python main.py info
+          # python main.py populate
+          python main.py train --model-name bugvelocity
+          python main.py predict --model-name bugvelocity
+          python main.py report --output ./data
+          python main.py export --output ./data/export --format csv
+          ls -alRt ./data/
+      - name: Upload report
+        uses: actions/upload-artifact@v3
+        with:
+          name: report
+          path: ./data/release.html
+          retention-days: 8
+      - name: Upload export 
+        uses: actions/upload-artifact@v3
+        with:
+          name: export-csv
+          path: ./data/export/metrics.csv
+          retention-days: 8
