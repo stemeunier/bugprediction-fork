@@ -1,0 +1,71 @@
+# Log level can be CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET
+OTTM_LOG_LEVEL=INFO
+OTTM_CODE_MAAT_PATH=./ext-tools/code-maat-1.0.2.jar
+OTTM_CODE_CK_PATH=./ext-tools/ck-0.7.1.jar
+OTTM_CODE_JPEEK_PATH=./ext-tools/jpeek-0.30.25.jar
+OTTM_CODE_PDEPEND_PATH=./ext-tools/pdepend.phar
+# Path to git executable
+OTTM_SCM_PATH=git
+# Path to java executable (for Java projects)
+OTTM_JAVA_PATH=java
+# Path to php executable (for PHP projects)
+OTTM_PHP_PATH=php
+
+OTTM_SOURCE_PROJECT=jpeek
+OTTM_SOURCE_REPO=cqfn/jpeek
+# Can be for example "git", "jira", "glpi", "jira,git"...
+OTTM_SOURCE_BUGS=
+# The branch containing the next release (used to predict)
+OTTM_CURRENT_BRANCH=master
+# The full path to repo
+OTTM_SOURCE_REPO_URL=https://github.com/cqfn/jpeek
+# Either "github" or "gitlab", other SCM are not yet supported
+OTTM_SOURCE_REPO_SCM=github
+# SCM base URL - leave empty for public repo
+OTTM_SCM_BASE_URL=
+# Token to access github or gitlab
+OTTM_SCM_TOKEN=
+# Jira base URL
+OTTM_JIRA_BASE_URL=
+# Jira project
+OTTM_JIRA_PROJECT=
+# Jira email address
+OTTM_JIRA_EMAIL=
+# Token to access jira
+OTTM_JIRA_TOKEN=
+# Issue type filters for jira issues, comma separated
+OTTM_JIRA_ISSUE_TYPE=
+OTTM_TARGET_DATABASE=sqlite:///data/${OTTM_SOURCE_PROJECT}.sqlite3
+# GLPI Configuration
+OTTM_GLPI_CATEGORIES=
+OTTM_GLPI_BASE_URL=
+OTTM_GLPI_APP_TOKEN=
+OTTM_GLPI_USER_TOKEN=
+OTTM_GLPI_USERNAME=
+OTTM_GLPI_PASSWORD=
+# Optional: issue labels to be included
+OTTM_ISSUE_TAGS=
+OTTM_EXCLUDE_ISSUERS=bot,dependabot[bot],synk,gitter-badger
+OTTM_EXCLUDE_VERSIONS=
+OTTM_INCLUDE_VERSIONS=
+OTTM_EXCLUDE_FOLDERS=
+OTTM_INCLUDE_FOLDERS=src/main/java/org/jpeek/
+# Language can be Java, PHP or Python
+OTTM_LANGUAGE=Java
+OTTM_AUTHOR_ALIAS={"bbalet":["Benjamin BALET", "GitHub"]}
+OTTM_EXCLUDE_AUTHORS=GitHub
+# Folder where to export reports and DB exports
+OTTM_OUTPUT_FOLDER=data/export
+# Flat file output format (CSV, Parquet)
+OTTM_OUTPUT_FORMAT=
+# Comma separated list of words that are insignificant in commit messages
+OTTM_COMMIT_BAD_MSG=fix,ok,commit,test,change,reorg,clean,doc,refresh
+# The files modified in the first LEGACY_PERCENT percentage of the project are considered as legacy
+OTTM_LEGACY_PERCENT=20
+# The number of seconds to wait after a failed API call due to a limit of calls exceeded
+OTTM_RETRY_DELAY=3600
+
+# The url for survey api
+SURVEY_BACK_API_URL="http://localhost:8000/api/v1"
+# The name of the project for Survey API
+SURVEY_PROJECT_NAME=
