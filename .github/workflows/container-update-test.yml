@@ -16,6 +16,7 @@ jobs:
       - name: Copy env file
         run: |
           cp ./data/.env_jpeek ./.env
+          cat .env
       - name: Generate report and export
         env:
           OTTM_SCM_TOKEN: ${{ secrets.TOKENSECRET }}
