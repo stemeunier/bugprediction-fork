@@ -16,24 +16,34 @@ jobs:
       - name: Copy env file
         run: |
           cp ./data/.env_jpeek ./.env
-          cat .env
-      - name: Generate report and export
-        env:
-          OTTM_SCM_TOKEN: ${{ secrets.TOKENSECRET }}
+      - name: Info
         run: |
           python main.py info
-          # python main.py populate
+      - name: Populate
+        env:
+          OTTM_SCM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ls -l ./data/*.sqlite3
+          python main.py populate
+          ls -l ./data/*.sqlite3
+      - name: Train bugvelocity
+        run: |
           python main.py train --model-name bugvelocity
+      - name: Predict bugvelocity
+        run: |          
           python main.py predict --model-name bugvelocity
+      - name: Generate report
+        run: |          
           python main.py report --output ./data
-          python main.py export --output ./data/export --format csv
-          ls -alRt ./data/
       - name: Upload report
         uses: actions/upload-artifact@v3
         with:
           name: report
           path: ./data/release.html
-          retention-days: 8
+          retention-days: 8          
+      - name: Generate export
+        run: |          
+          python main.py export --output ./data/export --format csv        
       - name: Upload export 
         uses: actions/upload-artifact@v3
         with:
