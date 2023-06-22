@@ -9,15 +9,20 @@ jobs:
       image: python:3.10-slim
     steps:
       - name: Install dependencies
-        run: |			
+        run: |
           apt-get -y update
           apt-get install -y git
       - uses: actions/checkout@v3
-      - run: |
-          date > generated.txt
-          git config --global user.name "stemeunier"
-          git config --global user.email "stemeunier@gmail.fr"
+      - name: Copy env file
+        run: |
+          cp ./data/.env_jpeek ./.env
+      - name: Update base sqlite3
+        run: |          
+          date > ./data/new.sqlite3
+          echo "BASE" >> ./data/new.sqlite3
+          #git config --global user.name "stemeunier"
+          #git config --global user.email "stemeunier@gmail.fr"
           git config --global --add safe.directory '*'
-          git add .
-          git commit -m "generated"
+          git add ./data/*.sqlite3
+          git commit -m "Update base sqlite3"
           git push
