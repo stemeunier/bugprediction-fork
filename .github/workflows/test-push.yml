@@ -17,6 +17,7 @@ jobs:
           date > generated.txt
           git config --global user.name "stemeunier"
           git config --global user.email "stemeunier@gmail.fr"
+          git config --global --add safe.directory '*'
           git add .
           git commit -m "generated"
           git push
