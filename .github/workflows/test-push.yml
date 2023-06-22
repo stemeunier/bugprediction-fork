@@ -1,5 +1,7 @@
 name: Test push
 on: workflow_dispatch
+permissions:
+  contents: write
 jobs:
   test-push:
     runs-on: ubuntu-latest
