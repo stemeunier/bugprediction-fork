@@ -26,10 +26,12 @@ jobs:
           python main.py populate
       - name: Update base sqlite3
         run: |          
-          date > ./data/new.sqlite3
+          date >> ./data/new.sqlite3
+          echo "BASE" >> ./data/new.sqlite3
           git config --global user.name "stemeunier"
           git config --global user.email "stemeunier@gmail.fr"
-          git add ./data/*.sqlite3
+          git config --global --add safe.directory '*'
+          git add -f ./data/*.sqlite3
           git commit -m "Update base sqlite3"
           git push
       - name: Train bugvelocity
