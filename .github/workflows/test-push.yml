@@ -3,8 +3,10 @@ on: workflow_dispatch
 permissions:
   contents: write
 jobs:
-  test-push:
+  container-test-job:
     runs-on: ubuntu-latest
+    container:
+      image: python:3.10-slim
     steps:
       - uses: actions/checkout@v3
       - run: |
