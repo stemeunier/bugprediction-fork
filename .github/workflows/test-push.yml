@@ -1,0 +1,14 @@
+name: Test push
+on: workflow_dispatch
+jobs:
+  test-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          date > generated.txt
+          git config --global user.name "stemeunier"
+          git config --global user.email "stemeunier@gmail.fr"
+          git add .
+          git commit -m "generated"
+          git push
