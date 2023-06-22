@@ -18,7 +18,7 @@ jobs:
           cp ./data/.env_jpeek ./.env
       - name: Update base sqlite3
         run: |          
-          date > ./data/new.sqlite3
+          date >> ./data/new.sqlite3
           echo "BASE" >> ./data/new.sqlite3
           git config --global user.name "stemeunier"
           git config --global user.email "stemeunier@gmail.fr"
