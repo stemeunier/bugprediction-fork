@@ -23,6 +23,6 @@ jobs:
           #git config --global user.name "stemeunier"
           #git config --global user.email "stemeunier@gmail.fr"
           git config --global --add safe.directory '*'
-          git add ./data/*.sqlite3
+          git add -f ./data/*.sqlite3
           git commit -m "Update base sqlite3"
           git push
