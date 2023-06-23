@@ -25,15 +25,13 @@ jobs:
           python main.py info
       - name: Populate
         env:
-          OTTM_SCM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OTTM_SCM_TOKEN: ${{ GITHUB.TOKEN }}
         run: |
           python main.py populate
       - name: Update base sqlite3
         run: |          
-          date >> ./data/new.sqlite3
-          echo "BASE" >> ./data/new.sqlite3
-          git config --global user.name "stemeunier"
-          git config --global user.email "stemeunier@gmail.fr"
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           git config --global --add safe.directory '*'
           git add -f ./data/*.sqlite3
           git commit -m "Update base sqlite3"
