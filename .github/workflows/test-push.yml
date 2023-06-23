@@ -13,16 +13,9 @@ jobs:
           apt-get -y update
           apt-get install -y git
       - uses: actions/checkout@v3
-      - name: Copy env file
+      - name: GITHUB_CONTEXT
         run: |
-          cp ./data/.env_jpeek ./.env
-      - name: Update base sqlite3
+          echo "${GITHUB_CONTEXT}"
+      - name: Actor
         run: |          
-          date >> ./data/new.sqlite3
-          echo "BASE" >> ./data/new.sqlite3
-          git config --global user.name "stemeunier"
-          git config --global user.email "stemeunier@gmail.fr"
-          git config --global --add safe.directory '*'
-          git add -f ./data/*.sqlite3
-          git commit -m "Update base sqlite3"
-          git push
+          echo ${{ github.actor }}
