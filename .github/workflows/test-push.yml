@@ -14,10 +14,13 @@ jobs:
           apt-get install -y git
       - uses: actions/checkout@v3
       - name: Actor
-        run: |          
+        run: |
+          echo ${{ github.token }}
           echo ${{ github.actor }}
-          echo ${github.actor_id}
+          echo ${{ github.actor_id }}
           echo ${GITHUB_ACTOR}
+          echo ${GITHUB_ACTOR_ID}
+          echo ${GITHUB_TOKEN}
       - name: Git config
         run: |          
           git config --global -l
