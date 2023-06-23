@@ -5,7 +5,7 @@ on:
     inputs:
       name:
         type: choice
-        description: Projet
+        description: 'Projet'
         options: 
         - jpeek
         - other
@@ -13,9 +13,10 @@ on:
         required: true
       use-emoji:
         type: boolean
-        description: Include  emojis
+        description: 'Include  emojis'
       environment:
         type: environment
+        description: 'Environment to run tests against'
         options: 
         - PROD
         - DEV
