@@ -13,12 +13,11 @@ jobs:
           apt-get -y update
           apt-get install -y git
       - uses: actions/checkout@v3
-      - name: GITHUB_CONTEXT
-        run: |
-          echo "$GITHUB_CONTEXT"
       - name: Actor
         run: |          
           echo ${{ github.actor }}
+          echo ${github.actor_id}
+          echo ${GITHUB_ACTOR}
       - name: Git config
         run: |          
           git config --global -l
