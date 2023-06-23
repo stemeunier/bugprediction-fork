@@ -18,9 +18,8 @@ jobs:
           echo ${{ github.token }}
           echo ${{ github.actor }}
           echo ${{ github.actor_id }}
-          echo ${GITHUB_ACTOR}
-          echo ${GITHUB_ACTOR_ID}
-          echo ${GITHUB_TOKEN}
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
       - name: Git config
         run: |          
           git config --global -l
