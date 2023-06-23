@@ -16,7 +16,9 @@ on:
         description: Include  emojis
       environment:
         type: environment
-
+        options: 
+        - PROD
+        - DEV
 jobs:
   greet:
     runs-on: ubuntu-latest
