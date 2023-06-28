@@ -1,5 +1,16 @@
 name: Generate report
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      project-name:
+        type: choice
+        description: 'Projet'
+        options: 
+        - jpeek
+        - RxJva
+        - guava
+        - mockito
+        - quarkus
 permissions:
   contents: write
 jobs:
@@ -19,7 +30,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi  
       - name: Copy env file
         run: |
-          cp ./data/.env_jpeek ./.env
+          cp ./data/.env-${{ github.event.inputs.name }} ./.env
       - name: Info
         run: |
           python main.py info
