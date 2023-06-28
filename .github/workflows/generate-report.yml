@@ -14,11 +14,11 @@ on:
       use-dataset-sqlite:
         type: boolean
         default: 'true'
-        description: 'Use dataset base sqlite'         
+        description: 'Use base sqlite in dataset repo'         
       save-update-sqlite:
         type: boolean
         default: 'false'
-        description: 'Push update base sqlite'        
+        description: 'Push update base sqlite after populate'        
 permissions:
   contents: write
 jobs:
