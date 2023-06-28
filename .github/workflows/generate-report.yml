@@ -28,9 +28,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi  
-      - name: Copy env file
+      - name: Get env file in dataset
+        env: 
+          PROJECT: ${{ github.event.inputs.project-name }}
         run: |
-          cp ./data/.env-${{ github.event.inputs.project-name }} ./.env
+          wget https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/.env
+          cd ./data/
+          wget https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/${PROJECT}.sqlite3
+          # cp ./data/.env-${{ github.event.inputs.project-name }} ./.env
       - name: Info
         run: |
           python main.py info
