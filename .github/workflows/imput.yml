@@ -11,9 +11,10 @@ on:
         - other
       message:
         required: true
-      use-emoji:
+      update-sqlite:
         type: boolean
-        description: 'Include  emojis'
+        default: 'false'
+        description: 'Push Update base sqlite'
       environment:
         type: environment
         description: 'Environment to run tests against'
@@ -26,4 +27,6 @@ jobs:
 
     steps:
     - name: Send greeting
-      run: echo "${{ github.event.inputs.message }} ${{ fromJSON('["", ""]')[github.event.inputs.use-emoji == 'true'] }} ${{ github.event.inputs.name }}"
+      if: ${{ github.event.inputs.update-sqlite == 'true' }}
+      run: echo "${{ github.event.inputs.message }} ${{ github.event.inputs.name }}"
+
