@@ -36,9 +36,9 @@ jobs:
         env: 
           PROJECT: ${{ github.event.inputs.project-name }}
         run: |
-          wget https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/.env
+          wget --backups=0 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/.env
           cd ./data/
-          wget https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/${PROJECT}.sqlite3
+          wget --backups=0 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/${PROJECT}.sqlite3
           # cp ./data/.env-${{ github.event.inputs.project-name }} ./.env
       - name: Info
         run: |
