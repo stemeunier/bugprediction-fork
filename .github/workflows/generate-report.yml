@@ -52,8 +52,6 @@ jobs:
           wget --backups=0 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/${PROJECT}.sqlite3         
       - name: Info
         run: |
-          ls -al ./data/
-          ls -al ./
           python main.py info
       - name: Populate
         env:
