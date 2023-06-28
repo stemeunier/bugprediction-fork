@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get -y update
-          apt-get install -y git openjdk-17-jre php-cli php-xml
+          apt-get install -y wget git openjdk-17-jre php-cli php-xml
       - uses: actions/checkout@v3
       - name: Install pip requirement
         run: |
