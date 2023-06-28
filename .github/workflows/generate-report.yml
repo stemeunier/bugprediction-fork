@@ -7,7 +7,7 @@ on:
         description: 'Project'
         options: 
         - jpeek
-        - RxJva
+        - RxJava
         - guava
         - mockito
         - quarkus
