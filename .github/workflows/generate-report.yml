@@ -11,6 +11,10 @@ on:
         - guava
         - mockito
         - quarkus
+      update-sqlite:
+        type: boolean
+        default: 'false'
+        description: 'Push Update base sqlite'        
 permissions:
   contents: write
 jobs:
@@ -45,6 +49,7 @@ jobs:
         run: |
           python main.py populate
       - name: Update base sqlite3
+        if: ${{ github.event.inputs.update-sqlite == 'true' }}
         run: |          
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
