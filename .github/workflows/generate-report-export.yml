@@ -1,4 +1,4 @@
-name: Generate report
+name: Generate report export
 on:
   workflow_dispatch:
     inputs:
@@ -22,7 +22,7 @@ on:
 permissions:
   contents: write
 jobs:
-  generate-report:
+  generate-report-export:
     runs-on: ubuntu-latest
     container:
       image: python:3.10-slim
