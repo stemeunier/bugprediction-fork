@@ -1,8 +1,6 @@
 name: Create and publish a Docker image
 
 # on: workflow_dispatch
-#  push:
-
 on:
     push:
         branches:
@@ -43,6 +41,6 @@ jobs:
        uses: docker/build-push-action@v4
        with:
          context: .
-        #  push: true
+         push: true
          tags: ${{ steps.meta.outputs.tags }}
          labels: ${{ steps.meta.outputs.labels }}
