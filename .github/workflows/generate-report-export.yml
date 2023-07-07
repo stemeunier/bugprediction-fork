@@ -1,9 +1,28 @@
-name: Generate report
-on: workflow_dispatch
+name: Generate report export
+on:
+  workflow_dispatch:
+    inputs:
+      project-name:
+        type: choice
+        description: 'Project'
+        options: 
+        - jpeek
+        - RxJava
+        - guava
+        - mockito
+        - quarkus
+      use-dataset-sqlite:
+        type: boolean
+        default: 'true'
+        description: 'Use base sqlite in dataset repo'         
+      save-update-sqlite:
+        type: boolean
+        default: 'false'
+        description: 'Push update base sqlite after populate'        
 permissions:
   contents: write
 jobs:
-  container-test-job:
+  generate-report-export:
     runs-on: ubuntu-latest
     container:
       image: python:3.10-slim
@@ -11,15 +30,26 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get -y update
-          apt-get install -y git openjdk-17-jre php-cli php-xml
+          apt-get install -y wget git openjdk-17-jre php-cli php-xml
       - uses: actions/checkout@v3
       - name: Install pip requirement
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi  
-      - name: Copy env file
+      - name: Get env file in repo dataset
+        env: 
+          PROJECT: ${{ github.event.inputs.project-name }}
         run: |
-          cp ./data/.env_jpeek ./.env
+          wget --backups=0 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/.env
+          sed -i 's/^OTTM_TARGET_DATABASE.*/OTTM_TARGET_DATABASE=sqlite:\/\/\/data\/${OTTM_SOURCE_PROJECT}.sqlite3/g' .env
+          # cp ./data/.env-${PROJECT} ./.env
+      - name: Get sqlite in repo dataset
+        env: 
+          PROJECT: ${{ github.event.inputs.project-name }}
+        if: ${{ github.event.inputs.use-dataset-sqlite == 'true' }}
+        run: |  
+          cd ./data/
+          wget --backups=0 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/${PROJECT}.sqlite3         
       - name: Info
         run: |
           python main.py info
@@ -29,11 +59,14 @@ jobs:
         run: |
           python main.py populate
       - name: Update base sqlite3
+        env: 
+          PROJECT: ${{ github.event.inputs.project-name }}
+        if: ${{ github.event.inputs.save-update-sqlite == 'true' }}
         run: |          
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           git config --global --add safe.directory '*'
-          git add -f ./data/*.sqlite3
+          git add -f ./data/${PROJECT}.sqlite3
           git commit -m "Update base sqlite3"
           git push
       - name: Train bugvelocity
