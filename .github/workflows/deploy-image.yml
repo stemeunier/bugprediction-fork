@@ -1,9 +1,15 @@
 name: Create and publish a Docker image
 
-on: workflow_dispatch
+# on: workflow_dispatch
 #  push:
-#    branches:
-#     - 'master'
+
+on:
+    push:
+        branches:
+            - 'master'
+        paths:
+            - Dockerfile
+            - requirements.txt
 
 env:
  REGISTRY: ghcr.io
