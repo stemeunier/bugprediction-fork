@@ -73,6 +73,7 @@ class Configuration:
         
         self.legacy_percent = self.__get_legacy_percent("OTTM_LEGACY_PERCENT")
 
+        self.topsis_corr_method = self.__get_str_list("OTTM_CORR_METHOD")
 
     @staticmethod
     def __get_log_level(env_var):

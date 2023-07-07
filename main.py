@@ -392,32 +392,37 @@ def topsis(
     df = pd.read_sql(metrics_statement, session.get_bind())
 
     # Prepare data for topsis
-    bugs = df['bugs'].to_numpy()
-    bugs = preprocessing.normalize([bugs])
-    bug_velocity = df['bug_velocity'].to_numpy()
-    bug_velocity = preprocessing.normalize([bug_velocity])
-    changes = df['changes'].to_numpy()
-    changes = preprocessing.normalize([changes])
-    avg_team_xp = df['avg_team_xp'].to_numpy()
-    avg_team_xp = preprocessing.normalize([avg_team_xp])
-    lizard_avg_complexity = df['lizard_avg_complexity'].to_numpy()
-    lizard_avg_complexity = preprocessing.normalize([lizard_avg_complexity])
-    code_churn_avg = df['code_churn_avg'].to_numpy()
-    code_churn_avg = preprocessing.normalize([code_churn_avg])
+    alternative_data = {
+        'bug_velocity': preprocessing.normalize([df['bug_velocity'].to_numpy()]),
+        'changes': preprocessing.normalize([df['changes'].to_numpy()]),
+        'avg_team_xp': preprocessing.normalize([df['avg_team_xp'].to_numpy()]),
+        'avg_complexity': preprocessing.normalize([df['lizard_avg_complexity'].to_numpy()]),
+        'code_churn': preprocessing.normalize([df['code_churn_avg'].to_numpy()])
+    }
+    criteria_data = {
+        'bugs': preprocessing.normalize([df['bugs'].to_numpy()])
+    }
+    
+    # Create the decision matrix
+    decision_matrix_builder = mt.Math.DecisionMatrixBuilder()
 
-    # create the decision matrix
-    decision_matrix_builder = mt.Math.DecisionMatrixBuilder()\
-        .add_criteria(bugs, "bugs")\
-        .add_alternative(bug_velocity, "bug_velocity")\
-        .add_alternative(changes, "changes")\
-        .add_alternative(avg_team_xp, "avg_team_xp")\
-        .add_alternative(lizard_avg_complexity, "avg_complexity")\
-        .add_alternative(code_churn_avg, "code_churn")
+    for criterion, data in criteria_data.items():
+        decision_matrix_builder.add_criteria(data, criterion)
+
+    for alternative, data in alternative_data.items():
+        decision_matrix_builder.add_alternative(data, alternative)
+
+    methods = []
+    for method in configuration.topsis_corr_method:
+        methods.append(mt.Math.get_correlation_methods_from_name(method))
+    
+    decision_matrix_builder.set_correlation_methods(methods)
 
     decision_matrix = decision_matrix_builder.build()
+    print(decision_matrix.matrix)
 
     # Compute topsis
-    ts = mt.Math.TOPSIS(decision_matrix, [1], [mt.Math.TOPSIS.MIN])
+    ts = mt.Math.TOPSIS(decision_matrix, [1], [mt.Math.TOPSIS.MAX])
     ts.topsis()
 
     weight = ts.get_closeness()
