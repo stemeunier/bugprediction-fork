@@ -480,7 +480,19 @@ def instanciate_project(config = Provide[Container.configuration],
 
 if __name__ == '__main__':
     try:
-        load_dotenv()
+        PATH_ENV_FILE1 = './.env'
+        PATH_ENV_FILE2 = './data/.env'
+        if os.path.isfile(PATH_ENV_FILE1) and os.access(PATH_ENV_FILE1, os.R_OK):
+            # print("File PATH_ENV_FILE1 exists and is readable")
+            ENV_FILE = PATH_ENV_FILE1
+        elif os.path.isfile(PATH_ENV_FILE2) and os.access(PATH_ENV_FILE2, os.R_OK):
+            # print("File PATH_ENV_FILE2 exists and is readable")
+            ENV_FILE = PATH_ENV_FILE2
+        else:
+            print("Either the file .env is missing or not readable in directory ./ or ./data/ ")
+            exit(2)
+            
+        load_dotenv(ENV_FILE)
 
         container = Container()
         container.init_resources()
