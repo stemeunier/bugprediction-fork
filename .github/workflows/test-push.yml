@@ -35,11 +35,9 @@ jobs:
       - name: Update base sqlite3
         env: 
           PROJECT: ${{ github.event.inputs.project-name }}
+          HOME: ${{ env.IMAGE_HOME_DIR }}
         if: ${{ github.event.inputs.save-update-sqlite == 'true' }}
         run: |
-          pwd
-          cd ${{ env.IMAGE_HOME_DIR }}
-          ls -la 
           git init
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
