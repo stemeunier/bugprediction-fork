@@ -27,10 +27,10 @@ jobs:
     container:
       image: ghcr.io/stemeunier/bugprediction-fork:main
     env:
-        HOME-DIR: /home/optittm-user
+        IMAGE_HOME_DIR: /home/optittm-user
     defaults:
         run:
-           working-directory: ${HOME-DIR}
+           working-directory: ${env.IMAGE_HOME_DIR}
     steps:
       - name: Get env file in repo dataset
         env: 
@@ -77,7 +77,7 @@ jobs:
       - name: Upload report
         uses: actions/upload-artifact@v3      
         with:
-          path: ${HOME-DIR}/data/release.html
+          path: ${env.IMAGE_HOME_DIR}/data/release.html
           name: report
           retention-days: 8          
       - name: Generate export
@@ -86,6 +86,6 @@ jobs:
       - name: Upload export 
         uses: actions/upload-artifact@v3
         with:
-          path: ${HOME-DIR}/data/export/metrics.csv
+          path: ${env.IMAGE_HOME_DIR}/data/export/metrics.csv
           name: export-csv
           retention-days: 8
