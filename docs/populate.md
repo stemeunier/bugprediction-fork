@@ -38,6 +38,7 @@ OTTM_INCLUDE_FOLDERS=src/main/java/org/jpeek/
 OTTM_ISSUE_TAGS=
 OTTM_LANGUAGE=Java
 OTTM_LEGACY_PERCENT=20
+OTTM_LEGACY_MINIMUM_DAYS=365
 ```
 
 See the [list of commands](./commands.md) for other options.

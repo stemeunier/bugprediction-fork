@@ -68,14 +68,13 @@ class LegacyConnector:
     def __legacy_time_delta(self, current_commit_date):
         delta_since_first_commit = current_commit_date - self.first_commit_date
         
-        # We consider as legacy something that was modified in the first x% days of the project
+        # We consider as legacy something that was modified before the last x% days of the project
         x = self.configuration.legacy_percent
-        legacy = round(((delta_since_first_commit.days / 100) * x), 1)
+        legacy = round(((delta_since_first_commit.days / 100) * (x)), 1)
         legacy_time_delta = datetime.timedelta(days=legacy)
         return delta_since_first_commit - legacy_time_delta
 
-    @staticmethod
-    def get_modified_legacy_files_for_commit(files_last_modification: Dict[str, datetime.datetime], 
+    def get_modified_legacy_files_for_commit(self, files_last_modification: Dict[str, datetime.datetime], 
                                             commit_details: pydriller.Commit, 
                                             legacy_time_delta: datetime.timedelta) -> List[Dict[str, str]]:
 
@@ -83,16 +82,27 @@ class LegacyConnector:
 
         try:
             for modified_file in commit_details.modified_files:
-
                 if modified_file.old_path is None or modified_file.old_path not in files_last_modification:
                     continue
 
                 last_modification_date = files_last_modification[modified_file.old_path]
 
-                if commit_details.committer_date - last_modification_date < legacy_time_delta:
+                legacy_minimum_delta = datetime.timedelta(days=self.configuration.legacy_minimum_days)
+                if commit_details.committer_date - last_modification_date < legacy_minimum_delta:
+                    logging.debug(
+                        "Modified since less than %s days, file is not legacy", self.configuration.legacy_minimum_days
+                    )
+                    continue
+
+                if commit_details.committer_date - last_modification_date > legacy_time_delta:
+                    logging.debug(
+                        "Modified since less than the %s\% last days, file is not legacy", 
+                        self.configuration.legacy_minimum_days
+                    )
                     continue
 
                 if modified_file.new_path is None:
+                    logging.debug("File deleted, file not legacy")
                     continue
 
                 modified_legacy_files.append({
