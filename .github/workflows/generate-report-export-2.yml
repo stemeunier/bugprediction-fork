@@ -27,7 +27,6 @@ jobs:
     container:
       image: ghcr.io/stemeunier/bugprediction-fork:main
     steps:
-      - uses: actions/checkout@v3
       - name: Get env file in repo dataset
         env: 
           PROJECT: ${{ github.event.inputs.project-name }}
