@@ -40,10 +40,11 @@ jobs:
           pwd
           cd ${{ env.IMAGE_HOME_DIR }}
           ls -la 
-          ls -la .git/*
+          git init
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           git config --global --add safe.directory '*'
+          git remote add origin https://github.com/stemeunier/bugprediction-fork
           git add -f ./data/${PROJECT}.sqlite3
           git commit -m "Update base sqlite3"
           git push
