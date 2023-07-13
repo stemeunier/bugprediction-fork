@@ -72,6 +72,7 @@ jobs:
       - name: Generate report
         run: |          
           python main.py report --output ./data
+          ls -altrR ./data
       - name: Upload report
         uses: actions/upload-artifact@v3
         with:
@@ -80,7 +81,8 @@ jobs:
           retention-days: 8          
       - name: Generate export
         run: |          
-          python main.py export --output ./data/export --format csv        
+          python main.py export --output ./data/export --format csv
+          ls -altrR ./data
       - name: Upload export 
         uses: actions/upload-artifact@v3
         with:
