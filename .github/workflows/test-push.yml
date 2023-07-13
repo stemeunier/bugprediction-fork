@@ -1,4 +1,4 @@
-name: Generate report export with image ghcr
+name: Test push
 on:
   workflow_dispatch:
     inputs:
