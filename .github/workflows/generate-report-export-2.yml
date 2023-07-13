@@ -1,4 +1,4 @@
-name: Generate report export
+name: Generate report export with image ghcr
 on:
   workflow_dispatch:
     inputs:
@@ -32,6 +32,9 @@ jobs:
           PROJECT: ${{ github.event.inputs.project-name }}
         run: |
           id
+          pwd
+          ls -la
+          cd 
           pwd
           ls -la
           wget --backups=0 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/.env
