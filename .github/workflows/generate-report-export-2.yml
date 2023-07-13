@@ -26,13 +26,15 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/stemeunier/bugprediction-fork:main
+    defaults:
+        run:
+           working-directory: /home/optittm-user/
     steps:
       - name: Get env file in repo dataset
         env: 
           PROJECT: ${{ github.event.inputs.project-name }}
         run: |
           id
-          cd /home/optittm-user/
           pwd
           ls -la
           wget --backups=0 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/.env
