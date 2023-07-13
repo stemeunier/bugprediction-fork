@@ -13,11 +13,11 @@ on:
         - quarkus
       use-dataset-sqlite:
         type: boolean
-        default: 'true'
+        default: true
         description: 'Use base sqlite in dataset repo'         
       save-update-sqlite:
         type: boolean
-        default: 'false'
+        default: false
         description: 'Push update base sqlite after populate'        
 permissions:
   contents: write
@@ -30,7 +30,7 @@ jobs:
         IMAGE_HOME_DIR: /home/optittm-user
     defaults:
         run:
-           working-directory: ${{ env.IMAGE_HOME_DIR }}
+           working-directory: ${IMAGE_HOME_DIR}
     steps:
       - name: cat on branch file
         run: |
@@ -45,11 +45,10 @@ jobs:
       - name: Get sqlite in repo dataset
         env: 
           PROJECT: ${{ github.event.inputs.project-name }}
-        if: ${{ github.event.inputs.use-dataset-sqlite == 'true' }}
+        if: ${{ github.event.inputs.use-dataset-sqlite == true }}
         run: |  
           cd ./data/
           wget -O ${PROJECT}.sqlite3 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/${PROJECT}.sqlite3
-          ls -altr
       - name: Info
         run: |
           python main.py info
@@ -61,7 +60,7 @@ jobs:
       - name: Update base sqlite3
         env: 
           PROJECT: ${{ github.event.inputs.project-name }}
-        if: ${{ github.event.inputs.save-update-sqlite == 'true' }}
+        if: ${{ github.event.inputs.save-update-sqlite == true }}
         run: |          
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
@@ -81,7 +80,7 @@ jobs:
       - name: Upload report
         uses: actions/upload-artifact@v3      
         with:
-          path: ${env.IMAGE_HOME_DIR}/data/release.html
+          path: ${IMAGE_HOME_DIR}/data/release.html
           name: report
           retention-days: 8          
       - name: Generate export
@@ -90,6 +89,6 @@ jobs:
       - name: Upload export 
         uses: actions/upload-artifact@v3
         with:
-          path: ${env.IMAGE_HOME_DIR}/data/export/metrics.csv
+          path: ${IMAGE_HOME_DIR}/data/export/metrics.csv
           name: export-csv
           retention-days: 8
