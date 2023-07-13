@@ -251,11 +251,14 @@ def info(ctx, configuration = Provide[Container.configuration], session = Provid
 @click.pass_context
 @inject
 def check(ctx, configuration = Provide[Container.configuration],
-          git_factory_provider = Provide[Container.git_factory_provider.provider]):
+          git_factory_provider = Provide[Container.git_factory_provider.provider],
+          survey_connector_provider = Provide[Container.survey_connector_provider.provider]):
     """Check the consistency of the configuration and perform basic tests"""
     tmp_dir = tempfile.mkdtemp()
     logging.info('created temporary directory: ' + tmp_dir)
     repo_dir = os.path.join(tmp_dir, configuration.source_project)
+
+    survey = survey_connector_provider()
 
     source_bugs_check(configuration)
     instanciate_git_connector(configuration, git_factory_provider, tmp_dir, repo_dir)
@@ -282,8 +285,8 @@ def populate(ctx, skip_versions,
              radon_connector_provider = Provide[Container.radon_connector_provider.provider],
              survey_connector_provider = Provide[Container.survey_connector_provider.provider]):
     """Populate the database with the provided configuration"""
-
     
+    survey = survey_connector_provider()
 
     # Checkout, execute the tool and inject CSV result into the database
     # with tempfile.TemporaryDirectory() as tmp_dir:
@@ -307,7 +310,6 @@ def populate(ctx, skip_versions,
             # if we use code maat git.setup_aliases(configuration.author_alias)
     
     git.populate_db(skip_versions)
-    survey = survey_connector_provider()
     survey.populate_comments()
 
     # List the versions and checkout each one of them

@@ -1,79 +1,147 @@
-import json
 import unittest
+from unittest import mock
 from unittest.mock import MagicMock, patch
-
-from requests import Response
 from connectors.survey import SurveyConnector
-from models.comment import Comment
 
-
-class TestSurveyConnector(unittest.TestCase):
+class SurveyConnectorTests(unittest.TestCase):
     def setUp(self):
-        self.config=MagicMock()
-        self.config.survey_back_api_url="http://example"
-        self.config.survey_project_name=''
+        self.configuration = MagicMock()
         self.session = MagicMock()
-        self.requestmock=MagicMock()
-        self.responsemock=MagicMock(spec=Response)
-        
-        self.expected_comments ="""[
-                {"id": 1, "project_name": "Project A", "user_id": 123, "timestamp": "2022-04-25 12:00:00",
-                "feature_url": "https://example.com/features/1", "rating": 4, "comment": "Great feature!"},
-                {"id": 2, "project_name": "Project A", "user_id": 456, "timestamp": "2022-04-25 13:00:00",
-                "feature_url": "https://example.com/features/2", "rating": 3, "comment": "Needs improvement"},
-                {"id": 3, "project_name": "Project B", "user_id": 789, "timestamp": "2022-04-25 14:00:00",
-                "feature_url": "https://example.com/features/3", "rating": 5, "comment": "Awesome!"}
-            ]"""
-        self.responsemock.json.return_value=json.loads(self.expected_comments)
-        self.responsemock._content=self.expected_comments
-        self.requestmock.return_value=self.responsemock
-        self.connector = SurveyConnector(self.config, self.session)
 
-    def test_get_comments(self):
-        with patch('requests.get', self.requestmock):
-            expected_output=[
-            Comment(
-                comment_id=1,
-                project_name='Project A',
-                user_id=123,
-                timestamp='2022-04-25 12:00:00',
-                feature_url='https://example.com/features/1',
-                rating=4,
-                comment='Great feature!'
-            ),
-            Comment(
-                comment_id=2,
-                project_name='Project A',
-                user_id=456,
-                timestamp='2022-04-25 13:00:00',
-                feature_url='https://example.com/features/2',
-                rating=3,
-                comment='Needs improvement'
-            ),
-            Comment(
-                comment_id=3,
-                project_name='Project B',
-                user_id=789,
-                timestamp='2022-04-25 14:00:00',
-                feature_url='https://example.com/features/3',
-                rating=5,
-                comment='Awesome!'
-            )
-            ]
-            
-            comments = self.connector.get_comments()
-            self.assertEqual(len(comments), len(expected_output))
-            for i, comment in enumerate(comments):
-                expected_out = expected_output[i]
-                self.assertEqual(comment.comment_id, expected_out.comment_id)
-                self.assertEqual(comment.project_name, expected_out.project_name)
-                self.assertEqual(comment.user_id, expected_out.user_id)
-                self.assertEqual(comment.timestamp, expected_out.timestamp)
-                self.assertEqual(comment.feature_url, expected_out.feature_url)
-                self.assertEqual(comment.rating, expected_out.rating)
-                self.assertEqual(comment.comment, expected_out.comment)
+        # Patch the 'requests' module in SurveyConnector
+        patcher = mock.patch('connectors.survey.requests')
+        self.mock_requests = patcher.start()
 
+        self.connector = SurveyConnector(self.configuration, self.session)
 
+    def test_get_all_comments(self):
+        # Mock response data
+        response_data = {
+            "results": [
+            {
+                "id": 1, 
+                "project_name": "project1",
+                "user_id": "uuid1", 
+                "timestamp": "timestamp1", 
+                "feature_url": "url1", 
+                "rating": "5",
+                "comment": "First comment"
+            },
+            {
+                "id": 2, 
+                "project_name": "project2",
+                "user_id": "uuid2", 
+                "timestamp": "timestamp2", 
+                "feature_url": "url2", 
+                "rating": "4",
+                "comment": "Second comment"
+            },
+        ],
+            "page_size": 2
+        }
 
-if __name__ == '__main__':
+        # Mock the send_request method to return the response data
+        with patch.object(self.connector, "send_request", return_value=response_data):
+            comments = self.connector.get_all_comments()
+
+        # Assert the comments are retrieved correctly
+        self.assertEqual(len(comments), 2)
+        self.assertEqual(comments[0]["id"], 1)
+        self.assertEqual(comments[1]["id"], 2)
+
+    def test_get_comments_by_project(self):
+        # Mock response data
+        response_data = {
+            "results": [
+            {
+                "id": 1, 
+                "project_name": "project1",
+                "user_id": "uuid1", 
+                "timestamp": "timestamp1", 
+                "feature_url": "url1", 
+                "rating": "5",
+                "comment": "First comment"
+            },
+            {
+                "id": 2, 
+                "project_name": "project2",
+                "user_id": "uuid2", 
+                "timestamp": "timestamp2", 
+                "feature_url": "url2", 
+                "rating": "4",
+                "comment": "Second comment"
+            },
+        ],
+            "page_size": 2
+        }
+
+        # Mock the send_request method to return the response data
+        with patch.object(self.connector, "send_request", return_value=response_data):
+            comments = self.connector.get_comments_by_project("project1")
+
+        # Assert the comments are retrieved correctly
+        self.assertEqual(len(comments), 2)
+        self.assertEqual(comments[0]["id"], 1)
+        self.assertEqual(comments[1]["id"], 2)
+
+    def test_parse_comments_from_json(self):
+        # Mock comments JSON data
+        comments_json = [
+            {
+                "id": 1, 
+                "project_name": "project1",
+                "user_id": "uuid1", 
+                "timestamp": "timestamp1", 
+                "feature_url": "url1", 
+                "rating": "5",
+                "comment": "First comment"
+            },
+            {
+                "id": 2, 
+                "project_name": "project2",
+                "user_id": "uuid2", 
+                "timestamp": "timestamp2", 
+                "feature_url": "url2", 
+                "rating": "4",
+                "comment": "Second comment"
+            },
+        ]
+
+        # Parse comments from JSON
+        comments = self.connector.parse_comments_from_json(comments_json, [])
+
+        # Assert the comments are parsed correctly
+        self.assertEqual(len(comments), 2)
+        self.assertEqual(comments[0].comment_id, 1)
+        self.assertEqual(comments[1].comment_id, 2)
+
+    def test_comment_exists(self):
+        # Mock a Comment object
+        comment = MagicMock()
+        comment.comment_id = 1
+
+        # Mock the query result in the session
+        self.session.query().filter_by().first.return_value = comment
+
+        # Check if the comment exists
+        exists = self.connector.comment_exists(comment)
+
+        # Assert that the comment exists
+        self.assertTrue(exists)
+
+    def test_comment_does_not_exist(self):
+        # Mock a Comment object
+        comment = MagicMock()
+        comment.comment_id = 1
+
+        # Mock the query result in the session
+        self.session.query().filter_by().first.return_value = None
+
+        # Check if the comment exists
+        exists = self.connector.comment_exists(comment)
+
+        # Assert that the comment does not exist
+        self.assertFalse(exists)
+
+if __name__ == "__main__":
     unittest.main()

@@ -3,7 +3,7 @@ alembic~=1.10.3
 python-dotenv~=0.21.0
 PyGithub~=1.55
 lizard~=1.17.10
-pydriller~=2.1
+pydriller==2.4.1
 python-gitlab~=3.9.0
 datetime~=4.4
 pandas~=1.5.3
