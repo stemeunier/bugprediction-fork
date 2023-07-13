@@ -77,7 +77,7 @@ jobs:
         uses: actions/upload-artifact@v3      
         with:
           path: ${{ env.IMAGE_HOME_DIR }}/data/release.html
-          name: report
+          name: report-html
           retention-days: 8          
       - name: Generate export
         run: |          
