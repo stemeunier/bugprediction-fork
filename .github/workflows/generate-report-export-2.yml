@@ -32,10 +32,6 @@ jobs:
         run:
            working-directory: ${{ env.IMAGE_HOME_DIR }}
     steps:
-      - name: cat on branch file
-        run: |
-          echo $IMAGE_HOME_DIR
-          echo ${{ env.IMAGE_HOME_DIR }}
       - name: Get env file in repo dataset
         env: 
           PROJECT: ${{ github.event.inputs.project-name }}
