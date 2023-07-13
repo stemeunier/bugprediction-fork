@@ -34,9 +34,6 @@ jobs:
         env: 
           PROJECT: ${{ github.event.inputs.project-name }}
         run: |
-          id
-          pwd
-          ls -la
           wget --backups=0 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/.env
           sed -i 's/^OTTM_TARGET_DATABASE.*/OTTM_TARGET_DATABASE=sqlite:\/\/\/data\/${OTTM_SOURCE_PROJECT}.sqlite3/g' .env
       - name: Get sqlite in repo dataset
@@ -45,7 +42,8 @@ jobs:
         if: ${{ github.event.inputs.use-dataset-sqlite == 'true' }}
         run: |  
           cd ./data/
-          wget --backups=0 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/${PROJECT}.sqlite3         
+          wget --backups=0 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/${PROJECT}.sqlite3
+          ls -ltrR ./data/
       - name: Info
         run: |
           python main.py info
