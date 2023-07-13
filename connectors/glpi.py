@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from glpi_api import GLPI
+from glpi_api import GLPI, GLPIError
 from sqlalchemy import desc, update
 
 from models.issue import Issue
@@ -18,14 +18,17 @@ class GlpiConnector:
         self.config = config
         self.session = session
         self.project_id = project_id
-        if self.config.glpi_user_token:
-            self.__glpi = GLPI(url=self.config.glpi_base_url,
-                            apptoken=self.config.glpi_app_token,
-                            auth=self.config.glpi_user_token)
-        else:
-            self.__glpi = GLPI(url=self.config.glpi_base_url,
-                            apptoken=self.config.glpi_app_token,
-                            auth=(self.config.glpi_username, self.config.glpi_password))
+        try:
+            if self.config.glpi_user_token:
+                self.__glpi = GLPI(url=self.config.glpi_base_url,
+                                apptoken=self.config.glpi_app_token,
+                                auth=self.config.glpi_user_token)
+            else:
+                self.__glpi = GLPI(url=self.config.glpi_base_url,
+                                apptoken=self.config.glpi_app_token,
+                                auth=(self.config.glpi_username, self.config.glpi_password))
+        except GLPIError:
+            raise ConnectionError("GLPI API is unreachable.")
     
     @timeit
     def create_issues(self):

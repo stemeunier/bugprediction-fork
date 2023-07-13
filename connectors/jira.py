@@ -18,9 +18,13 @@ class JiraConnector:
         self.config = config
         self.session = session
         self.project_id = project_id
-        self.__client = JIRA(
-                                server=self.config.jira_base_url,
-                                basic_auth=(self.config.jira_email, self.config.jira_token))
+        try:
+            self.__client = JIRA(
+                                    server=self.config.jira_base_url,
+                                    basic_auth=(self.config.jira_email, self.config.jira_token),
+                                    max_retries=0)
+        except requests.exceptions.ConnectionError:
+            raise ConnectionError("Jira API is unreachable.")
 
     @timeit
     def create_issues(self):
