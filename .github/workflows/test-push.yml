@@ -37,8 +37,10 @@ jobs:
           PROJECT: ${{ github.event.inputs.project-name }}
         if: ${{ github.event.inputs.save-update-sqlite == 'true' }}
         run: |
-          ls -la ~
-          ls -la $HOME
+          pwd
+          cd ${{ env.IMAGE_HOME_DIR }}
+          ls -la 
+          ls -la .git/*
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           git config --global --add safe.directory '*'
