@@ -13,7 +13,7 @@ on:
         - quarkus
       use-dataset-sqlite:
         type: boolean
-        default: true
+        default: false
         description: 'Use base sqlite in dataset repo'         
       save-update-sqlite:
         type: boolean
@@ -45,7 +45,7 @@ jobs:
       - name: Get sqlite in repo dataset
         env: 
           PROJECT: ${{ github.event.inputs.project-name }}
-        if: ${{ github.event.inputs.use-dataset-sqlite == true }}
+        if: ${{ github.event.inputs.use-dataset-sqlite == 'true' }}
         run: |  
           cd ./data/
           wget -O ${PROJECT}.sqlite3 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/${PROJECT}.sqlite3
@@ -60,7 +60,7 @@ jobs:
       - name: Update base sqlite3
         env: 
           PROJECT: ${{ github.event.inputs.project-name }}
-        if: ${{ github.event.inputs.save-update-sqlite == true }}
+        if: ${{ github.event.inputs.save-update-sqlite == 'true' }}
         run: |          
           git config --global user.name "${GITHUB_ACTOR}"
           git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
