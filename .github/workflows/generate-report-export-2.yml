@@ -72,20 +72,20 @@ jobs:
       - name: Generate report
         run: |          
           python main.py report --output ./data
-          ls -altrR ./data
       - name: Upload report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3      
         with:
-          name: report
+          working-directory: /home/optittm-user/
           path: ./data/release.html
+          name: report
           retention-days: 8          
       - name: Generate export
         run: |          
           python main.py export --output ./data/export --format csv
-          ls -altrR ./data
       - name: Upload export 
         uses: actions/upload-artifact@v3
         with:
-          name: export-csv
+          working-directory: /home/optittm-user/
           path: ./data/export/metrics.csv
+          name: export-csv
           retention-days: 8
