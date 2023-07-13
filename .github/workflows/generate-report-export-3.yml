@@ -1,0 +1,90 @@
+name: Generate report export with image ghcr
+on:
+  workflow_dispatch:
+    inputs:
+      project-name:
+        type: choice
+        description: 'Project'
+        options: 
+        - jpeek
+        - RxJava
+        - guava
+        - mockito
+        - quarkus
+      use-dataset-sqlite:
+        type: boolean
+        default: false
+        description: 'Use base sqlite in dataset repo'         
+      save-update-sqlite:
+        type: boolean
+        default: false
+        description: 'Push update base sqlite after populate'        
+permissions:
+  contents: write
+jobs:
+  generate-report-export:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/stemeunier/bugprediction-fork:main
+    steps:
+      - uses: actions/checkout@v3
+      - name: View path workflow
+        run: |
+          pwd
+          ls -al
+      - name: Get env file in repo dataset
+        env: 
+          PROJECT: ${{ github.event.inputs.project-name }}
+        run: |
+          wget -O .env https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/.env
+          sed -i 's/^OTTM_TARGET_DATABASE.*/OTTM_TARGET_DATABASE=sqlite:\/\/\/data\/${OTTM_SOURCE_PROJECT}.sqlite3/g' .env
+      - name: Get sqlite in repo dataset
+        env: 
+          PROJECT: ${{ github.event.inputs.project-name }}
+        if: ${{ github.event.inputs.use-dataset-sqlite == 'true' }}
+        run: |  
+          cd ./data/
+          wget -O ${PROJECT}.sqlite3 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/${PROJECT}.sqlite3
+      - name: Info
+        run: |
+          python main.py info
+      - name: Populate
+        env:
+          OTTM_SCM_TOKEN: ${{ GITHUB.TOKEN }}
+        run: |
+          python main.py populate
+      - name: Update base sqlite3
+        env: 
+          PROJECT: ${{ github.event.inputs.project-name }}
+        if: ${{ github.event.inputs.save-update-sqlite == 'true' }}
+        run: |          
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
+          git config --global --add safe.directory '*'
+          git add -f ./data/${PROJECT}.sqlite3
+          git commit -m "Update base sqlite3"
+          git push
+      - name: Train bugvelocity
+        run: |
+          python main.py train --model-name bugvelocity
+      - name: Predict bugvelocity
+        run: |          
+          python main.py predict --model-name bugvelocity
+      - name: Generate report
+        run: |          
+          python main.py report --output ./data
+      - name: Upload report
+        uses: actions/upload-artifact@v3      
+        with:
+          path: ./data/release.html
+          name: report-html
+          retention-days: 8          
+      - name: Generate export
+        run: |          
+          python main.py export --output ./data/export --format csv
+      - name: Upload export 
+        uses: actions/upload-artifact@v3
+        with:
+          path: ./data/export/metrics.csv
+          name: export-csv
+          retention-days: 8
