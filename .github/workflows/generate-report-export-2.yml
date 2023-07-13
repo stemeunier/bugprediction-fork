@@ -42,8 +42,10 @@ jobs:
         if: ${{ github.event.inputs.use-dataset-sqlite == 'true' }}
         run: |  
           cd ./data/
+          pwd
           wget --backups=0 https://raw.githubusercontent.com/optittm/dataset/main/${PROJECT}/${PROJECT}.sqlite3
-          ls -ltrR ./data/
+          ls -altr
+          ls -altrR /home/optittm-user/data/
       - name: Info
         run: |
           python main.py info
