@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/stemeunier/bugprediction-fork:main
+      options: --user root
     steps:
       - uses: actions/checkout@v3
       - name: View path workflow
