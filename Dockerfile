@@ -16,3 +16,4 @@ USER optittm-user
 COPY --chown=optittm-user . .
 
 ENTRYPOINT ["python", "main.py"]
+
