@@ -1,9 +1,10 @@
-name: Start_workflow_after_unitest
+name: Start workflow after unitest
 
 on:
     workflow_run:
       workflows: [Call workflow Python unittest application]
       types: [completed]
+      branches: [main]
   
 jobs:
     on-success:
