@@ -7,7 +7,7 @@ WORKDIR /home/optittm-user
 COPY requirements.txt ./
 
 # Install Git and Java executables and Install PHP executable and dependency for PDepend
-RUN apt-get -y update && apt-get install -y git openjdk-17-jre php-cli php-xml
+RUN apt-get -y update && apt-get install -y wget git openjdk-17-jre php-cli php-xml
 
 RUN python -m pip install -r requirements.txt
 
