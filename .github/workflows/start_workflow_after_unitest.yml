@@ -2,7 +2,7 @@ name: Start_workflow_after_unitest
 
 on:
     workflow_run:
-      workflows: [Show context]
+      workflows: [Call workflow Python unittest application]
       types: [completed]
   
 jobs:
