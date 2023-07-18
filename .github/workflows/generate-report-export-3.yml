@@ -18,7 +18,7 @@ on:
       save-update-sqlite:
         type: boolean
         default: false
-        description: 'Push update base sqlite after populate'        
+        description: 'Push update base sqlite in /data/ of repo after populate'        
 permissions:
   contents: write
 jobs:
